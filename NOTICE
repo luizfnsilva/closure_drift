@@ -1,0 +1,52 @@
+closure_drift
+Copyright 2026 Luiz F. Nunes da Silva (ORCID 0009-0002-5409-7074)
+
+Licensed under the Apache License, Version 2.0. See LICENSE.
+
+--------------------------------------------------------------------------------
+SCOPE OF THIS RELEASE
+--------------------------------------------------------------------------------
+
+This tool measures one thing: whether a declared version label identifies exactly
+one state of the producing code at the points where a repository publishes.
+
+It checks that a record is WELL-FORMED. It does not re-execute recorded code
+states, does not attest that a published artefact can be re-produced, does not
+certify provenance, and issues no attestation of any kind. SCOPE.md states this
+boundary in full, including what this tool will not be extended to do.
+
+--------------------------------------------------------------------------------
+PATENT NOTICE
+--------------------------------------------------------------------------------
+
+The author has patent applications pending. This notice exists so that anyone
+evaluating this software knows that, rather than having to reconstruct it later.
+
+Section 3 of the Apache License, Version 2.0 grants a patent licence for those
+claims of the author that are necessarily infringed by this Work. That grant
+applies, on its own terms, to this Work as released.
+
+Nothing in this NOTICE enlarges that grant, and nothing in it narrows the grant
+the License makes. It is a statement of fact about the surrounding situation, not
+a term of the licence: this file adds no condition, and use of this software
+requires nothing beyond the Apache License, Version 2.0.
+
+Subject matter outside this Work is outside that grant. If you are considering an
+implementation that goes beyond what this tool does — in particular anything that
+re-executes recorded states, attests reproduction, or certifies provenance — that
+is a conversation to have before you build it, not after.
+
+--------------------------------------------------------------------------------
+COMMERCIAL USE
+--------------------------------------------------------------------------------
+
+The Apache License, Version 2.0 permits commercial use, with no royalty and no
+payment obligation of any kind. There is no revenue share here and none is being
+asserted. If you make money with this tool, you owe nothing.
+
+--------------------------------------------------------------------------------
+CONTACT
+--------------------------------------------------------------------------------
+
+Luiz F. Nunes da Silva — lfnsilva.invest@gmail.com
+ORCID 0009-0002-5409-7074

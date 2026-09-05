@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "closure_drift: does your version label name exactly one version of your code?"
+abstract: >-
+  A read-only, zero-dependency tool that measures, over any git repository,
+  whether a declared version label identifies exactly one state of the
+  producing code at the points where that repository publishes. Distinguishes
+  release-based publication (tags) from continuous publication (commits),
+  because measuring at every commit reports drift in every repository and
+  therefore carries no information. Each report stamps the commit measured and
+  the hash of the tool that measured it. 0.4.0 keeps the measurement script
+  byte-identical to 0.3.0 and adds a negative fixture (a label-only corpus
+  under one label must be flagged), the documented limitation that the tool
+  checks address well-formedness and never attests re-execution, and further
+  reference results.
+type: software
+authors:
+  - family-names: "Silva"
+    given-names: "Luiz F. Nunes da"
+    orcid: "https://orcid.org/0009-0002-5409-7074"
+version: 0.5.0
+date-released: "2026-09-03"
+license: Apache-2.0
+keywords:
+  - reproducibility
+  - reproducible builds
+  - software provenance
+  - content addressing
+  - versioning
+  - continuous publication
+  - auditability
