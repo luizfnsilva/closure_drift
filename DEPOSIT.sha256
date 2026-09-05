@@ -1,0 +1,15 @@
+# The nine files of the Zenodo deposit, byte for byte.
+# Version DOI 10.5281/zenodo.22283946 (0.5.0, 2026-09-03) · concept DOI 10.5281/zenodo.21763931
+# Generated from the bytes downloaded from the record, md5-verified against the Zenodo file
+# entries at import time. Enforced on every push by .github/workflows/ci.yml.
+# Verify:  python3 tools/verify_deposit.py     (or: shasum -a 256 -c DEPOSIT.sha256)
+#
+ab8b9e36b8bcbc81dbd8f292b61a8d175e95a013b2b9daf3b2e1147fb4351a12  CHANGELOG.md
+589b1d84b0bc982de97d1cf93a3cd6da0b537ea2b7dc265cbc440807e2a099bb  CITATION.cff
+0eb8aaa5418ad640ef6892de6d80900f61a24fb57a50b02ac16b575d26f4e29e  LICENSE
+3f746b33bd6150bdbfea6afbb78e8860e5064403b2bcc224dca9ee7904323e8b  NOTICE
+d5d367b15053c3f98cfa9a56887dd92ae6c32f69d3fa56370e467bb4c6c24da3  README.md
+970c2edd87b39669faeb10e1bfda39b558666fce304ad968f204b8ef1ece3c57  RESULTS.md
+7e3dc92be349f1c9ed2a7ea9de8c543b7f3836ee0e38156dac32a5e5862ef188  SCOPE.md
+da5da3c0e781b67b9b3a55800d599c243edc8df649fc90b24a88e289533805c5  closure_drift.py
+bdce4698df27bf0a1c92ce8e878923c3beecb4e2db2d9bd5c9e5570ed831027e  tests/fixture_label_only.py

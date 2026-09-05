@@ -1,0 +1,6 @@
+{
+ "at": "tags",
+ "version_file": "VERSION",
+ "version_regex": "^\\s*(\\S+)\\s*$",
+ "closure": ["closure_drift.py"]
+}

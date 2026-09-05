@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+result.json
+self-measurement.json
+.DS_Store
