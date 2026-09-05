@@ -1,0 +1,72 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    # Monthly, so that a break caused by something outside this repository is found by the
+    # author rather than by the first person who tries to use the tool.
+    - cron: '0 6 1 * *'
+
+permissions:
+  contents: read
+
+jobs:
+  deposit:
+    name: deposit is byte-identical to the DOI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify the nine deposited files against DEPOSIT.sha256
+        run: python3 tools/verify_deposit.py
+
+  test:
+    name: fixture · py${{ matrix.python }} · ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {os: ubuntu-latest, python: '3.9'}
+          - {os: ubuntu-latest, python: '3.11'}
+          - {os: ubuntu-latest, python: '3.13'}
+          - {os: macos-latest,  python: '3.11'}
+          - {os: macos-latest,  python: '3.13'}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Negative fixture — a label-only corpus must be flagged
+        run: python3 tests/fixture_label_only.py
+
+  self:
+    name: measure this repository with itself
+    runs-on: ubuntu-latest
+    needs: [deposit, test]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Tags are the publication points declared in .closure-drift.json.
+          fetch-depth: 0
+      - name: Run closure_drift on closure_drift
+        run: |
+          set +e
+          python3 closure_drift.py --json > self-measurement.json
+          status=$?
+          set -e
+          cat self-measurement.json
+          case "$status" in
+            0) echo "::notice::no label at a tag covers more than one closure (the report carries the verdict)" ;;
+            1) echo "::error::drift — a label at a tag covers more than one closure"; exit 1 ;;
+            2) echo "::notice::not determinable yet (no tags, or no label found)" ;;
+            *) echo "::error::unexpected exit code $status"; exit "$status" ;;
+          esac
+      - uses: actions/upload-artifact@v4
+        with:
+          name: self-measurement
+          path: self-measurement.json
+          if-no-files-found: error

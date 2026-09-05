@@ -1,0 +1,34 @@
+name: The tool is wrong about my repository
+description: It reported drift for a release scheme that is legitimate, or read your version file wrongly.
+title: "false positive: "
+labels: ["possible-false-positive"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is the most valuable thing this project can receive, and it is treated that way: a
+        confirmed misreading goes into `RESULTS.md` **marked as a correction**, not quietly dropped.
+
+        Two known mechanisms produce genuine drift — a release tagged without bumping the version
+        file, and one label reused across tag families (variant builds, monorepo release schemes).
+        If your case is neither, that is more interesting than a clean run.
+  - type: textarea
+    id: report
+    attributes:
+      label: The JSON report
+      description: Output of `python3 closure_drift.py --json`.
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why the verdict is wrong
+      description: What your release scheme actually does, and what the tool concluded instead.
+    validations:
+      required: true
+  - type: input
+    id: repository
+    attributes:
+      label: Repository
+      placeholder: https://github.com/owner/name

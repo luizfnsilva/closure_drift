@@ -1,0 +1,59 @@
+name: Report a measurement
+description: You ran the tool on a repository. Send the result — clean or drifting, public or private.
+title: "result: "
+labels: ["result"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **One command, and the report never contains your code.**
+
+        ```bash
+        python3 closure_drift.py --json > result.json
+        ```
+
+        It carries counts, labels, hashes and the tool's own stamp — never file contents. A private
+        repository can be measured without anything leaving your machine except what you paste here.
+
+        A **clean** result is as wanted as a drifting one: a table that only ever reports drift is
+        not evidence of anything. A result showing the tool is **wrong about you** is worth more
+        than either — use the *"the tool is wrong about my repository"* template for that.
+
+        What you get back is in [`RESULTS.md`](../blob/main/RESULTS.md): your line in the table with
+        attribution as you choose it, a dated version-pinned measurement you can cite, and a straight
+        answer about which mechanism produced your result.
+  - type: textarea
+    id: report
+    attributes:
+      label: The JSON report
+      description: The whole of `result.json`, unedited. The `stamp` block is what makes the line count.
+      render: json
+    validations:
+      required: true
+  - type: input
+    id: repository
+    attributes:
+      label: Repository measured
+      description: A URL anyone can reach, or the word `private`. Private results are listed with counts and no name.
+      placeholder: https://github.com/owner/name
+    validations:
+      required: true
+  - type: input
+    id: attribution
+    attributes:
+      label: Attribution
+      description: How you want the line credited — your name, an organisation, a handle, or `anonymous`.
+      placeholder: anonymous
+  - type: input
+    id: invocation
+    attributes:
+      label: How you invoked it
+      description: The exact command, if you passed anything beyond the defaults.
+      placeholder: python3 closure_drift.py --at commits --closure 'src/**/*.py'
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Before sending
+      options:
+        - label: I checked that the report contains nothing I mind being public.
+          required: true

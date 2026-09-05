@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Cite this tool
+    url: https://doi.org/10.5281/zenodo.21763931
+    about: The Zenodo deposit. Cite the version DOI when reporting a measurement, never the concept DOI.
+  - name: Send a result by email instead
+    url: mailto:lfnsilva.invest@gmail.com
+    about: If a public issue is not appropriate, the result.json can go by email.

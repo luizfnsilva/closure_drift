@@ -1,0 +1,31 @@
+name: Bug
+description: The tool crashed, misread a version file, or refused to run.
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Requests to make the tool do **more** are not bugs. `SCOPE.md` sets the boundary, and
+        anything on the re-execution / attestation side is outside it by design.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: The command you ran, and the whole output including the traceback.
+      render: shell
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Python and OS
+      placeholder: CPython 3.11.9, Ubuntu 24.04
+    validations:
+      required: true
+  - type: input
+    id: deposit
+    attributes:
+      label: Which bytes you ran
+      description: The version DOI you pinned, or the commit of this repository.
+      placeholder: 10.5281/zenodo.22283946
