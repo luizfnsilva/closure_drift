@@ -1,5 +1,9 @@
 cff-version: 1.2.0
-message: "If you use this software, please cite it as below."
+message: >-
+  If you use this software, please cite it as below. When you report a
+  measurement, cite the DOI of the version you actually ran rather than the
+  concept DOI — the tool's own report records which version produced it, and a
+  citation that does not pin the version cannot be checked against that record.
 title: "closure_drift: does your version label name exactly one version of your code?"
 abstract: >-
   A read-only, zero-dependency tool that measures, over any git repository,
@@ -8,19 +12,24 @@ abstract: >-
   release-based publication (tags) from continuous publication (commits),
   because measuring at every commit reports drift in every repository and
   therefore carries no information. Each report stamps the commit measured and
-  the hash of the tool that measured it. 0.4.0 keeps the measurement script
-  byte-identical to 0.3.0 and adds a negative fixture (a label-only corpus
-  under one label must be flagged), the documented limitation that the tool
-  checks address well-formedness and never attests re-execution, and further
-  reference results.
+  the hash of the tool that measured it. The measurement script is
+  byte-identical across 0.3.0, 0.4.0, 0.5.0 and 0.6.0, so every result produced
+  under any of those deposits remains valid and comparable. 0.6.0 replaces the
+  LICENSE file with the unabridged text of the Apache License, Version 2.0,
+  which earlier deposits had shortened while naming that licence; adds the
+  public source repository, where measurements can now be reported through an
+  issue form rather than only by email; and records both in the changelog.
 type: software
 authors:
   - family-names: "Silva"
     given-names: "Luiz F. Nunes da"
     orcid: "https://orcid.org/0009-0002-5409-7074"
-version: 0.5.0
-date-released: "2026-09-03"
+version: 0.6.0
+date-released: "2026-09-05"
 license: Apache-2.0
+doi: 10.5281/zenodo.21763931
+repository-code: "https://github.com/luizfnsilva/closure_drift"
+url: "https://doi.org/10.5281/zenodo.21763931"
 keywords:
   - reproducibility
   - reproducible builds

@@ -16,7 +16,8 @@ source code.
 python3 closure_drift.py --json > result.json
 ```
 
-Send `result.json` to **lfnsilva.invest@gmail.com**, or open an issue on the deposit record. That
+Open a [**Report a measurement**](https://github.com/luizfnsilva/closure_drift/issues/new?template=measurement-result.yml)
+issue with it, or send it to **lfnsilva.invest@gmail.com** if a public issue is not appropriate. That
 is the whole ask. It takes one command and reveals nothing about your code: the report carries
 counts, labels, hashes and the tool's own stamp — never file contents, never file paths outside
 what you chose to declare as your closure.

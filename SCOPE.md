@@ -57,7 +57,7 @@ will not arrive as a silent extension of this one.
 
 ## Stability
 
-`closure_drift.py` is byte-identical across 0.3.0, 0.4.0 and 0.5.0
+`closure_drift.py` is byte-identical across 0.3.0, 0.4.0, 0.5.0 and 0.6.0
 (sha256 `da5da3c0e781b67b9b3a55800d599c243edc8df649fc90b24a88e289533805c5`). Every result produced
 by any of those deposits remains valid and comparable. When the script does change, the CHANGELOG
 will say what changed and what it does to results already published — because a measurement whose

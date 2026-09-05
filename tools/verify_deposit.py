@@ -19,7 +19,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 MANIFEST = ROOT / "DEPOSIT.sha256"
-RECORD_API = "https://zenodo.org/api/records/22283946"
+RECORD_API = "https://zenodo.org/api/records/22341979"
 
 
 def read_manifest() -> list[tuple[str, str]]:

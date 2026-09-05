@@ -156,17 +156,19 @@ purpose**.
 python3 closure_drift.py --json > result.json
 ```
 
-Send `result.json` to **lfnsilva.invest@gmail.com**. One command. The report carries counts, labels,
-hashes and the tool's own stamp — **never file contents**, so a private repository can be measured
-without anything leaving your machine.
+Open a [**Report a measurement**](https://github.com/luizfnsilva/closure_drift/issues/new?template=measurement-result.yml)
+issue with it, or send it to **lfnsilva.invest@gmail.com** if a public issue is not appropriate. One
+command. The report carries counts, labels, hashes and the tool's own stamp — **never file
+contents**, so a private repository can be measured without anything leaving your machine.
 
 What you get back is in `RESULTS.md` in full, and briefly: your line in the table with attribution
 as you choose it; a dated, version-pinned measurement you can cite when you claim your releases are
 unambiguously addressed; and a straight answer about which mechanism produced your result.
 
 **A result that contradicts the tool is worth more than one that confirms it**, and goes in the
-table marked as such. A reference table that only ever agrees with its instrument is not evidence of
-anything.
+table marked as such — there is a
+[separate form](https://github.com/luizfnsilva/closure_drift/issues/new?template=false-positive.yml)
+for it. A reference table that only ever agrees with its instrument is not evidence of anything.
 
 ## The report stamps itself
 
@@ -237,15 +239,21 @@ repository's history instead of someone's shell history.
 
 ## Version
 
-**0.5.0** — see `CITATION.cff` and `CHANGELOG.md`. The measurement script is **byte-identical to
-0.3.0 and 0.4.0** (sha256 `da5da3c0e781b67b9b3a55800d599c243edc8df649fc90b24a88e289533805c5`); 0.4 adds the
-negative fixture, the (A)/(B) limitation above, three further reference results, and the record of
-our own working-copy drift. Version 0.1 measured at every commit and is superseded; if you have
-results from it, they overstate drift for any repository that publishes at tags.
+**0.6.0** — see `CITATION.cff` and `CHANGELOG.md`. The measurement script is **byte-identical to
+0.3.0, 0.4.0 and 0.5.0** (sha256 `da5da3c0e781b67b9b3a55800d599c243edc8df649fc90b24a88e289533805c5`),
+so every result produced under any of those deposits remains valid and comparable. 0.6 replaces the
+`LICENSE` file, which carried an abridged text of the Apache License while naming that licence, with
+the unabridged one, and publishes the source repository; 0.5 added `SCOPE.md`, `NOTICE` and
+`RESULTS.md`; 0.4 added the negative fixture, the (A)/(B) limitation above, three further reference
+results, and the record of our own working-copy drift. Version 0.1 measured at every commit and is
+superseded; if you have results from it, they overstate drift for any repository that publishes at
+tags.
 
 ## Licence and citation
 
-Apache-2.0. See `LICENSE`, and `NOTICE` for the scope of this release. Commercial use is
+Apache-2.0, unabridged; the file deposited as 0.3.0 through 0.5.0 carried a shortened text under
+that name and `CHANGELOG.md` records what was missing. See `LICENSE`, and `NOTICE` for the scope of
+this release. Commercial use is
 permitted with **no royalty and no payment obligation** — if you make money with this tool, you owe
 nothing. `SCOPE.md` states what this tool does and what it will not be extended to do.
 `CITATION.cff` carries the machine-readable citation.
@@ -254,6 +262,10 @@ Each deposited version gets its own DOI, and the deposit also has a concept DOI 
 to the latest. **Cite the version DOI** if you are reporting a measurement — the tool's own output
 records which version produced it, and a citation that does not pin the version cannot be checked
 against that record.
+
+The source is at **<https://github.com/luizfnsilva/closure_drift>**, where the files of this deposit
+are held byte-identical to it under a checksum gate, so you can verify what you run without taking
+anyone's word for it.
 
 ## Related
 

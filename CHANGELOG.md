@@ -3,6 +3,66 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 0.6.0 — 2026-09-05
+
+**The measurement script does not change, a third time.** `closure_drift.py` is byte-identical to
+0.3.0, 0.4.0 and 0.5.0 (sha256 `da5da3c0e781b67b9b3a55800d599c243edc8df649fc90b24a88e289533805c5`).
+**Every result produced under any of those deposits remains valid and comparable**, and nothing in
+this release requires a re-run. What changes is the licence file, which was wrong, and where this
+software can now be found.
+
+### Fixed
+- **`LICENSE` now carries the unabridged text of the Apache License, Version 2.0.** The file
+  deposited as 0.3.0, 0.4.0 and 0.5.0 was an **abridged** version of that licence: 1,064 words
+  against the 1,581 of the text published at `apache.org/licenses/LICENSE-2.0.txt`. Section 2
+  (copyright grant), **section 3 (patent grant)** and section 6 (trademarks) were word-for-word
+  identical. Section 1 (definitions, 467 → 346 words), section 4 (redistribution, 325 → 137),
+  section 5, section 7 (disclaimer of warranty, 84 → 57), section 8 (limitation of liability,
+  114 → 76) and section 9 were shortened, and the appendix was absent.
+
+  Two consequences, and neither was intended. Automated licence detection could not identify the
+  file, so a repository carrying it is reported as having no asserted licence — which is the correct
+  reading of a modified text, not a tooling defect. And the shortened clauses included **section 7
+  and section 8, the two that protect the author**, and section 4's requirement that a `NOTICE` file
+  be carried into redistributions — the very file this deposit ships in order to have it carried.
+
+  The file is now byte-identical to the text published at
+  `apache.org/licenses/LICENSE-2.0.txt` (sha256
+  `cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30`), appendix included and
+  placeholders left as the canonical text leaves them. The copyright attribution sits in `NOTICE`,
+  which is the file the licence provides for it.
+
+  The licence **named** in every deposit has always been Apache-2.0: `README.md`, `NOTICE`,
+  `CITATION.cff` and the Zenodo record metadata all say so, and the grant sections a licensee relies
+  on were already identical to the canonical text. From this deposit onwards the file says it too.
+  Anyone who took the earlier deposits under the Apache License, Version 2.0 was taking them under
+  the licence that was named, and the corrected text is the one to rely on.
+
+  *Recorded at this length because it is the subject matter.* This project's claim is that a record
+  can look well-formed and not be, and that the system holding it cannot notice, because the label is
+  the only thing it recorded. A file called `LICENSE`, under metadata reading `apache2.0`, in three
+  deposits with DOIs, whose text was not that licence, is that failure in this project's own record —
+  the second such instance, after the working-copy drift recorded under 0.4.0.
+
+### Added
+- **A public source repository**: <https://github.com/luizfnsilva/closure_drift>. It was private
+  until this release, which is why `RESULTS.md` could only ask for results by email and why the
+  threat model in the related article recorded "a reader cannot verify without trusting" as an
+  unmet condition. It can now be verified without trusting.
+- **Measurements can be reported through an issue form**, and so can the more valuable case — that
+  the tool is **wrong** about a repository. Email remains available for results that should not be
+  public. `RESULTS.md` carries both channels.
+- **A deposit gate.** The repository records the sha256 of each file of this deposit and checks them
+  on every push, offline against a manifest or by re-fetching the record. If the repository and the
+  deposit ever disagreed, a measurement citing the DOI could not be checked against the code that
+  produced it.
+- `CITATION.cff` now carries the concept DOI and the repository URL, so the citation offered by
+  software that reads it resolves to the deposit instead of naming it in prose.
+
+### Unchanged
+- `closure_drift.py`, `tests/fixture_label_only.py`, `SCOPE.md`, `NOTICE`, and every reference
+  result. No measurement in this deposit was re-run for 0.6.0, and none needed to be.
+
 ## 0.5.0 — 2026-09-03
 
 **The measurement script does not change, again.** `closure_drift.py` is byte-identical to 0.3.0 and
