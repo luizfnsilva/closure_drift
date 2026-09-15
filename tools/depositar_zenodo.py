@@ -28,16 +28,26 @@ DESCRICAO = "tools/zenodo-description.html"
 def ler_token():
     """O token vem do ambiente ou de um arquivo só-do-dono. Nunca de argumento de linha de
     comando — ali ficaria no histórico do shell e na lista de processos — e nunca impresso."""
+    def conferido(t, origem):
+        t = (t or "").strip()
+        if t and len(t) < 40:
+            raise SystemExit(
+                "RECUSADO — o token vindo de %s tem %d caracteres, e um do Zenodo tem cerca de 60.\n"
+                "Um fragmento passa despercebido: o Zenodo trata o pedido como NAO autenticado e\n"
+                "responde com erro de validacao ou 403, que mandam procurar defeito no lugar errado."
+                % (origem, len(t)))
+        return t
+
     do_ambiente = os.environ.get("ZENODO_TOKEN")
     if do_ambiente:
-        return do_ambiente.strip()
+        return conferido(do_ambiente, "ZENODO_TOKEN")
     if os.path.isfile(ARQUIVO_DO_TOKEN):
         modo = os.stat(ARQUIVO_DO_TOKEN).st_mode & 0o777
         if modo & 0o077:
             raise SystemExit("%s está legível por outros (modo %o). Corrija e torne a rodar:\n"
                              "    chmod 600 %s" % (ARQUIVO_DO_TOKEN, modo, ARQUIVO_DO_TOKEN))
         with open(ARQUIVO_DO_TOKEN, encoding="utf-8") as fh:
-            t = fh.read().strip()
+            t = conferido(fh.read(), ARQUIVO_DO_TOKEN)
         if t:
             return t
         raise SystemExit("%s está vazio." % ARQUIVO_DO_TOKEN)
