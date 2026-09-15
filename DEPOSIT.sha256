@@ -1,15 +1,17 @@
 # The nine files of the Zenodo deposit, byte for byte.
-# Version DOI 10.5281/zenodo.22341979 (0.6.0, 2026-09-05) · concept DOI 10.5281/zenodo.21763931
-# Generated from the bytes of this release and verified against the published record.
+# Version DOI <A MINTAR NA PUBLICACAO> (0.7.0, 2026-09-15) · concept DOI 10.5281/zenodo.21763931
+# Generated from the bytes of this release. NAO verificado contra o registro publicado: esta
+# versao ainda nao foi depositada. A linha do Version DOI e o cotejo com o registro sao o
+# ultimo passo da publicacao, e sao ato do titular.
 # Enforced on every push by .github/workflows/ci.yml.
 # Verify:  python3 tools/verify_deposit.py     (or: shasum -a 256 -c DEPOSIT.sha256)
 #
-5b2478207b89b8a2db683e5b66ef9cd9b15bd80fc70b98623d8f5dcec2b970ef  CHANGELOG.md
+7a8be341bc87388ac291a46c38cfc1feb19710757a32098d071e2e7f5f2e5803  CHANGELOG.md
 4a9d1d914e081ab4fc68804a4e6e7b0879dc881fe859286f18882323a698e8a0  CITATION.cff
 cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30  LICENSE
 3f746b33bd6150bdbfea6afbb78e8860e5064403b2bcc224dca9ee7904323e8b  NOTICE
 79e94092869cc5ab1b4f78d1ae2b1bebf6105437f81f6973534191361955c1f3  README.md
 16adfe23fd2d085f6f8bdca6c380b77d19da4e4ed12445813aa98d7f008d1e68  RESULTS.md
 9edcd8d5f690ab94b4f86b6919e25fe5221cc7dbe1a9b9e1d2a463397963d8a5  SCOPE.md
-da5da3c0e781b67b9b3a55800d599c243edc8df649fc90b24a88e289533805c5  closure_drift.py
+6d8906ef374b73e6b8c58adba813c77c4ff352f5c9c280aa43ff2baa4f804451  closure_drift.py
 bdce4698df27bf0a1c92ce8e878923c3beecb4e2db2d9bd5c9e5570ed831027e  tests/fixture_label_only.py

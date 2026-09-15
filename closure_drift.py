@@ -214,6 +214,20 @@ def main() -> int:
                   file=sys.stderr)
             return 2
     vpath, vpat = vsrc
+    # 2026-09-15 — a malformed pattern, or one without a capture group, used to raise:
+    # `re.error` / `IndexError` left the instrument with exit 1, which is the code for
+    # `drift`. An error that cannot be told apart from a finding is worse than no finding.
+    # Both are now refusals with the refusal code, named, before any repository is read.
+    try:
+        _probe = re.compile(vpat)
+    except re.error as e:
+        print(f"invalid --version-regex {vpat!r}: {e}", file=sys.stderr)
+        return 2
+    if _probe.groups < 1:
+        print(f"--version-regex {vpat!r} has no capture group: "
+              "the pattern must capture the version label, e.g. 'version = \"([^\"]+)\"'.",
+              file=sys.stderr)
+        return 2
     include = a.closure or cfg.get("closure") or CLOSURE_DEFAULTS
 
     pts = publication_points(a.repo, at, a.max_commits)

@@ -3,6 +3,38 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 0.7.0 — 2026-09-15
+
+**The measurement script changes, for the first time since 0.3.0.** Four deposits in a row shipped a
+byte-identical `closure_drift.py`; this one does not. What changed is narrow and it is a refusal, not
+a measurement: two malformed inputs that used to raise an exception now refuse, by name, before any
+repository is read.
+
+**No completed measurement changes.** This was verified rather than asserted: 0.6.0 and this release
+were run over the same repositories, and every field of the verdict is identical — verdict, labels,
+closures, publication points. The single field that differs is `detector_closure`, and it differs
+because the detector differs. The instrument stamps its own identity into every result, which is how
+a reader tells which detector produced a result; a run under 0.6.0 stays valid and comparable, and
+carries the closure of the detector that produced it.
+
+### Fixed
+- **A `--version-regex` that is malformed, or that has no capture group, is now a refusal.** Both
+  used to raise — `re.error` and `IndexError` respectively — and an uncaught exception left the
+  process at **exit 1, which is the code for `drift`**. In a detector, an error that cannot be told
+  apart from a finding is the worst possible outcome: a broken pattern reported as evidence of drift.
+  Both now print a named cause on stderr and return **exit 2**, the code this tool already uses for
+  every other refusal (broken config file, invalid `at`, label not found, no publication points), and
+  both are checked **before** any repository is read, so a bad pattern costs nothing.
+
+  The pattern without a capture group also gets the one thing the message was missing — what a
+  correct pattern looks like — because that refusal is almost always a typo, not a misunderstanding.
+
+### Unchanged
+- `SCOPE.md`: the boundary is the same. Nothing here re-executes anything, and no verdict was added,
+  removed or renamed.
+- `RESULTS.md`: the seven measured repositories are untouched. Nothing in this release requires a
+  re-run, for the reason given above.
+
 ## 0.6.0 — 2026-09-05
 
 **The measurement script does not change, a third time.** `closure_drift.py` is byte-identical to
