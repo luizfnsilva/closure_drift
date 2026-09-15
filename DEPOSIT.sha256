@@ -1,9 +1,9 @@
 # The nine files of the Zenodo deposit, byte for byte.
-# Version DOI <to be minted on publication> (0.7.1, 2026-09-15) - concept DOI 10.5281/zenodo.21763931
-# Generated from the bytes of this release. NOT yet checked against a published record: this version
-# has not been deposited. Writing the version DOI on the line above, and then checking this manifest
-# against that record, are the last step of publication. tools/verify_deposit.py reads the record id
-# from the line above and refuses --from-zenodo while it says <to be minted on publication>.
+# Version DOI 10.5281/zenodo.22770460 (0.7.1, 2026-09-15) - concept DOI 10.5281/zenodo.21763931
+# Generated from the bytes of this release AND checked against the published record named above:
+# tools/verify_deposit.py --from-zenodo re-fetches that record and hashes what comes back.
+# tools/verify_deposit.py reads the record id from the line above, and refuses --from-zenodo while
+# that line says <to be minted on publication>.
 # Paths below are repository paths. The deposit stores flat names: the fixture is deposited as
 # fixture_label_only.py, as it was in 0.4.0 through 0.6.0 (0.3.0 deposited four files and no
 # fixture), and tools/verify_deposit.py matches the record's keys against an index built from
