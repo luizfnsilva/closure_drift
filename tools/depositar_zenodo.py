@@ -11,7 +11,9 @@ processos): lê-se de ZENODO_TOKEN no ambiente. Este programa não o imprime, ne
 Deposita exatamente os nove arquivos que DEPOSIT.sha256 governa, confere os resumos contra o
 manifesto antes de subir, e recusa se algum divergir. Só biblioteca padrão.
 """
-import argparse, hashlib, json, os, sys, urllib.error, urllib.parse, urllib.request
+import argparse
+import re
+import textwrap, hashlib, json, os, sys, urllib.error, urllib.parse, urllib.request
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 API = "https://zenodo.org/api"
@@ -20,6 +22,7 @@ ULTIMO_REGISTRO = "22341979"   # a versão 0.6.0, de onde se deriva a nova
 
 
 ARQUIVO_DO_TOKEN = os.path.expanduser("~/.config/zenodo.token")
+DESCRICAO = "tools/zenodo-description.html"
 
 
 def ler_token():
@@ -88,6 +91,65 @@ def pedir(metodo, url, token, dados=None, binario=None, tipo="application/json")
         raise SystemExit("Zenodo %s %s: %s\n%s" % (metodo, url.split("?")[0], e.code, detalhe))
 
 
+def resumo_html(descricao, paragrafos=2, largura=94):
+    """Os ultimos paragrafos da descricao, em texto, para o ensaio nao mentir sobre o que envia.
+
+    O ensaio existe para que o defeito seja visivel ANTES de ser irreversivel. Um ensaio que nao
+    mostra os metadados deixa o operador conferir os arquivos e nao o primeiro texto que qualquer
+    visitante do registro le.
+    """
+    partes = re.findall(r"<p>(.*?)</p>", descricao, flags=re.S) or [descricao]
+    linhas = []
+    for bruto in partes[-paragrafos:]:
+        texto = re.sub(r"<[^>]+>", "", bruto)
+        for entidade, char in (("&mdash;", "—"), ("&quot;", '"'), ("&amp;", "&"),
+                               ("&lt;", "<"), ("&gt;", ">"), ("&nbsp;", " ")):
+            texto = texto.replace(entidade, char)
+        linhas.extend(textwrap.wrap(" ".join(texto.split()), largura) or [""])
+        linhas.append("")
+    if len(partes) > paragrafos:
+        linhas.insert(0, "(... %d paragrafo(s) anterior(es) nao mostrado(s); os ultimos %d seguem)"
+                      % (len(partes) - paragrafos, paragrafos))
+        linhas.insert(1, "")
+    return [l for l in linhas]
+
+
+def metadados(versao):
+    """A descricao e a data do registro, lidas do repositorio — nunca herdadas do rascunho.
+
+    Herdar era o comportamento antigo, e o registro novo nasceria com o texto da versao anterior:
+    medido no registro 0.6.0, uma descricao de 4.836 caracteres nomeando da5da3c0... como a
+    identidade do script, sem nenhuma ocorrencia de 6d8906ef nem de 0.7, e publication_date de
+    2026-09-05. O primeiro texto que qualquer visitante le descreveria um arquivo que nao esta
+    anexado ao registro.
+    """
+    caminho = os.path.join(RAIZ, DESCRICAO)
+    try:
+        with open(caminho, encoding="utf-8") as fh:
+            descricao = fh.read().strip()
+    except OSError as e:
+        raise SystemExit("nao li %s: %s — o registro nao nasce com descricao herdada." % (DESCRICAO, e))
+
+    if versao not in descricao:
+        raise SystemExit(
+            "%s nao menciona a versao %s.\n"
+            "A descricao do registro e cumulativa: um paragrafo por versao. Acrescente o desta\n"
+            "antes de depositar — o registro nao nasce descrevendo a versao anterior." % (DESCRICAO, versao))
+
+    data = None
+    with open(os.path.join(RAIZ, "CHANGELOG.md"), encoding="utf-8") as fh:
+        for linha in fh:
+            m = re.match(r"^##\s+" + re.escape(versao) + r"\s+[—-]\s+(\d{4}-\d{2}-\d{2})", linha)
+            if m:
+                data = m.group(1)
+                break
+    if not data:
+        raise SystemExit(
+            "CHANGELOG.md nao tem entrada datada para %s.\n"
+            "A data de publicacao do registro sai dali, e nao do relogio nem do rascunho." % versao)
+    return descricao, data
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--publicar", action="store_true", help="publica de facto (irreversível: minta o DOI)")
@@ -96,6 +158,7 @@ def main():
     token = ler_token()
 
     versao = open(os.path.join(RAIZ, "VERSION"), encoding="utf-8").read().strip()
+    descricao, data = metadados(versao)
     nove = manifesto()
 
     # Duas entradas com o mesmo basename colidiriam numa chave so, e o deposito ficaria com um
@@ -120,11 +183,18 @@ def main():
         print("\nENSAIO. Nada foi enviado. O que a corrida com --publicar faria:")
         print("  1. abrir uma versão nova do registro %s (conceito %s)" % (ULTIMO_REGISTRO, CONCEITO))
         print("  2. limpar os arquivos herdados e subir estes nove, com o nome PLANO que o")
-        print("     registro usa desde 0.3.0:")
+        print("     registro usa desde 0.4.0 (a 0.3.0 depositou quatro arquivos e nenhuma bateria):")
         for nome in sorted(nove):
             chave = os.path.basename(nome)
             print("       %s%s" % (chave, "" if chave == nome else "   (de %s)" % nome))
-        print("  3. pôr a versão %s nos metadados" % versao)
+        print("  3. escrever ESTES metadados (nada e herdado do rascunho):")
+        print("       version          %s" % versao)
+        print("       publication_date %s   (do cabecalho do CHANGELOG)" % data)
+        print("       description      %s, de %s:" % (len(descricao), DESCRICAO))
+        print()
+        for linha in resumo_html(descricao):
+            print("     | %s" % linha)
+        print()
         print("  4. PUBLICAR — irreversível — e imprimir o DOI da versão")
         return 0
 
@@ -141,7 +211,7 @@ def main():
     balde = dep["links"]["bucket"]
     for nome in sorted(nove):
         # O registro guarda nomes PLANOS: o arquivo que no repositorio vive em tests/ foi depositado
-        # como fixture_label_only.py em 0.3.0 ate 0.6.0, e tools/verify_deposit.py casa a chave do
+        # como fixture_label_only.py de 0.4.0 a 0.6.0, e tools/verify_deposit.py casa a chave do
         # registro contra um indice por basename. Subir com o caminho mudaria o nome do arquivo no
         # deposito e quebraria o conferidor contra o registro novo.
         chave = os.path.basename(nome)
@@ -149,7 +219,10 @@ def main():
             pedir("PUT", "%s/%s" % (balde, urllib.parse.quote(chave)), token, binario=fh.read())
         print("  subiu  %s%s" % (chave, "" if chave == nome else "   (de %s)" % nome))
 
-    meta = dict(dep.get("metadata", {})); meta["version"] = versao
+    meta = dict(dep.get("metadata", {}))
+    meta["version"] = versao
+    meta["description"] = descricao
+    meta["publication_date"] = data
     meta.pop("doi", None); meta.pop("prereserve_doi", None)
     pedir("PUT", "%s/deposit/depositions/%s" % (API, dep_id), token, dados={"metadata": meta})
 

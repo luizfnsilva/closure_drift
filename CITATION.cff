@@ -12,13 +12,14 @@ abstract: >-
   release-based publication (tags) from continuous publication (commits),
   because measuring at every commit reports drift in every repository and
   therefore carries no information. Each report stamps the commit measured and
-  the hash of the tool that measured it. The measurement script is
-  byte-identical across 0.3.0, 0.4.0, 0.5.0 and 0.6.0, so every result produced
-  under any of those deposits remains valid and comparable. 0.6.0 replaces the
-  LICENSE file with the unabridged text of the Apache License, Version 2.0,
-  which earlier deposits had shortened while naming that licence; adds the
-  public source repository, where measurements can now be reported through an
-  issue form rather than only by email; and records both in the changelog.
+  the hash of the tool that measured it. The measurement script was
+  byte-identical across 0.3.0, 0.4.0, 0.5.0 and 0.6.0 and changed in 0.7.0:
+  what changed there is a refusal and not a measurement, and every result
+  produced under those earlier deposits remains valid and comparable, each
+  report carrying the hash of the detector that produced it. 0.7.1 corrects the
+  citation file and the README's version section, which still named 0.6.0 after
+  the 0.7.0 release, and makes the deposited fixture find the detector deposited
+  beside it. 0.7.0 was tagged as source and never deposited.
 type: software
 authors:
   - family-names: "Silva"

@@ -14,12 +14,31 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import re
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 MANIFEST = ROOT / "DEPOSIT.sha256"
-RECORD_API = "https://zenodo.org/api/records/22341979"
+RECORD_API = "https://zenodo.org/api/records/%s"
+
+
+def record_id() -> str:
+    """The record to compare against, read from the manifest — never hard-coded here.
+
+    A number written in this file goes stale the moment a new version is deposited, and it went
+    stale exactly that way: it named the 0.6.0 record while the repository held 0.7.x, so
+    --from-zenodo reported MISMATCH on three files that were not wrong. The manifest's own header
+    names the version DOI of the deposit it describes, and that is the only right answer.
+    """
+    texto = MANIFEST.read_text(encoding="utf-8")
+    m = re.search(r"Version DOI\s+10\.5281/zenodo\.(\d+)", texto)
+    if not m:
+        print("DEPOSIT.sha256 does not name a version DOI yet: this version has not been "
+              "deposited, so there is no record to compare against.", file=sys.stderr)
+        print("Pass --record <id> to compare against a specific record anyway.", file=sys.stderr)
+        raise SystemExit(2)
+    return m.group(1)
 
 
 def read_manifest() -> list[tuple[str, str]]:
@@ -54,11 +73,11 @@ def check_local() -> bool:
     return ok
 
 
-def check_zenodo() -> bool:
+def check_zenodo(rec_id: str) -> bool:
     import json
     import urllib.request
 
-    with urllib.request.urlopen(RECORD_API, timeout=30) as response:
+    with urllib.request.urlopen(RECORD_API % rec_id, timeout=30) as response:
         record = json.load(response)
     print(f"\nrecord    {record['doi']}  (version {record['metadata']['version']})")
     manifest = {rel.split("/")[-1]: want for want, rel in read_manifest()}
@@ -77,6 +96,18 @@ def check_zenodo() -> bool:
         else:
             print(f"MISMATCH  {key} differs from the manifest")
             ok = False
+
+    # The symmetric half, which was missing: a file listed in the manifest and absent from the
+    # record is as much a divergence as one present and different, and it is the half that a
+    # rename would produce.
+    faltando = set(manifest) - {entry["key"] for entry in record["files"]}
+    for key in sorted(faltando):
+        print(f"MISSING   {key} is in DEPOSIT.sha256 but not in the record")
+        ok = False
+    if len(record["files"]) != len(manifest):
+        print(f"COUNT     the record carries {len(record['files'])} files, "
+              f"the manifest lists {len(manifest)}")
+        ok = False
     return ok
 
 
@@ -84,11 +115,13 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--from-zenodo", action="store_true",
                         help="also download the record and compare it to the manifest")
+    parser.add_argument("--record", metavar="ID",
+                        help="record id to compare against (default: the one named in DEPOSIT.sha256)")
     args = parser.parse_args()
 
     ok = check_local()
     if args.from_zenodo:
-        ok = check_zenodo() and ok
+        ok = check_zenodo(args.record or record_id()) and ok
     print("\ndeposit verified" if ok else "\nDEPOSIT VERIFICATION FAILED")
     return 0 if ok else 1
 

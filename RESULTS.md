@@ -18,9 +18,11 @@ python3 closure_drift.py --json > result.json
 
 Open a [**Report a measurement**](https://github.com/luizfnsilva/closure_drift/issues/new?template=measurement-result.yml)
 issue with it, or send it to **lfnsilva.invest@gmail.com** if a public issue is not appropriate. That
-is the whole ask. It takes one command and reveals nothing about your code: the report carries
-counts, labels, hashes and the tool's own stamp — never file contents, never file paths outside
-what you chose to declare as your closure.
+is the whole ask. It takes one command and reveals very little about your code: the report carries
+counts, labels, hashes and the tool's own stamp — never file contents, and no path to any file
+inside your closure. It does carry two paths: the repository path exactly as you passed it on the
+command line, and the path of your version file. If either is itself sensitive, run the tool from
+inside the repository so the first is `.`, and read the JSON before you send it.
 
 **What you get back, and it is not a favour — it is the trade:**
 

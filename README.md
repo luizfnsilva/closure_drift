@@ -22,7 +22,15 @@ python3 closure_drift.py --closure 'src/**/*.py'  # say what determines your out
 python3 closure_drift.py --json                   # machine-readable
 ```
 
-Exit code is `1` when a label covers more than one closure at a publication point.
+Exit codes, closed set:
+
+| code | meaning |
+|---|---|
+| `0` | the run completed — the verdict is in the report: `clean`, `inconclusive` or `no_labels` |
+| `1` | `drift` — a label covers more than one closure at a publication point |
+| `2` | a named refusal, cause on stderr: not a git repository, broken config file, invalid `--at`, no version label found, malformed or group-less `--version-regex`, no publication points |
+
+A `0` is not by itself a clean bill: read the verdict.
 
 ## What it measures
 
@@ -93,7 +101,7 @@ your outputs were replayed or verified. Reading (A) as (B) is a defect we paid t
 our own system: a 26-year, 4,756-record production ledger of ours is 100% label-only under a
 single catalogue label — every record carries a content hash, none carries its closure — so replay
 of the originating code states is impossible from the record alone, a fact no amount of (A)-shape
-checking can repair. That corpus is now this tool's negative fixture (see *Tests* below): a
+checking can repair. The shape of that corpus is what this tool's negative fixture reproduces (see *Tests* below): a
 detector that stays quiet on that shape is broken.
 
 ## Where your publication points are
@@ -114,7 +122,10 @@ why.
 
 ## Reference results
 
-Measured 2026-08-02 with the 0.3.0 script (byte-identical in this deposit):
+Measured 2026-08-02 with the 0.3.0 script (sha256 `da5da3c0e781b67b9b3a55800d599c243edc8df649fc90b24a88e289533805c5`).
+The script in this deposit is `6d8906ef374b73e6b8c58adba813c77c4ff352f5c9c280aa43ff2baa4f804451` and
+differs from it only in refusal handling: the two were run over the same repositories and every
+verdict field is identical. These counts are dated measurements and are not re-run here.
 
 | Repository | Points | Labels | Worst label | Verdict |
 |---|---|---|---|---|
@@ -124,7 +135,7 @@ Measured 2026-08-02 with the 0.3.0 script (byte-identical in this deposit):
 | `encode/httpx` | 28 tags | 28 | 1 closure | clean |
 | a system publishing daily | 133 commits | 2 | **6 closures** | **drift** |
 
-Measured 2026-08-23, same script, at the default (tags), on three further repositories selected by
+Measured 2026-08-23 with the same 0.3.0 script, at the default (tags), on three further repositories selected by
 a rule fixed before the run:
 
 | Repository | Points | Labels | In drift | Worst label | Verdict |
@@ -178,7 +189,7 @@ Every run reports the commit it measured and the hash of the tool that measured 
 "stamp": {
   "measured_at_head": "1ea5e43618b4",
   "working_tree_dirty": false,
-  "detector_closure": "14f6cbb4a0f65b7b"
+  "detector_closure": "6d8906ef374b73e6"
 }
 ```
 
@@ -197,11 +208,24 @@ carries the incident.
 
 ## Tests
 
-`tests/fixture_label_only.py` is the negative fixture: a synthetic repository with the shape of the
+`fixture_label_only.py` is the negative fixture: a synthetic repository with the shape of the
 label-only ledger described above (one declared label, N commits each changing the published
 content, no tags). It asserts that the tool (1) refuses to answer at the default when there are no
 tags — exit 2, never a false `clean` — and (2) reports drift with one label covering N closures
-under `--at commits`. Zero dependencies; `python3 tests/fixture_label_only.py`.
+under `--at commits`. Zero dependencies.
+
+It lives in `tests/` in the source repository and flat beside the detector in the deposit, so it is
+run one of two ways, and finds the detector beside itself first, then one directory up:
+
+```bash
+python3 fixture_label_only.py          # in the deposit, where the files are flat
+python3 tests/fixture_label_only.py    # in the source repository
+```
+
+Every outcome names the detector it ran and the first 16 hex of its sha256, because a fixture that
+does not say what it measured can pass while measuring something else. Its own exit codes are a
+closed set: `0` the detector behaves, `1` the detector failed the fixture and each failure is
+listed, `2` the fixture could not run and the cause is named.
 
 ## Caveats
 
@@ -211,13 +235,22 @@ under `--at commits`. Zero dependencies; `python3 tests/fixture_label_only.py`.
   cannot find your label it says so and exits `2` rather than reporting a number.
 - `clean` means clean **over the range scanned**, at the points you told it about. It is not a proof
   — and it is a claim about addressing (A above), never about re-execution (B).
+- `--max-commits` is meant to be a positive integer and is not checked. `0` means "all of them". A
+  **negative** value silently cuts the range from the wrong end: the header then reports fewer
+  publication points than the repository has, and a repository whose baseline verdict is `drift` can
+  come back `inconclusive` at exit `0` because the points that differed were the ones dropped. A
+  value more negative than the number of points empties the range and produces the refusal `no tags
+  found`, whose stated cause is then false. Pass a positive number, or omit it.
+- `--version-regex` is only consulted alongside a version file — `--version-file`, or `version_file`
+  in `.closure-drift.json`. Passed on its own it is discarded in silence, and so is not checked for
+  being well-formed.
 
 ## Requirements
 
 CPython **3.9 or later**, and `git` on `PATH`. No third-party packages, no network access, no
 required configuration. The tool never writes to the repository it measures.
 
-Tested on CPython 3.9 and 3.11, macOS and Linux.
+Tested on CPython 3.9, 3.11 and 3.13, macOS and Linux.
 
 ## Repository-side configuration
 

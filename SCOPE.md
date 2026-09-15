@@ -49,7 +49,8 @@ tool:
 | **(B)** | the published artefact **can be re-produced** — re-executing the recorded state yields the published output | not this tool, and not by inspecting shape |
 
 Reading (A) as (B) is a defect the author paid to learn about in his own system, and the negative
-fixture in `tests/` exists so that a detector which stays quiet on that shape fails loudly.
+fixture — `fixture_label_only.py`, flat beside the detector in this deposit and in `tests/` in the
+source repository — exists so that a detector which stays quiet on that shape fails loudly.
 
 **Anything on the (B) side is outside this tool by design and will remain outside it.** If your
 problem lives there, this tool will not grow to meet you — say so and it can be discussed, but it
@@ -57,8 +58,13 @@ will not arrive as a silent extension of this one.
 
 ## Stability
 
-`closure_drift.py` is byte-identical across 0.3.0, 0.4.0, 0.5.0 and 0.6.0
-(sha256 `da5da3c0e781b67b9b3a55800d599c243edc8df649fc90b24a88e289533805c5`). Every result produced
-by any of those deposits remains valid and comparable. When the script does change, the CHANGELOG
-will say what changed and what it does to results already published — because a measurement whose
-instrument moved without saying so is the phenomenon this tool exists to detect.
+`closure_drift.py` was byte-identical across 0.3.0, 0.4.0, 0.5.0 and 0.6.0
+(sha256 `da5da3c0e781b67b9b3a55800d599c243edc8df649fc90b24a88e289533805c5`). **It changed in 0.7.0**
+and is now `6d8906ef374b73e6b8c58adba813c77c4ff352f5c9c280aa43ff2baa4f804451`. What changed is a
+refusal and not a measurement: two malformed patterns that used to raise an exception, and so left
+the process at the exit code for drift, now refuse by name. Every result produced by 0.3.0 through
+0.6.0 remains valid and comparable — the two were run over the same repositories and every verdict
+field is identical — and each report carries the `detector_closure` of the detector that produced
+it, which is how a reader tells them apart. The CHANGELOG says what changed and what it does to
+results already published, because a measurement whose instrument moved without saying so is the
+phenomenon this tool exists to detect.

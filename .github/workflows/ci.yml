@@ -15,13 +15,44 @@ permissions:
   contents: read
 
 jobs:
+  version:
+    # The 0.7.0 tag was pushed with VERSION at 0.7.0 and CITATION.cff at 0.6.0, and every job here
+    # was green. A version label naming two states is the defect this tool measures; this step is
+    # the one that would have stopped it.
+    name: the version label names one state
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Files agree, and on a tag push the tag agrees with them
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            python3 tools/conferir_versao.py --tag "${GITHUB_REF_NAME}"
+          else
+            python3 tools/conferir_versao.py
+          fi
+
   deposit:
-    name: deposit is byte-identical to the DOI
+    # Offline: the nine files against the manifest that ships with them. This does NOT establish
+    # that they match the published record — a package cannot establish its own provenance. The
+    # comparison against Zenodo is the `record` job below.
+    name: the nine files match DEPOSIT.sha256
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Verify the nine deposited files against DEPOSIT.sha256
         run: python3 tools/verify_deposit.py
+
+  record:
+    # Against the published record, which is outside this package. Scheduled and manual only: a pull
+    # request must not fail because Zenodo is unreachable, and a release is not yet deposited when
+    # its tag is pushed.
+    name: the nine files match the published record
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Re-fetch the deposit named in DEPOSIT.sha256 and compare
+        run: python3 tools/verify_deposit.py --from-zenodo
 
   test:
     name: fixture · py${{ matrix.python }} · ${{ matrix.os }}
@@ -46,7 +77,7 @@ jobs:
   self:
     name: measure this repository with itself
     runs-on: ubuntu-latest
-    needs: [deposit, test]
+    needs: [version, deposit, test]
     steps:
       - uses: actions/checkout@v4
         with:
