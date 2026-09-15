@@ -3,6 +3,44 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 0.7.1 — 2026-09-15
+
+**Two of the deposited files still named 0.6.0 after the 0.7.0 release.** 0.7.0 was tagged and
+published as source; it was never deposited. Preparing that deposit, the check that runs before
+upload found `CITATION.cff` still carrying `version: 0.6.0` and a release date of 2026-09-05, and the
+`## Version` section of `README.md` still opening at **0.6.0** and still asserting that the
+measurement script is byte-identical to 0.3.0, 0.4.0 and 0.5.0 — a sentence 0.7.0 made false, printed
+under the superseded sha256.
+
+In a tool whose question is whether a version label names exactly one state of the code, a deposit
+labelled 0.7.0 whose citation file says 0.6.0 is the failure this tool exists to detect, occurring in
+its own deposit. It is corrected in a new version rather than by moving the 0.7.0 tag, because moving
+a published tag would make the label 0.7.0 name two states of the code — the same failure by another
+route. **0.7.0 stays where it is, tagged, public as source, and never deposited; this release
+supersedes it.**
+
+### Fixed
+- **`CITATION.cff` names this release**: `version: 0.7.1`, `date-released: "2026-09-15"`. Every
+  deposit from 0.3.0 onward carried its own version in that field. 0.7.0 was the first that did not.
+- **`README.md`, section `## Version`, names this release and states the script's identity as it now
+  is**: sha256 `6d8906ef374b73e6b8c58adba813c77c4ff352f5c9c280aa43ff2baa4f804451`, against
+  `da5da3c0e781b67b9b3a55800d599c243edc8df649fc90b24a88e289533805c5` for 0.3.0 through 0.6.0, with
+  what remains comparable and why.
+
+### Unchanged
+- **`closure_drift.py` is byte-identical to 0.7.0.** No measurement changes here, and nothing
+  requires a re-run. The refusal described under 0.7.0 is the last change made to the script.
+- `LICENSE`, `NOTICE`, `SCOPE.md`, `RESULTS.md` and the fixture are byte-identical to 0.6.0.
+
+### Not itself deposited, and recorded here because it decides what the deposit looks like
+- **The program that uploads a new version used to send each file under its path in this
+  repository**, which would have deposited the fixture as `tests/fixture_label_only.py`. Every
+  deposit from 0.3.0 to 0.6.0 carries it flat, as `fixture_label_only.py`, and `tools/verify_deposit.py`
+  matches the record's keys against an index built from basenames — so the new record would have been
+  reported as carrying a file that is not in the manifest, and the file that is in the manifest as
+  missing from the record. It now uploads under the flat name, and refuses, before any network call,
+  if two manifest entries would collide into one name.
+
 ## 0.7.0 — 2026-09-15
 
 **The measurement script changes, for the first time since 0.3.0.** Four deposits in a row shipped a

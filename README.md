@@ -239,15 +239,25 @@ repository's history instead of someone's shell history.
 
 ## Version
 
-**0.6.0** — see `CITATION.cff` and `CHANGELOG.md`. The measurement script is **byte-identical to
-0.3.0, 0.4.0 and 0.5.0** (sha256 `da5da3c0e781b67b9b3a55800d599c243edc8df649fc90b24a88e289533805c5`),
-so every result produced under any of those deposits remains valid and comparable. 0.6 replaces the
-`LICENSE` file, which carried an abridged text of the Apache License while naming that licence, with
-the unabridged one, and publishes the source repository; 0.5 added `SCOPE.md`, `NOTICE` and
-`RESULTS.md`; 0.4 added the negative fixture, the (A)/(B) limitation above, three further reference
-results, and the record of our own working-copy drift. Version 0.1 measured at every commit and is
-superseded; if you have results from it, they overstate drift for any repository that publishes at
-tags.
+**0.7.1** — see `CITATION.cff` and `CHANGELOG.md`. The measurement script changed in 0.7.0, for the
+first time since 0.3.0: it is sha256
+`6d8906ef374b73e6b8c58adba813c77c4ff352f5c9c280aa43ff2baa4f804451` here, against
+`da5da3c0e781b67b9b3a55800d599c243edc8df649fc90b24a88e289533805c5` for 0.3.0 through 0.6.0. What
+changed there is a refusal and not a measurement, and it was checked rather than asserted: the two
+were run over the same repositories and every verdict field is identical. The one field that differs
+is `detector_closure`, and it differs because the detector differs. **Every result produced under
+0.3.0 through 0.6.0 remains valid and comparable**, and carries the closure of the detector that
+produced it.
+
+0.7.1 corrects this section and `CITATION.cff`: both still named 0.6.0 after the 0.7.0 release, which
+was tagged and never deposited. 0.7 makes a malformed `--version-regex`, and one with no capture
+group, a named refusal instead of an exception that left the process at the exit code for drift. 0.6
+replaces the `LICENSE` file, which carried an abridged text of the Apache License while naming that
+licence, with the unabridged one, and publishes the source repository; 0.5 added `SCOPE.md`, `NOTICE`
+and `RESULTS.md`; 0.4 added the negative fixture, the (A)/(B) limitation above, three further
+reference results, and the record of our own working-copy drift. Version 0.1 measured at every commit
+and is superseded; if you have results from it, they overstate drift for any repository that
+publishes at tags.
 
 ## Licence and citation
 

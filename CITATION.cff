@@ -24,8 +24,8 @@ authors:
   - family-names: "Silva"
     given-names: "Luiz F. Nunes da"
     orcid: "https://orcid.org/0009-0002-5409-7074"
-version: 0.6.0
-date-released: "2026-09-05"
+version: 0.7.1
+date-released: "2026-09-15"
 license: Apache-2.0
 doi: 10.5281/zenodo.21763931
 repository-code: "https://github.com/luizfnsilva/closure_drift"

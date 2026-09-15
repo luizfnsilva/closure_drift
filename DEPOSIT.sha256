@@ -1,16 +1,19 @@
 # The nine files of the Zenodo deposit, byte for byte.
-# Version DOI <A MINTAR NA PUBLICACAO> (0.7.0, 2026-09-15) · concept DOI 10.5281/zenodo.21763931
-# Generated from the bytes of this release. NAO verificado contra o registro publicado: esta
-# versao ainda nao foi depositada. A linha do Version DOI e o cotejo com o registro sao o
-# ultimo passo da publicacao, e sao ato do titular.
+# Version DOI <to be minted on publication> (0.7.1, 2026-09-15) - concept DOI 10.5281/zenodo.21763931
+# Generated from the bytes of this release. NOT yet checked against a published record: this version
+# has not been deposited. Writing the version DOI on the line above, and checking this manifest
+# against the record, are the last step of publication.
+# Paths below are repository paths. The deposit stores flat names: the fixture is deposited as
+# fixture_label_only.py, as it was in 0.3.0 through 0.6.0, and tools/verify_deposit.py matches the
+# record's keys against an index built from basenames.
 # Enforced on every push by .github/workflows/ci.yml.
 # Verify:  python3 tools/verify_deposit.py     (or: shasum -a 256 -c DEPOSIT.sha256)
 #
-7a8be341bc87388ac291a46c38cfc1feb19710757a32098d071e2e7f5f2e5803  CHANGELOG.md
-4a9d1d914e081ab4fc68804a4e6e7b0879dc881fe859286f18882323a698e8a0  CITATION.cff
+62f23e25ab820a73ebebb652e301f4c1aebfdeb4fe46553ac79cf6a84c8c5cfb  CHANGELOG.md
+e6d0c7c8b2d604f6e5e58e20cc2dd316b2b7e69f46ea481dbb2a8bed550b1184  CITATION.cff
 cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30  LICENSE
 3f746b33bd6150bdbfea6afbb78e8860e5064403b2bcc224dca9ee7904323e8b  NOTICE
-79e94092869cc5ab1b4f78d1ae2b1bebf6105437f81f6973534191361955c1f3  README.md
+dc257a8ccc65ed473c4c92b5b5d21283a58b577b83f525e42bef0ee23b5a99e5  README.md
 16adfe23fd2d085f6f8bdca6c380b77d19da4e4ed12445813aa98d7f008d1e68  RESULTS.md
 9edcd8d5f690ab94b4f86b6919e25fe5221cc7dbe1a9b9e1d2a463397963d8a5  SCOPE.md
 6d8906ef374b73e6b8c58adba813c77c4ff352f5c9c280aa43ff2baa4f804451  closure_drift.py

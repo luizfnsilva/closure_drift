@@ -19,6 +19,35 @@ CONCEITO = "21763931"          # concept DOI 10.5281/zenodo.21763931
 ULTIMO_REGISTRO = "22341979"   # a versão 0.6.0, de onde se deriva a nova
 
 
+ARQUIVO_DO_TOKEN = os.path.expanduser("~/.config/zenodo.token")
+
+
+def ler_token():
+    """O token vem do ambiente ou de um arquivo só-do-dono. Nunca de argumento de linha de
+    comando — ali ficaria no histórico do shell e na lista de processos — e nunca impresso."""
+    do_ambiente = os.environ.get("ZENODO_TOKEN")
+    if do_ambiente:
+        return do_ambiente.strip()
+    if os.path.isfile(ARQUIVO_DO_TOKEN):
+        modo = os.stat(ARQUIVO_DO_TOKEN).st_mode & 0o777
+        if modo & 0o077:
+            raise SystemExit("%s está legível por outros (modo %o). Corrija e torne a rodar:\n"
+                             "    chmod 600 %s" % (ARQUIVO_DO_TOKEN, modo, ARQUIVO_DO_TOKEN))
+        with open(ARQUIVO_DO_TOKEN, encoding="utf-8") as fh:
+            t = fh.read().strip()
+        if t:
+            return t
+        raise SystemExit("%s está vazio." % ARQUIVO_DO_TOKEN)
+    raise SystemExit(
+        "Não achei o token. Dois lugares, nesta ordem:\n"
+        "  1. a variável ZENODO_TOKEN, exportada na sessão que roda este programa; ou\n"
+        "  2. o arquivo %s, só do dono:\n"
+        "         umask 077 && printf %%s '<token>' > %s\n"
+        "         chmod 600 %s\n"
+        "Por desenho, este programa não aceita o token por argumento." % (
+            ARQUIVO_DO_TOKEN, ARQUIVO_DO_TOKEN, ARQUIVO_DO_TOKEN))
+
+
 def manifesto():
     nove = {}
     for l in open(os.path.join(RAIZ, "DEPOSIT.sha256"), encoding="utf-8"):
@@ -64,13 +93,22 @@ def main():
     ap.add_argument("--publicar", action="store_true", help="publica de facto (irreversível: minta o DOI)")
     a = ap.parse_args()
 
-    token = os.environ.get("ZENODO_TOKEN")
-    if not token:
-        raise SystemExit("ZENODO_TOKEN não está no ambiente. Exporte-o nesta sessão e torne a rodar.\n"
-                         "Este programa não aceita o token por argumento, de propósito.")
+    token = ler_token()
 
     versao = open(os.path.join(RAIZ, "VERSION"), encoding="utf-8").read().strip()
     nove = manifesto()
+
+    # Duas entradas com o mesmo basename colidiriam numa chave so, e o deposito ficaria com um
+    # arquivo a menos sem que nada reclamasse. Recusa nomeada, antes de qualquer chamada de rede.
+    planos = {}
+    for nome in nove:
+        planos.setdefault(os.path.basename(nome), []).append(nome)
+    colididos = {k: v for k, v in planos.items() if len(v) > 1}
+    if colididos:
+        for k, v in sorted(colididos.items()):
+            print("  %s  <-  %s" % (k, ", ".join(sorted(v))), file=sys.stderr)
+        raise SystemExit("dois arquivos do manifesto teriam o mesmo nome no deposito — nada foi enviado.")
+
     ruins = conferir(nove)
     if ruins:
         for nome, razao in ruins:
@@ -81,8 +119,11 @@ def main():
     if not a.publicar:
         print("\nENSAIO. Nada foi enviado. O que a corrida com --publicar faria:")
         print("  1. abrir uma versão nova do registro %s (conceito %s)" % (ULTIMO_REGISTRO, CONCEITO))
-        print("  2. limpar os arquivos herdados e subir estes nove:")
-        for nome in sorted(nove): print("       %s" % nome)
+        print("  2. limpar os arquivos herdados e subir estes nove, com o nome PLANO que o")
+        print("     registro usa desde 0.3.0:")
+        for nome in sorted(nove):
+            chave = os.path.basename(nome)
+            print("       %s%s" % (chave, "" if chave == nome else "   (de %s)" % nome))
         print("  3. pôr a versão %s nos metadados" % versao)
         print("  4. PUBLICAR — irreversível — e imprimir o DOI da versão")
         return 0
@@ -99,9 +140,14 @@ def main():
 
     balde = dep["links"]["bucket"]
     for nome in sorted(nove):
+        # O registro guarda nomes PLANOS: o arquivo que no repositorio vive em tests/ foi depositado
+        # como fixture_label_only.py em 0.3.0 ate 0.6.0, e tools/verify_deposit.py casa a chave do
+        # registro contra um indice por basename. Subir com o caminho mudaria o nome do arquivo no
+        # deposito e quebraria o conferidor contra o registro novo.
+        chave = os.path.basename(nome)
         with open(os.path.join(RAIZ, nome), "rb") as fh:
-            pedir("PUT", "%s/%s" % (balde, urllib.parse.quote(nome)), token, binario=fh.read())
-        print("  subiu  %s" % nome)
+            pedir("PUT", "%s/%s" % (balde, urllib.parse.quote(chave)), token, binario=fh.read())
+        print("  subiu  %s%s" % (chave, "" if chave == nome else "   (de %s)" % nome))
 
     meta = dict(dep.get("metadata", {})); meta["version"] = versao
     meta.pop("doi", None); meta.pop("prereserve_doi", None)
