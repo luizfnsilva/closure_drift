@@ -3,7 +3,7 @@
  "head": "9d8f9a372cc5916fd4781fec207ced7ddac2f08f",
  "outcome": "drift",
  "report": {
-  "closure_changes_between_points": 171,
+  "closure_changes_between_points": 170,
   "closure_globs": [
    "src/**",
    "lib/**",
@@ -16,43 +16,43 @@
    "*.java"
   ],
   "closure_ids": {
-   "02ed56f9fc19c01f": "c1e787a8262aff6861d9546e35f8c7f52b5e3d1d81c36d8f61a2b560f05a8c67",
-   "2671a7ca8175db8b": "8393e1805e5e30a1d9d395a0e1918af973a7e558ebb83d685533d3525f229057",
-   "39cbdefb4fc991f6": "a905d3cda9990ec2a5b29c84527ca7e2adca043e963fc80189a41c54a67782a5",
-   "483eee8225278ef2": "6bcc3692e5c4c3854f3f6cd65c47e818a4f1a4b7b5072310cbe241c54e8f8f4c",
-   "5dcc78b6decbe263": "f8f7e4d31519bbaba9b5d091af386375f56dcb171aa9e5a1197b77d0f3141b15",
-   "99b92e357d1a2ab8": "b20ea0ac843a67f732521b683df01a680245f44b4c8c9b9a3aa6009871da4e85",
-   "9a8e4d797b741cb6": "0fcf798fd73796ecdd594679ae082205e6ba941a839e9ff44fd52aa3d001bef0",
-   "9d20c79269ff03bb": "cea7fb3fd7bdd7c01f6b51b1667224446701444a9ca7814bca60c06cd3f7b685",
-   "a4795d770f7a8daf": "a3c53c1c8f3d0f7ac985595ca9264a007ae71e4229d50bdbabd656939d5b1d82",
-   "baf400d37cc53174": "28e116b20bfb81e4ddb84eb987782633095870594385e588145f0688ff9702f5",
-   "d2d7fe6b136a046b": "9f758d9e7c5484754c9f838aa939c7199cb65de0929b3b6d1c5afe62d2905a11",
-   "e4bd03deed28f5e3": "475ba0f2d209bd695a5082fe94e7ba2ae569a5a1a11a73044874928cb08c8ac9"
+   "1408e475946cfdde": "19190e345fe04daab06ee62a7a52c53cc0c7446edfebdda17ecb27543b6bff2f",
+   "2dcf167cf022c819": "e050fb3997eb6b9ed420fc56571398bc9098726900924a475ff355ff83422af7",
+   "5aa4691eb3b6c966": "f4899b286de5ca374803e926dbef4a50315cc0de0ef59798a5f482f7ce8b56e0",
+   "60a4b8f2cdeb68af": "39c87319c19c4b2dcb64646c7fcba8876f5a1c1fdc40c1da9d8c8f6591abb4f9",
+   "643d002b8d127fdd": "02cab2569d330572b7363d57cb00642bf175b601b17a57ec82384a942cc2e1a0",
+   "836cfd9db541408e": "e83db399b7cfc687d48720757af91080b27f676bc3c54d1aa44db2140ed6338d",
+   "857ba8dd67e95f82": "cc9d554eb4fe10c2ec308ee946d2a18ac026ab893ee7f058a8dddc63062a112d",
+   "99966f245b0b1357": "b1a64fe3fcc6ff3c237405dd4de4f667db2ae2e4f134782adc0ab9a8078aa382",
+   "99987385af12ecdd": "1dbdc550deac208ea8b11f5d74f1e5f50c0872f3fa7b59afbb77eea0e24a5fda",
+   "cbfe3d7b2d1843c4": "fbfd14f7d99c02bc3dfeab56b725bb32fda373889beb04f3a75ac335c7664010",
+   "e6ab763634d2534f": "c7a68a6355ac5419293d7bb32663e75fc0c6fabe0db542517487a6b6eb89c492",
+   "f7a760310549798d": "ff2890fc16867d256b6aaa7d6b17e124d489b4ab7d563c1fe7f04b1084376829"
   },
   "drift": {
    "0.8.8": {
-    "39cbdefb4fc991f6": "v0.8.9 (2020-04-12)",
-    "a4795d770f7a8daf": "v0.8.8 (2020-03-31)"
+    "60a4b8f2cdeb68af": "v0.8.9 (2020-04-12)",
+    "cbfe3d7b2d1843c4": "v0.8.8 (2020-03-31)"
    },
    "10.15.0": {
-    "2671a7ca8175db8b": "v10.15.0 (2021-11-28)",
-    "9a8e4d797b741cb6": "tags/v10.15.1 (2021-11-29)"
+    "99966f245b0b1357": "v10.15.1 (2021-11-29)",
+    "99987385af12ecdd": "v10.15.0 (2021-11-28)"
    },
    "10.5.0": {
-    "5dcc78b6decbe263": "v10.6.0 (2021-07-12)",
-    "baf400d37cc53174": "v10.5.0 (2021-07-05)"
+    "5aa4691eb3b6c966": "v10.5.0 (2021-07-05)",
+    "836cfd9db541408e": "v10.6.0 (2021-07-12)"
    },
    "12.5.0": {
-    "02ed56f9fc19c01f": "v12.5.1 (2022-07-11)",
-    "e4bd03deed28f5e3": "v12.5.0 (2022-07-11)"
+    "643d002b8d127fdd": "v12.5.1 (2022-07-11)",
+    "857ba8dd67e95f82": "v12.5.0 (2022-07-11)"
    },
    "6.1.0": {
-    "99b92e357d1a2ab8": "v6.1.0 (2020-09-07)",
-    "9d20c79269ff03bb": "v6.1.1 (2020-09-07)"
+    "2dcf167cf022c819": "v6.1.1 (2020-09-07)",
+    "e6ab763634d2534f": "v6.1.0 (2020-09-07)"
    },
    "9.0.0": {
-    "483eee8225278ef2": "v9.0.1 (2020-10-19)",
-    "d2d7fe6b136a046b": "v9.0.0 (2020-10-18)"
+    "1408e475946cfdde": "v9.0.0 (2020-10-18)",
+    "f7a760310549798d": "v9.0.1 (2020-10-19)"
    }
   },
   "labels": 168,
@@ -69,7 +69,7 @@
   "repo": "Textualize/rich",
   "report_format": 2,
   "stamp": {
-   "detector_closure": "1125e51615efc369",
+   "detector_closure": "6df9787eb57df52b",
    "measured_at_head": "9d8f9a372cc5",
    "working_tree_dirty": null,
    "working_tree_dirty_note": "not checked: this repository has no working tree"

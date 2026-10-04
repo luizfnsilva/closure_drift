@@ -338,3 +338,89 @@ asking for them.
 | M17 | the diagnostics block prints the repository path | DG01 |
 | M18 | the tag-derived cause is not named | TV01 |
 | M19 | `--compare` of one label with two closures leaves at exit 0 | CMP01 |
+
+### Amendments of 2026-10-04, after the adversarial extension for 0.9.0
+
+- **EX01, EX02 and M20 added.** The extension found that the excluded folders are excluded only
+  below the top level: `**/tests/**` did not match a `tests/` folder at the root of the
+  repository, so its files were inside the closure whenever an include glob matched them (the
+  default `*.py` does). This predates 0.9.0 and contradicts the statement that those folders are
+  never part of a closure. Required: a change confined to a root-level `tests/`, `docs/` or
+  `*.md` is not seen (EX01), exactly as it is not seen one level down (EX02). M20 removes the
+  correction and must turn EX01 red.
+- **What this does to comparability, measured before the correction was adopted**: over the seven
+  reference repositories the verdict, the number of labels, the labels in drift, the worst label,
+  the points and the churn are identical with and without it. The 16-hex closure VALUES change in
+  the three repositories in drift, because files that were wrongly inside the closure leave it.
+  C05 still holds: where no excluded folder sits at the root, the closure is the earlier value.
+- **`--would-tag` looks at every tag**, not at the most recent `--max-commits`; a tag with the
+  same label and an empty closure counts as a collision; a `--tags` glob that leaves no tag is
+  `no_publication_points`. Each was a case of the extension that passed a real collision.
+- **Two controls failed on the first full run of the 20 mutants, and both were the controls' own
+  fault.** M18 no longer applied (the line it changes had been rewritten). M03 applied and was not
+  caught: it made a failed object read return garbage, and the tree validation added the same day
+  refused the garbage, so D14 stayed green for a different reason. M03 now returns an EMPTY object
+  — a tag read as holding no files — and D14 additionally requires that no report at all is
+  produced. A control that passes for the wrong reason is the case these controls exist for.
+
+
+## 9. Added 2026-10-04, before any of it was written — finding the label where projects keep it
+
+The first run of the study (`tools/study/`, run 1) said more about the detector than about the
+projects: of 100 repositories, 34 were refused for want of a version label, and in 7 of the 21
+`drift` results the label read was a constant that is not the released version. Three causes,
+each seen in named repositories of that run, and what is required instead. The detector at
+commit `HEAD` of this file's addition has none of it.
+
+**PT — the source of the label is resolved at each publication point, not once at HEAD.**
+A project moves its version from `setup.py` to `__init__.py` to `pyproject.toml` over the years;
+run 1 compared 11 of 71 tags of `click` and 12 of 162 of `requests` for that reason.
+
+| id | setup | required |
+|---|---|---|
+| PT01 | tag 1 declares the version in `setup.py`, tag 2 in `pkg/__init__.py`, tag 3 in `pyproject.toml`; three labels, three closures | `clean`, 3 points compared, `label_sources` lists the three |
+| PT02 | the same history, tags 1 and 3 declaring the same label with different code | `drift` |
+| PT03 | `--version-file` given | that file is used at every point, as before; no resolution |
+
+**TL — when the version is derived from the tag, the label is the tag.**
+With `setuptools_scm`, `hatch-vcs`, `versioneer` and the like, the released version is computed
+from the tag name. The label is then the tag name without a leading `v`.
+
+| id | setup | required |
+|---|---|---|
+| TL01 | `pyproject.toml` names `setuptools_scm`; tags `v1.0`, `v1.1`; a file elsewhere holds a constant `__version__ = "unknown"` | `clean`, labels `1.0` and `1.1`, `label_sources` = tag; the constant is not read |
+| TL02 | the same, plus a tag `1.0` on a commit with different code | `drift`: `v1.0` and `1.0` both build version 1.0 |
+| TL03 | tag-derived, `--at commits` | refusal, exit 2: there is no tag to read the label from |
+| TL04 | tag-derived, `--would-tag` | `no_label_at_head`, exit 2, saying the version will be the tag |
+| TL05 | the tool is named only in a comment | not treated as tag-derived |
+
+**VP — a declared pointer to the version is followed.**
+
+| id | declaration | label read from |
+|---|---|---|
+| VP01 | `[tool.hatch.version]` `path = 'pkg/version.py'` | that file |
+| VP02 | `version = {attr = "pkg.__version__"}` under `[tool.setuptools.dynamic]` | `pkg/__init__.py` or `src/pkg/__init__.py` |
+| VP03 | `version = attr: pkg.__version__` in `setup.cfg` | the same |
+| VP04 | `version = {file = "VERSION.txt"}` / `version = file: VERSION.txt` | that file |
+| VP05 | `flit_core` backend, `dynamic = ["version"]`, project `name = "pkg"` | `pkg/__init__.py`, `src/pkg/__init__.py` or `pkg.py` |
+| VP06 | `setup.py` with `version=pkg.__version__` or `version=mod.VERSION` | the module named, wherever it is shallowest |
+| VP07 | `setup.py` with a module-level `VERSION = '1.2.3'` and `version=VERSION` | `setup.py` |
+| VP08 | a vendored package deeper in the tree also defines `__version__` | the shallowest candidate wins; the vendored one is not read |
+| VP09 | none of the above and no version file | the refusal "could not find a version label", as before |
+
+Each VP proof builds two tags with two versions and two closures and requires `clean` with both
+labels read; VP08 additionally changes the vendored constant and requires that nothing moves.
+
+**Mutants added**
+
+| id | the change | must turn red |
+|---|---|---|
+| M21 | the source is resolved once, at HEAD | PT01 |
+| M22 | a tag-derived project falls through to the constants in the tree | TL01 |
+| M23 | the leading `v` is not removed from a tag label | TL02 |
+| M24 | declared pointers are not followed | VP01 |
+
+**What this does to earlier results, stated before measuring it.** Resolving the source at each
+point compares more points. On the seven reference repositories the verdicts may change where
+tags that 0.7.1 could not read turn out to share a label. Whatever comes out is reported; with
+`--version-file` fixed to what 0.7.1 read, the counts must still equal 0.7.1's.

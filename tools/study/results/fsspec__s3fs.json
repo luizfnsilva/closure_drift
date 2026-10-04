@@ -1,5 +1,5 @@
 {
- "cause": "could not find a version label. Pass --version-file / --version-regex.",
+ "cause": "no version file was found, and setup.py names versioneer: the version of this project appears to be derived from the tag",
  "exit": 2,
  "head": "17a38ae9dc6ff4df64a338d69e26712c152a36ff",
  "outcome": "refused",

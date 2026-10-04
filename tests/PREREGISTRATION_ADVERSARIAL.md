@@ -411,3 +411,33 @@ changed; no expectation in `tests/adversarial.py` is changed.
   raises `re.error`, which reaches the detector's catch-all (`internal error (error)`, exit 2).
   The same pattern reaches `fnmatch` through `--closure` and the config's `closure`. Exit code right,
   cause not named — a finding on 3.9 only.
+
+### Amendment by the maintainer, 2026-10-04, after the extension was delivered
+
+Nothing above is rewritten. The extension was committed as delivered, with its findings loose,
+before any fix (commit message: "adversarial extension for 0.9.0 … findings left loose").
+
+- **Closed in the detector**: TR10 (lazy fetch: `GIT_NO_LAZY_FETCH`, and a partial clone is
+  refused on git older than 2.45), WT01 (`--would-tag` looks at every tag), WT14/TG09/SR06 (tag
+  names are read from the full ref), WT03 (a `--tags` glob that leaves nothing is
+  `no_publication_points`), WT05 (a tag with the same label and an empty closure collides),
+  XP03/CP08 (a leading `**/` in a glob matches zero folders, so root-level `tests/`, `docs/` and
+  `*.md` are excluded as stated), TR09/TR05 (a tree that does not parse is a named refusal), TG03
+  (globs are compiled before anything is read), DG03/DG04 (the diagnostics block reports how many
+  globs were given, not the globs), the invisible characters, the shell quoting of suggested
+  commands, the comment that mentions a tag-derived tool, and the would-tag working-tree note.
+- **TF03 is superseded by TF05**, as the reviewer reported: its expectation was wrong. The case
+  stays in the file and comes out not-run, naming this.
+- **MX05 is superseded.** `--help`, `-h` and `--version` print no verdict and end at 0, as every
+  command-line program does; `docs/REPORT.md` now says so. The case stays and comes out not-run.
+- **AF09 now checks that the long path is in the commit.** On Windows git did not store a
+  ~300-character path, the case measured a repository without the file, and the detector's
+  correct answer for that repository (`empty_closure`) was read as a loose result.
+- **The command-execution cases run on every platform, with a positive control.** They were
+  guarded "POSIX only", and so came out not-run on Windows. git runs configured commands through
+  a POSIX shell on Windows as well, and the acceptance battery had already shown it (proof F01
+  green and mutant M05 caught there). Each case now first runs plain git commands with no
+  protection and records whether the vector fires; "absent after the detector" then means a
+  measured block where it does, and is reported as "nothing fires it here either" where it does
+  not. The campaign prints how many of each.
+

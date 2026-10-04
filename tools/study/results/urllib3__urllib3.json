@@ -1,5 +1,5 @@
 {
- "cause": "could not find a version label. Pass --version-file / --version-regex.",
+ "cause": "no version file was found, and pyproject.toml names setuptools-scm: the version of this project appears to be derived fr",
  "exit": 2,
  "head": "a164d79c8cf760f222daa2dc7f67d0e1ca7fb17c",
  "outcome": "refused",

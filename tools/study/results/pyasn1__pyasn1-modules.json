@@ -39,7 +39,7 @@
   "repo": "pyasn1/pyasn1-modules",
   "report_format": 2,
   "stamp": {
-   "detector_closure": "1125e51615efc369",
+   "detector_closure": "6df9787eb57df52b",
    "measured_at_head": "02f9c577bcd0",
    "working_tree_dirty": null,
    "working_tree_dirty_note": "not checked: this repository has no working tree"

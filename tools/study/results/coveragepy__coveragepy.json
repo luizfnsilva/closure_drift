@@ -1,7 +1,0 @@
-{
- "cause": "could not find a version label. Pass --version-file / --version-regex.",
- "exit": 2,
- "head": "7ebf3ad086789e56c2de09859d9fc738a434607f",
- "outcome": "refused",
- "repository": "coveragepy/coveragepy"
-}

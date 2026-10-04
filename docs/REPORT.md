@@ -54,7 +54,9 @@ more prefixes), `diagnostics` (with `--diagnose`, in every kind of report: `dete
 
 `report_format`, `stamp`, `mode` (`"would_tag"`), `repo`, `version_file`, `closure_globs`,
 `published_at`, `verdict`, `label_at_head`, `closure_at_head`, `closure_id_at_head`,
-`collides_with` (list of "tag (date)"), `existing_drift_labels`, and the six coverage fields above.
+`collides_with` (list of "tag (date)"), `existing_drift_labels`, and the six coverage fields above;
+with `--tags`, also `tag_globs` and `tags_filtered_out`. `--would-tag` looks at every tag, so its
+`range_truncated` is always `false`.
 
 ## Fields of a `--compare` report
 
@@ -73,6 +75,11 @@ with `--explain`, `inconclusive`, `no_publication_points`, `would_drift`, `would
 `--compare` — printed by the detector on tiny repositories built with fixed dates.
 `tools/make_report_examples.py --check` runs in CI and fails when they differ from what the detector
 prints, so they cannot go stale.
+
+## What prints no report
+
+`--help`, `-h` and `--version` print their text and end at `0`, as every command-line program does.
+They are not measurements and carry no verdict.
 
 ## Compatibility
 

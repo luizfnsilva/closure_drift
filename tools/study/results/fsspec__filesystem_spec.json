@@ -16,13 +16,13 @@
    "*.java"
   ],
   "closure_ids": {
-   "15922895e28add6b": "6e2dc154696dedf93cdcebd801fbf19f623f1925a56b50f3ab2d042a18fa5c23",
-   "58076a7d86763c39": "24ded7f816ef5e049f1762e218818213288b429e745848bbac613b1104001e9c"
+   "776c736f165976fc": "ec756b2eff0be9fad2b9f4dc43993f2183b1b47b913a563e661fe676b979e201",
+   "fb8cc7c9c3b04827": "5c3fc32625397f56f24129281e08f55a387b0d22bab5a10acf09474b91c2e625"
   },
   "drift": {
    "unknown": {
-    "15922895e28add6b": "2026.7.0 (2026-07-28)",
-    "58076a7d86763c39": "2026.9.0 (2026-09-18)"
+    "776c736f165976fc": "2026.9.0 (2026-09-18)",
+    "fb8cc7c9c3b04827": "2026.7.0 (2026-07-28)"
    }
   },
   "labels": 1,
@@ -39,7 +39,7 @@
   "repo": "fsspec/filesystem_spec",
   "report_format": 2,
   "stamp": {
-   "detector_closure": "1125e51615efc369",
+   "detector_closure": "6df9787eb57df52b",
    "measured_at_head": "778f95612ca6",
    "working_tree_dirty": null,
    "working_tree_dirty_note": "not checked: this repository has no working tree"

@@ -16,15 +16,15 @@
    "*.java"
   ],
   "closure_ids": {
-   "1cb6f6c6e1edeed2": "9c428ae2e9f76fa2451cd12cc00d961ce47dffb578db164ecb503be7c3fdc7d0",
-   "479347e3deba1c67": "7e7a6ff43e2d512edd7ade29841cc80c62b607bdc321b2e7df9e82eb7e96cfd0",
-   "d3d17ddfcdef8422": "65bf8e2efb0f5476eebf0caaf0d080bb84f8dccf50903fffe5ee2cf6fb2aa88d"
+   "1cca9e48c190858f": "ecb8ab48730c4f7a14577861b895f18daabaae1fb6c01671ded4d92c7f96d02e",
+   "2ee2578919de5c8a": "abedf0ddcca59f21faadd1a80053e129ae34ea8ca6ca3183a8cfeb111cb65662",
+   "ff8f29da4d25a43a": "329b538e4fdb5bf44f7e0c42890155e6b84859a8ec01810362f500f8f96b9e7f"
   },
   "drift": {
    "0.0.1": {
-    "1cb6f6c6e1edeed2": "0.0.3a (2015-08-12)",
-    "479347e3deba1c67": "0.0.1a (2015-05-31)",
-    "d3d17ddfcdef8422": "0.0.2a (2015-06-01)"
+    "1cca9e48c190858f": "0.0.2a (2015-06-01)",
+    "2ee2578919de5c8a": "0.0.1a (2015-05-31)",
+    "ff8f29da4d25a43a": "0.0.3a (2015-08-12)"
    }
   },
   "labels": 140,
@@ -41,7 +41,7 @@
   "repo": "aio-libs/aiobotocore",
   "report_format": 2,
   "stamp": {
-   "detector_closure": "1125e51615efc369",
+   "detector_closure": "6df9787eb57df52b",
    "measured_at_head": "3463973f1854",
    "working_tree_dirty": null,
    "working_tree_dirty_note": "not checked: this repository has no working tree"

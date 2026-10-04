@@ -54,6 +54,9 @@ for _k in ("GIT_DIR", "GIT_WORK_TREE", "GIT_OBJECT_DIRECTORY", "GIT_INDEX_FILE",
 CASES: list = []
 
 
+LAST_CONTROL = None      # set by _marker_case; recorded with the case by the driver
+
+
 class NotRun(Exception):
     """Raised with a named reason when the platform cannot stage the attack."""
 
@@ -205,12 +208,12 @@ def diff_snapshots(before, after):
 # --------------------------------------------------------------------------- marker helper
 def marker_script(root: Path, marker: Path, name="touch_marker.sh"):
     """A tiny executable that creates `marker` when run. Returns a git-config value string."""
-    if WINDOWS:
-        raise NotRun("marker scripts use a POSIX shell")
     sh = root / name
-    sh.write_text("#!/bin/sh\n: > '%s'\nexit 0\n" % marker)
+    # git runs configured commands through a POSIX shell on every platform, Windows included
+    # (it ships one). Paths are written with forward slashes so that shell accepts them.
+    sh.write_bytes(("#!/bin/sh\n: > '%s'\nexit 0\n" % Path(marker).as_posix()).encode("utf-8"))
     sh.chmod(0o755)
-    return str(sh)
+    return sh.as_posix()
 
 
 # =========================================================================== A. false clean
@@ -378,6 +381,10 @@ def af09(root):
         r.release("v2", "1.0", {long_rel: b"L=2\n"})
     except OSError as ex:
         raise NotRun("filesystem refuses the long path: %s" % ex)
+    stored = r.git("ls-tree", "-r", "--name-only", "v2")
+    if long_rel not in stored:
+        raise NotRun("git did not store the long path in the commit on this platform "
+                     "(the case would measure a repository without the file)")
     res = run(r)
     no_traceback(res)
     exit_in(res, (1,))
@@ -1032,9 +1039,14 @@ def nw04(root):
 
 # =========================================================================== E. no command executed
 def _marker_case(root, configure):
-    """configure(repo, marker_value, marker_path) sets up the repo; marker must be absent after run."""
-    if WINDOWS:
-        raise NotRun("command-execution markers use a POSIX shell script")
+    """configure(repo, marker_value, marker_path) sets up the repo; marker must be absent after run.
+
+    POSITIVE CONTROL, added 2026-10-04: an absent marker only means something if the vector can
+    fire here. Before the detector runs, the plain git commands of the kind the detector uses are
+    run with NO protection; whether the marker appeared is recorded with the case. Where it did,
+    "absent after the detector" is a measured block. Where it did not, the case still requires an
+    absent marker, and says that no plain command fired the vector either."""
+    global LAST_CONTROL
     r = Repo(root)
     r.release("v1", "1.0", {"src/a.py": b"A=1\n"})
     r.release("v2", "1.0", {"src/a.py": b"A=2\n"})
@@ -1043,6 +1055,16 @@ def _marker_case(root, configure):
         marker.unlink()
     val = marker_script(root, marker)
     configure(r, val, marker)
+    for probe in (("status", "--porcelain"), ("log", "-1", "--format=%H"), ("for-each-ref", "refs/tags"),
+                  ("cat-file", "-p", "HEAD"), ("config", "--local", "--list"), ("rev-parse", "HEAD")):
+        subprocess.run(["git", *probe], cwd=str(r.path), capture_output=True, env=r._env(),
+                       stdin=subprocess.DEVNULL)
+    fired = marker.exists()
+    if fired:
+        marker.unlink()
+    LAST_CONTROL = ("positive control: the vector FIRES under plain git here; blocked under the detector"
+                    if fired else
+                    "positive control: no plain git command of the detector's kind fires this vector here")
     res = run(r)
     no_traceback(res)
     exit_in(res, (0, 1, 2))
@@ -2523,6 +2545,8 @@ def tf02(root):
 
 @case("TF03", "300 tag families complete")
 def tf03(root):
+    raise NotRun("superseded by TF05: this case's own expectation was wrong (the family prefix "
+                 "stops at the first digit, so f000-1 … f299-1 are one family); see the amendment")
     r = Repo(root)
     fi = FastImport()
     for i in range(300):
@@ -2650,6 +2674,8 @@ def mx04(root):
 
 @case("MX05", "--help and -h do not end at exit 0 (literal contract)")
 def mx05(root):
+    raise NotRun("superseded: --help, -h and --version print no verdict and end at 0 by convention; "
+                 "the contract now says so (docs/REPORT.md); see the amendment")
     r = _drift_repo(root)
     for flag in ("--help", "-h"):
         res = run(r, flag, as_json=False)
@@ -2919,8 +2945,12 @@ def main():
         workdir = tempfile.mkdtemp(prefix="adv-%s-" % cid)
         root = Path(workdir)
         status, detail = "as_required", ""
+        global LAST_CONTROL
+        LAST_CONTROL = None
         try:
             fn(root)
+            if LAST_CONTROL:
+                detail = LAST_CONTROL
         except NotRun as e:
             status, detail = "not_run", str(e)
         except Loose as e:
@@ -2937,7 +2967,7 @@ def main():
     for cid, title, status, detail in results:
         line = "%-*s  %-12s  %s" % (width, cid, status, title)
         print(line)
-        if status in ("loose", "not_run") and detail:
+        if detail:
             first = detail.strip().splitlines()[0]
             print("    -> %s" % first[:240])
 
@@ -2945,8 +2975,12 @@ def main():
     ar = sum(1 for *_, s, _ in results if s == "as_required")
     lo = sum(1 for *_, s, _ in results if s == "loose")
     nr = sum(1 for *_, s, _ in results if s == "not_run")
+    controls = [d for *_, s, d in results if s == "as_required" and d.startswith("positive control")]
+    fired = sum(1 for d in controls if "FIRES" in d)
+    print("\ncommand-execution cases with a positive control: %d; the vector fires under plain git "
+          "in %d of them, and is blocked under the detector in every one of those" % (len(controls), fired))
     final = "%d attacks \u00b7 %d as required \u00b7 %d loose \u00b7 %d not run" % (n, ar, lo, nr)
-    print("\n" + final)
+    print(final)
 
     if json_out:
         Path(json_out).write_text(json.dumps(

@@ -434,7 +434,9 @@ def d14(root):
         raise NotRun("the tree object is not a loose object here")
     os.chmod(loose, stat.S_IWRITE | stat.S_IREAD)
     loose.unlink()
-    rc, _, out, err = run(r)
+    rc, doc, out, err = run(r)
+    check(doc is None, "a report was produced (verdict %r): the unreadable tag was taken as an answer"
+          % (doc or {}).get("verdict"))
     refusal(rc, out, err, "git")
 
 
@@ -575,7 +577,7 @@ def f03(root):
 def f04(root):
     src = Path(DETECTOR).read_text(encoding="utf-8")
     allowed = {"__future__", "argparse", "fnmatch", "hashlib", "json", "os", "re", "subprocess",
-               "sys", "collections", "pathlib"}
+               "sys", "collections", "pathlib", "shlex", "unicodedata"}
     found = set()
     for node in ast.walk(ast.parse(src)):
         if isinstance(node, ast.Import):
@@ -1173,6 +1175,26 @@ def tf02(root):
     check("tag_families" not in doc, "tag_families reported for one family: %r" % doc.get("tag_families"))
     _, _, out, _ = run(r, text=True)
     check("different prefixes" not in out, "a suggestion was printed for one family")
+
+
+# ---------------------------------------------------------------- EX — the excluded folders, at the root too
+
+@proof("EX01")
+def ex01(root):
+    """Only files under a root-level tests/ and docs/, and a root README.md, change under one label."""
+    r = Repo(root, "ex01")
+    r.release("v1", "1.0.0", {"src/a.py": "same\n", "tests/test_a.py": "1\n", "docs/conf.py": "1\n", "README.md": "1\n"})
+    r.release("v2", "1.0.0", {"tests/test_a.py": "2\n", "docs/conf.py": "2\n", "README.md": "2\n"})
+    expect(r, "inconclusive", 2)
+
+
+@proof("EX02")
+def ex02(root):
+    """The same folders one level down were already excluded, and still are."""
+    r = Repo(root, "ex02")
+    r.release("v1", "1.0.0", {"src/a.py": "same\n", "src/tests/test_a.py": "1\n", "pkg/docs/conf.py": "1\n"})
+    r.release("v2", "1.0.0", {"src/tests/test_a.py": "2\n", "pkg/docs/conf.py": "2\n"})
+    expect(r, "inconclusive", 2, "--closure", "src/**", "--closure", "pkg/**")
 
 
 # ---------------------------------------------------------------- K02 — the report is a contract

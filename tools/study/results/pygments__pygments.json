@@ -16,13 +16,13 @@
    "*.java"
   ],
   "closure_ids": {
-   "0d4ce6801dab53c9": "4512973b28266c700d7b56b74f0cf580b6ee97036febe977d34f62cda0b41b4e",
-   "a2d7a17e3a5c6521": "3e0e6b003d22d25c3bcd3d6e8b8620a92fe087c0162bd5826a30c758d92991ee"
+   "0f991985db5b6f86": "522fd61633130f2712d2989593367f46b7610768ddaa8a8b8aaddf9971e9b171",
+   "aa708c4c533dbbed": "12ac111e16f1a38b7d69666be39d769940371ac51bc0f7491fd74bb323a9ec91"
   },
   "drift": {
    "0.9": {
-    "0d4ce6801dab53c9": "0.9 (2007-10-14)",
-    "a2d7a17e3a5c6521": "0.8.1 (2007-06-27)"
+    "0f991985db5b6f86": "0.9 (2007-10-14)",
+    "aa708c4c533dbbed": "0.8.1 (2007-06-27)"
    }
   },
   "labels": 69,
@@ -39,7 +39,7 @@
   "repo": "pygments/pygments",
   "report_format": 2,
   "stamp": {
-   "detector_closure": "1125e51615efc369",
+   "detector_closure": "6df9787eb57df52b",
    "measured_at_head": "156d85fdd18d",
    "working_tree_dirty": null,
    "working_tree_dirty_note": "not checked: this repository has no working tree"

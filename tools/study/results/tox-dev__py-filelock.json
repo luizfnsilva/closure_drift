@@ -1,5 +1,5 @@
 {
- "cause": "could not find a version label. Pass --version-file / --version-regex.",
+ "cause": "no version file was found, and pyproject.toml names hatch-vcs: the version of this project appears to be derived from th",
  "exit": 2,
  "head": "1f0632b6bc047cf3481bbe740475be813013208e",
  "outcome": "refused",

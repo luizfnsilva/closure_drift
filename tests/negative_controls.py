@@ -31,7 +31,7 @@ MUTANTS = [
     ("M02", "C01", [('if e[1] in ("blob", "commit") and self.holds(e[0])]',
                      'if e[1] in ("blob", "commit") and self.holds(e[0]) and e[0].isascii()]')]),
     ("M03", "D14", [('                raise Refusal(f"git cat-file could not read {want} {printable(name[:60])}: {printable(said)}")',
-                     '                return b"tree " + b"0" * 40')]),
+                     '                return b""')]),
     ("M04", "E01", [('    out = []\n    for ch in str(text):',
                      '    return str(text)\n    out = []\n    for ch in str(text):')]),
     ("M05", "F01", [('GIT = ["git", "--no-optional-locks", "--no-replace-objects", "-c", "core.fsmonitor=false"]',
@@ -54,10 +54,11 @@ MUTANTS = [
                        '    changed = sorted(p for p in ma if False)')]),
     ("M17", "DG01", [('        print("  repository      " + ", ".join(f"{k}={v}" for k, v in DIAGNOSTICS["repository"].items()) + "\\n")',
                       '        print("  repository      " + str(Path(a.repo).resolve()) + "\\n")')]),
-    ("M18", "TV01", [('                found = [t for t in TAG_DERIVED if name in blobs and t in objects.text(blobs[name])]',
+    ("M18", "TV01", [('                found = [t for t in TAG_DERIVED if t in live]',
                       '                found = []')]),
     ("M19", "CMP01", [('    code = {"identical": 0, "differs_under_two_labels": 0, "differs_under_one_label": 1}.get(verdict, 2)',
                        '    code = {"identical": 0, "differs_under_two_labels": 0, "differs_under_one_label": 0}.get(verdict, 2)')]),
+    ("M20", "EX01", [('               or (g.startswith("**/") and fnmatch.fnmatch(path, g[3:]))\n', '')]),
 ]
 
 

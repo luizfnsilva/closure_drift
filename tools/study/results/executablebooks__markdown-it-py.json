@@ -16,15 +16,15 @@
    "*.java"
   ],
   "closure_ids": {
-   "652233a09ace0be5": "3e1460652d94f2103d25effd09dc1aed189b870cc329a5e1e7891f0509181db6",
-   "96c90b3bb7136466": "f7299db01d2dabef77124e9395096b79fd74f12345dabd5dbb460517dc2f10bf",
-   "e99052c3cbb84452": "fbb08ee4484ee0a582c06a0f2d0bfdafd1b61114bdf2daeb00e935dcacb3f608"
+   "b61ff7fef8ca9edb": "b325d09b00af269fb3684bd1221287d562096b7f98997efd51417fced1897e6b",
+   "b8c68995754136ed": "56e9348b27d438408ff38b117c5087f551b78ec56863314a2f2752b20a930622",
+   "cfaaacf967ed0525": "06131f5047c1df1164d5d24fcd6d3e4bd013b14e391648427ba3c4b6f95f3620"
   },
   "drift": {
    "0.1.1": {
-    "652233a09ace0be5": "v0.1.0 (2020-03-25)",
-    "96c90b3bb7136466": "v0.1.1d (2020-03-25)",
-    "e99052c3cbb84452": "v0.1.1a (2020-03-25)"
+    "b61ff7fef8ca9edb": "v0.1.0 (2020-03-25)",
+    "b8c68995754136ed": "v0.1.1a (2020-03-25)",
+    "cfaaacf967ed0525": "v0.1.1d (2020-03-25)"
    }
   },
   "labels": 44,
@@ -41,7 +41,7 @@
   "repo": "executablebooks/markdown-it-py",
   "report_format": 2,
   "stamp": {
-   "detector_closure": "1125e51615efc369",
+   "detector_closure": "6df9787eb57df52b",
    "measured_at_head": "6f586542653a",
    "working_tree_dirty": null,
    "working_tree_dirty_note": "not checked: this repository has no working tree"

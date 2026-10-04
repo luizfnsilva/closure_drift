@@ -16,13 +16,13 @@
    "*.java"
   ],
   "closure_ids": {
-   "7796bf5bd18f26f2": "80ae558139e680afd9a92dc2e71e10cf8febed41aa718c7faa249466d4422e09",
-   "a3132af280202c76": "273bdc4acd82a02a763ad478f3b3a02c4ac4829bca89b7517550df3639cc2260"
+   "3d30b771dc0516fd": "761589a2e94e968a526074bcf089dc857138354962a1c6acd841f3165298f5d8",
+   "51a97c1efa50d386": "8901eaf508a9aa235e9797e7650eb44099aadeb1bd3cce8a38d13f83694e638a"
   },
   "drift": {
    "0.14.0": {
-    "7796bf5bd18f26f2": "0.14.1 (2021-11-12)",
-    "a3132af280202c76": "0.14.0 (2021-11-11)"
+    "3d30b771dc0516fd": "0.14.0 (2021-11-11)",
+    "51a97c1efa50d386": "0.14.1 (2021-11-12)"
    }
   },
   "labels": 54,
@@ -39,7 +39,7 @@
   "repo": "encode/httpcore",
   "report_format": 2,
   "stamp": {
-   "detector_closure": "1125e51615efc369",
+   "detector_closure": "6df9787eb57df52b",
    "measured_at_head": "10a658221deb",
    "working_tree_dirty": null,
    "working_tree_dirty_note": "not checked: this repository has no working tree"

@@ -3,7 +3,7 @@
  "head": "470daa7e23c63549097c867d9bf32e302be9807e",
  "outcome": "drift",
  "report": {
-  "closure_changes_between_points": 327,
+  "closure_changes_between_points": 326,
   "closure_globs": [
    "src/**",
    "lib/**",
@@ -16,41 +16,35 @@
    "*.java"
   ],
   "closure_ids": {
-   "27405e11bb490358": "d0fa828a79cd2859f0e5284368dd53210264185496064040070c3a5439ccc484",
-   "30497f5618f72c53": "2dab1e53f8b2d26044a2a6df4d6ae78d79b10c81a07c233e7d9366cdc2cfc3ca",
-   "48a9577458bb43a6": "6f36d7aed8d7ec7b313f8b811c64e9f5496ca4c08493df17c6f66591b3c9bec6",
-   "4b306ffedc7c0fc1": "37aaaef1f822a0f540845ee89145e8313462cf4c8897b674a83a187a7d8f9619",
-   "62bb7654d725381c": "721873cb794dc0a0e5b0387dcf96a052414d8bbf9cedaf836282384f5d78d689",
-   "668c792ef877407e": "e46190b3b0bc5ded6211bc8e7efd88f86cf39c141681334ac5118dc613028595",
-   "8ac194867f5ae261": "a3dd5bbe9a68a1c60bbaa6495312c0029f5ca278478312014f0cb9329b6f2317",
-   "9a1e5c0b249c9c71": "87afa1b785594be9444f6c4874db1985a1a47847382095f50d84559f92c92f07",
-   "af07c722a9695c42": "651096de8c9c9e92db049bfc83303a287a0ba1164e7087db686e6bf9db3f0b95",
-   "d496527054a808ad": "1863eb9592547f7da9870c0acae79ff1665fc3e4379eab159e31ffdb5a64b5b1"
+   "140d88f448e0c3a4": "351d16066a38d0a4c7020aca47fab58f074ad2745b2545fbf4e72bab5b2882b4",
+   "5c1ee4344118b4ea": "361716f42465b21d573bec789d4d0a5a233f96d652c804f428fff86e564d6573",
+   "7197d11717701080": "bb10b099657d4d09a9f9227a2cd3110b7773248c8416c70b483fff9b360b06a2",
+   "74b524b901de1569": "9c3b3a74cd8058a088d978ad390f0e0928dcdb5437880a553ab35e7af74fedc7",
+   "8f55dcf1d0060083": "93953c61dd34f10b43b25120708d0ba85c14344d2a84d5de143be9ce1d209dec",
+   "afa711b1a375ee8e": "57b6e43d1973f6499978bcef560b21935621dde95d9efa987b964534571d208d",
+   "d692ae52dd5c262a": "a5ca86f74c8dd7509bf2ef3832021317bb8bd70d6c087eff639cfb30d02819bd",
+   "f47e462c060ccd47": "e551345219e1aaa713fc340ba6e29e31b6c3580fac29de499db5af8b5592de3d"
   },
   "drift": {
    "0.21.2": {
-    "668c792ef877407e": "v0.21.3 (2016-03-12)",
-    "af07c722a9695c42": "v0.21.2 (2016-02-16)"
+    "140d88f448e0c3a4": "v0.21.3 (2016-03-12)",
+    "7197d11717701080": "v0.21.2 (2016-02-16)"
    },
    "2.0.2": {
-    "30497f5618f72c53": "2.0.2 (2017-03-21)",
-    "8ac194867f5ae261": "2.0.3 (2017-03-24)"
+    "74b524b901de1569": "2.0.3 (2017-03-24)",
+    "afa711b1a375ee8e": "2.0.2 (2017-03-21)"
    },
    "3.4.0a0": {
-    "27405e11bb490358": "v3.4.0a1 (2018-08-19)",
-    "48a9577458bb43a6": "v3.4.0a0 (2018-08-11)"
-   },
-   "3.6.0a9": {
-    "62bb7654d725381c": "v3.6.0a10 (2019-08-29)",
-    "d496527054a808ad": "v3.6.0a9 (2019-08-29)"
+    "d692ae52dd5c262a": "v3.4.0a1 (2018-08-19)",
+    "f47e462c060ccd47": "v3.4.0a0 (2018-08-11)"
    },
    "3.8.1": {
-    "4b306ffedc7c0fc1": "v3.8.1 (2021-11-14)",
-    "9a1e5c0b249c9c71": "v3.8.2a0 (2022-09-20)"
+    "5c1ee4344118b4ea": "v3.8.2a0 (2022-09-20)",
+    "8f55dcf1d0060083": "v3.8.1 (2021-11-14)"
    }
   },
   "labels": 311,
-  "labels_covering_multiple_closures": 5,
+  "labels_covering_multiple_closures": 4,
   "max_closures_per_label": 2,
   "points_not_commits": 0,
   "points_with_empty_closure": 0,
@@ -63,7 +57,7 @@
   "repo": "aio-libs/aiohttp",
   "report_format": 2,
   "stamp": {
-   "detector_closure": "1125e51615efc369",
+   "detector_closure": "6df9787eb57df52b",
    "measured_at_head": "470daa7e23c6",
    "working_tree_dirty": null,
    "working_tree_dirty_note": "not checked: this repository has no working tree"

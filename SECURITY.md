@@ -2,37 +2,28 @@
 
 ## What this tool does to your machine
 
-It starts `git` — `rev-parse`, `for-each-ref`, `rev-list`, `log`, `cat-file`, `config --local
---list` and `status` — against the repository you point it at, hashes what it reads, and prints a
-report. When the version pattern is not one of its own (you passed `--version-regex`, or the
-repository's `.closure-drift.json` names one), it also starts **itself**, once per distinct version
-file, to match that pattern under a time limit; the child receives the pattern and the text on
-standard input and nothing else. It starts no other program, has **no dependencies**, makes **no
-network requests**, and **never writes to the repository it measures**.
+It starts `git` (`--version`, `rev-parse`, `for-each-ref`, `rev-list`, `log`, `cat-file`,
+`config --local --list`, `status`) and, for a version pattern that is not built in, itself — to match
+that pattern under a time limit. Nothing else. No dependencies, no network, and it never writes to
+the repository it measures.
 
-### Measuring a repository you did not create
+A repository's own git configuration can name commands. These are blocked, and each is a case in
+`tests/adversarial.py` with a positive control (plain git does run the command on the same
+repository):
 
-A repository can carry instructions for git in its own configuration, and a careless tool runs
-them. This one is tested against the following, each a case in `tests/adversarial.py`:
+- `core.fsmonitor`
+- clean / smudge / process filters (the working-tree check is skipped and reported as `null`)
+- `refs/replace/*`
+- the lazy fetch of a partial clone (refused on git older than 2.45, which cannot disable it)
+- `GIT_DIR`, `GIT_WORK_TREE` and similar variables in your environment
 
-- `core.fsmonitor` naming a command — overridden on every git call;
-- a clean/smudge/process filter — where the repository's local config defines one, the
-  working-tree check is not made and the report says `working_tree_dirty: null`, with the reason;
-- `refs/replace/*` — git is run with replace objects disabled, so a tag is read as the tree it names;
-- `GIT_DIR`, `GIT_WORK_TREE` and the other variables that redirect git — removed from the
-  environment, so the repository measured is the one on the command line;
-- hooks, `diff.*.textconv`, pagers, editors, `core.sshCommand`, aliases, `include.path`: none is
-  reached by the commands above.
+Hooks, pagers, editors, `textconv`, `core.sshCommand` and aliases are not reached by the commands
+above. This is what was tested, not a proof about every git version. For a repository received as
+an archive from someone you do not trust, `git clone` it first and measure the clone.
 
-That list is what was tested, not a proof about every git version and every setting. If you are
-handed a repository as an archive, with its `.git` directory, by someone you do not trust, the
-conservative course is the usual one for any git tool: `git clone` it first — a clone does not copy
-the source's configuration — and measure the clone.
-
-The JSON report contains counts, version labels, closure hashes, the tool's own stamp, and two
-paths: the repository path exactly as you passed it on the command line, and the path of your version
-file. It does **not** contain file contents, and it does not list the files inside your closure
-unless you ask for them with `--explain`. Look at it before you send it anywhere.
+The JSON report holds counts, labels, hashes, the repository path as you typed it and the path of
+the version file. No file contents, and no path inside the closure unless you pass `--explain` or
+`--compare`.
 
 ## Reporting a vulnerability
 

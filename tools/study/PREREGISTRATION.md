@@ -46,3 +46,25 @@ many does a version label name more than one closure at a tag?
 
 No repository's maintainers are contacted, no issue is opened anywhere, and no project is
 described as badly run. Drift is a property of an addressing scheme.
+
+## Run 2 — added 2026-10-04, after run 1 and before run 2
+
+Run 1 is kept, with every row, in `run1/`. It is not replaced.
+
+Run 1's result is mostly about the detector: 34 of 100 repositories refused for want of a version
+label, and in 7 of 21 `drift` results the label read was a constant, not the released version.
+The detector was changed for that (`tests/PREREGISTRATION.md` §9): the label source is resolved
+at each tag, declared pointers are followed, and where the version is derived from the tag the
+label is the tag.
+
+Run 2 uses the **same selection** (`selection.tsv`, unchanged), the same rule of no
+per-repository tuning, and the detector released as 0.9.0. Reported, whatever comes out:
+
+- the same outcome counts as run 1, side by side with run 1's;
+- for every `clean` and `drift` row, where the label came from (a file, or the tag), and how
+  many of the points scanned were compared;
+- `clean` results in which every label came from the tag, counted separately: there the label
+  is the tag by construction, and "clean" says only that no two tags normalise to the same name;
+- every repository whose outcome differs between the two runs, named.
+
+A fall in the share of `drift` from run 1 to run 2 is as reportable as a rise.

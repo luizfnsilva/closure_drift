@@ -1,6 +1,6 @@
 {
  "exit": 0,
- "head": "598bcb81a71f99778232ebf53412979926ace9d4",
+ "head": "43d415779c54baa98c3694cc5c811e457ec1b459",
  "outcome": "clean",
  "report": {
   "closure_changes_between_points": 172,
@@ -31,8 +31,8 @@
   "repo": "aio-libs/multidict",
   "report_format": 2,
   "stamp": {
-   "detector_closure": "1125e51615efc369",
-   "measured_at_head": "598bcb81a71f",
+   "detector_closure": "6df9787eb57df52b",
+   "measured_at_head": "43d415779c54",
    "working_tree_dirty": null,
    "working_tree_dirty_note": "not checked: this repository has no working tree"
   },

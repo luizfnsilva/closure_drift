@@ -16,13 +16,13 @@
    "*.java"
   ],
   "closure_ids": {
-   "948b5f47d8b573ac": "7eee2101955680b83b5c4c302a220daf8e23a08fbe49adaf3ece2e20a912a797",
-   "eb20f87e31e32a39": "253a54316ff3c73b16944be9bec23a4ff7c8bfb3cc1bcad7d60beb2b18f0a5a9"
+   "d6543cccf03b6553": "37e67c843d138686e9a6a04112df4f57d4a32faf897543037eb24f961e5c4a1b",
+   "fe7ff1c9a3ff6cc2": "950b7ec5d4b3d661b8179625433d49179988501f5f6bf0f601b046f58c0aec53"
   },
   "drift": {
    "1.7.2": {
-    "948b5f47d8b573ac": "v1.7.2 (2021-11-01)",
-    "eb20f87e31e32a39": "v1.8.0--failed-release-attempt (2022-07-30)"
+    "d6543cccf03b6553": "v1.8.0--failed-release-attempt (2022-07-30)",
+    "fe7ff1c9a3ff6cc2": "v1.7.2 (2021-11-01)"
    }
   },
   "labels": 153,
@@ -39,7 +39,7 @@
   "repo": "aio-libs/yarl",
   "report_format": 2,
   "stamp": {
-   "detector_closure": "1125e51615efc369",
+   "detector_closure": "6df9787eb57df52b",
    "measured_at_head": "40594eb94159",
    "working_tree_dirty": null,
    "working_tree_dirty_note": "not checked: this repository has no working tree"
