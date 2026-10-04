@@ -281,3 +281,60 @@ Exit codes with the new verdicts: `would_be_clean` 0; `would_drift` 1; `incomple
   a refusal leaves standard output empty. It tests the detector as it already was: no code changed
   for it, and it could have been red.
 
+
+## 8. Added 2026-10-04, before any of it was written — what turns 0.8.0 into 0.9.0
+
+The release prepared as 0.8.0 was never tagged or deposited; it is the base of 0.9.0. This section
+pre-registers what 0.9.0 adds. The detector at commit `e56e71c` has none of it, so every proof
+below is red against it by construction. `report_format` stays `2`: fields are only added.
+
+**CMP — `--compare A B`: two references, side by side.** It looks at exactly two commits and
+ignores publication points. It always lists the paths, because asking for the comparison is
+asking for them.
+
+| id | setup | required |
+|---|---|---|
+| CMP01 | two tags, one label, closures differ by one changed, one added and one removed file | verdict `differs_under_one_label`, exit 1; `changed`, `only_in_a`, `only_in_b` list exactly those paths |
+| CMP02 | two tags, two labels, closures differ | `differs_under_two_labels`, exit 0 |
+| CMP03 | two tags whose closures are the same | `identical`, exit 0, the three lists empty |
+| CMP04 | a reference that does not exist | refusal, exit 2, naming the reference |
+| CMP05 | one of the two declares no label | `not_comparable`, exit 2; the paths are still listed |
+| CMP06 | a differing path holding a line break and an escape | no raw control character in the text report; in JSON the path round-trips |
+| CMP07 | `--compare` with `--would-tag`, with `--explain`, with `--at commits` | refusal, exit 2, each |
+
+**DG — `--diagnose`: what to paste into a bug report.**
+
+| id | setup | required |
+|---|---|---|
+| DG01 | drift repository, `--diagnose` | the text report opens with a block naming the detector version, its 16-hex hash, the Python version and the git version; that block holds no version label, no path inside the closure and no path of the repository; the verdict and exit code are those of the same run without `--diagnose` |
+| DG02 | `--diagnose --json` | the report carries a `diagnostics` object with `detector_version`, `detector_closure`, `python`, `git`, `platform`, `options`, `repository` |
+| DG03 | `--diagnose` on a directory that is not a repository | the block is printed, then the refusal; exit 2 |
+
+**VER — the detector knows its own version**
+
+| id | required |
+|---|---|
+| VER01 | `--version` prints `closure_drift` and the value of `__version__` in the file, exit 0, and nothing else |
+
+**TV — a version that comes from the tag is said to come from the tag**
+
+| id | setup | required |
+|---|---|---|
+| TV01 | `pyproject.toml` naming `setuptools_scm`, no static version anywhere | refusal, exit 2, whose text says the version is derived from the tag at build time and names the tool found |
+| TV02 | no version file of any kind | the refusal is the earlier one ("could not find a version label"), not the new one |
+
+**TF — tag families are pointed out, not guessed at**
+
+| id | setup | required |
+|---|---|---|
+| TF01 | tags `rs-1` and `py-1` share a label with different closures | `drift`; the report carries `tag_families` naming both `rs-` and `py-`, and the text suggests `--tags` |
+| TF02 | drift between `v1` and `v2`, one family | no `tag_families`, no suggestion |
+
+**Mutants added**
+
+| id | the change | must turn red |
+|---|---|---|
+| M16 | `--compare` reports no differing path | CMP01 |
+| M17 | the diagnostics block prints the repository path | DG01 |
+| M18 | the tag-derived cause is not named | TV01 |
+| M19 | `--compare` of one label with two closures leaves at exit 0 | CMP01 |
