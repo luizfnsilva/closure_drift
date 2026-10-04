@@ -441,3 +441,176 @@ before any fix (commit message: "adversarial extension for 0.9.0 … findings le
   measured block where it does, and is reported as "nothing fires it here either" where it does
   not. The campaign prints how many of each.
 
+## Extension 2, 2026-10-04 — where the label is read from
+
+Written 2026-10-04 by an independent reviewer who did not write the detector, `battery.py`,
+`negative_controls.py` or any case above, **before any case below was run**. Nothing above is
+changed. The detector under attack is `closure_drift.py` 0.9.0 at commit `0fe8cb5` on branch
+`release-0.8.0`; the part under attack is `Sources`, `Labels`, `attr_pattern`, `uncommented`,
+`module_files`, `depth_first` and `tag_label` (PREREGISTRATION.md §9).
+
+Baseline, run before this section was written (python 3.14, existing cases only):
+`163 attacks · 158 as required · 2 loose · 3 not run` (TV01 and TV04 loose: the refusals they
+require no longer exist under §9).
+
+**Id prefixes.** `LS` label source · `LT` label from the tag · `LD` denial of service in the
+in-process patterns · `LC` the source cache and the order of visits · `LR` regression against
+`--version-file`.
+
+**Shapes used below.** "Different code" = `src/a.py` differs between the two tags. "Real version"
+= the version a build of that tag would carry. Every repository is attacker-controlled: build
+files, modules, tag names and refs. `(hardening)` marks a requirement that is not a clause of the
+contract; a loose result there is reported as hardening. Time limit 20 s per detector run unless
+stated.
+
+**What the contract requires here.** A label is read for each tag so that two tags that build the
+same version with different code are seen. So: no case may end at exit 0 when two tags build the
+same real version with different code (a hidden drift), and no case may end at exit 1 when every
+tag builds a different real version (a false drift). Exit codes, tracebacks and output escaping as
+in §1 and the top of this file. Nothing outside the measured tree is ever read: a sentinel written
+outside the repository never appears in any output.
+
+### LS — the source of the label
+
+| id | attacker controls / does | required outcome |
+|---|---|---|
+| LS01 | `pyproject.toml` `[project] version = "1.0"` at tags v1 and v2, different code; v2 alone adds a `package.json` `{"private": true, "version": "0.0.0"}` (a front-end file). | not exit 0 (both tags build 1.0). |
+| LS02 | Version in `pkg/__init__.py` = `1.0` at both tags (pyproject names the project, no version), different code; v2 alone adds a `VERSION` file holding `schema-3`. | not exit 0. |
+| LS03 | Same as LS02, v2 alone adds `version.txt` holding prose whose third line is the single word `see`. | not exit 0. |
+| LS04 | `setup.py` with `version=pkg.__version__` and a comment `# version='0.0.0' was used before 2019` at both tags; `pkg/__init__.py` 1.0 then 2.0, different code. | not exit 1; `clean`, exit 0, labels 1.0 and 2.0. |
+| LS05 | Same as LS04 with the string in the module docstring: `"""Pass version="dev" to override."""`. | not exit 1; `clean`, exit 0. |
+| LS06 | Same as LS04 with an unrelated call before `setup()`: `check_python(version="3.8")`. | not exit 1; `clean`, exit 0. |
+| LS07 | `setup.py` `version=pkg.__version__`, `pkg/__init__.py` = 1.0 at both tags, different code; at v2 alone `setup.py` gains `# version="0.9" was the last py2 release`. | not exit 0 (both build 1.0); `drift`, exit 1. |
+| LS08 | poetry-dynamic-versioning: `[tool.poetry] version = "0.0.0"` (the placeholder its documentation prescribes), `[tool.poetry-dynamic-versioning] enable = true`, the plugin in `[build-system] requires`; tags v1.0 and v1.1, different code. | not exit 1 (they build 1.0 and 1.1). |
+| LS09 | setuptools_scm in `[build-system] requires`, `dynamic = ["version"]`, and a tool table `[tool.mytool]` holding `version = "2"`; tags v1.0, v1.1, different code. | not exit 1. |
+| LS10 | Version in `pkg/__init__.py` = 1.0 at both tags (tags `build-a`, `build-b`), different code; at `build-b` alone a dependency `"pbrt-tools>=1"` is added to `[project] dependencies`. | not exit 0; `drift`, exit 1 (both build 1.0). |
+| LS11 | As LS10, the word is in `description = "a versioneer-free tool"`. | not exit 0; `drift`, exit 1. |
+| LS12 | As LS10, the word is in a URL: `Notes = "https://example.invalid/dunamai-notes"`. | not exit 0; `drift`, exit 1. |
+| LS13 | As LS10, `setuptools_scm` named only in `[project.optional-dependencies] dev`, not in `[build-system]`. | not exit 0; `drift`, exit 1. |
+| LS14 | `[tool.hatch.version] path = "pkg/__about__.py"`; the file holds an indented `version = "0.0.0"` inside a function, then `__version__ = "1.0"` / `"2.0"` at column 0 (hatch's own pattern reads only column 0). | not exit 1; `clean`, exit 0. |
+| LS15 | `version = {attr = "pkg.VERSION"}`; `pkg/__init__.py` imports `VERSION` from `pkg/_meta.py` (1.0, then 2.0); a stale `pkg/_version.py` holds `__version__ = "0.0.0"` at both tags. | not exit 1. |
+| LS16 | `setup.py` `version=find_version("src/pkg/__init__.py")`; real version in `src/pkg/__init__.py` (1.0, 2.0); a helper `scripts/version.py` holds `VERSION = "unknown"` at both tags. | not exit 1. |
+| LS17 | `setup.py` `version=pkg.__version__`; real version in `src/pkg/__init__.py` (1.0, 2.0); a test fixture `tests/pkg.py` holds `__version__ = "0.0.0"` at both tags. | not exit 1. |
+| LS18 | `setup.py` `version=get_version()`; real version in `src/pkg/__init__.py` (1.0, 2.0); a vendored `extern/__init__.py` holds `__version__ = "1.16.0"` at both tags. | not exit 1. |
+| LS19 | `[tool.hatch.version] path` = `../OUTSIDE/v.py` at one tag and the absolute path of that file at another; the file exists outside the repository and holds `__version__ = "6.6.6-OUTSIDE"`. | `6.6.6-OUTSIDE` appears in no output (text, JSON, stderr); no traceback; exit in {0,1,2}. |
+| LS20 | `pyproject.toml` is a symlink to a file outside the repository holding `version = "6.6.6-OUTSIDE"`; at another tag the hatch `path` target is such a symlink. | the sentinel appears in no output; no traceback. |
+| LS21 | The hatch `path` names an in-tree file whose name holds ESC, BEL, U+202E and `$(touch MARK)`; it holds the version. | text output carries no raw C0/C1 control or U+202E; JSON valid; no file `MARK` created; no traceback. |
+| LS22 | `version = {attr = "pkg.__version__"}` where `pkg.py` is a folder and `pkg/__init__.py` is a submodule entry; the hatch `path` names a folder at another tag. | no traceback and no `internal error`; exit 2 with a named cause or a determination. |
+| LS23 | `pyproject.toml`, `setup.cfg`, `setup.py` hold NUL bytes, invalid UTF-8 and random bytes at one tag. | no traceback and no `internal error`; exit in {0,1,2} matching the verdict. |
+| LS24 | *(hardening)* v1 reads `setup.py`, v2 reads `pkg/__init__.py`. | the text report names both sources (it prints only HEAD's today: `version from`). |
+| LS25 | *(hardening)* HEAD declares no version anywhere; tags v1 and v2 declare 1.0 with different code. | a measurement (`drift`, exit 1), not a refusal. |
+| LS26 | `--version-file package.json` given; the build files also declare a hatch `path` pointer holding another version. | the pointer is not followed: `label_sources` has the single key `package.json`. |
+| LS27 | `pyproject.toml` is a symlink to `meta/pyproject.toml` inside the tree, which holds `[project] version = "1.0"`; tags v1, v2, different code. | not exit 0. |
+
+### LT — the label is the tag
+
+Unless stated, `pyproject.toml` names `setuptools_scm` in `[build-system] requires` and no file
+declares a version.
+
+| id | attacker controls / does | required outcome |
+|---|---|---|
+| LT01 | Tags `v1.0`, `1.0`, `V1.0` on three commits with different code. | `drift`, exit 1; label `1.0` covers 3 closures. |
+| LT02 | Tags `vX`, `v.1.0`, `version-1` (no digit after the `v`). | no traceback; `--compare T T` reads each label as the full tag name. |
+| LT03 | Tags `pkg-v1.0` and `v1.0` on different code (setuptools_scm's default tag pattern reads 1.0 from both). | not exit 0. |
+| LT04 | Annotated `v1.0` and lightweight `1.0`, different code. | `drift`, exit 1. |
+| LT05 | Tags `v1.0` and `1.0` on the same commit. | not exit 1; `inconclusive` or `clean`. |
+| LT06 | Tags `v1.0`, `1.0` (different code), `v1.1`; `--tags 'v*'`. | `clean`, exit 0; `tags_filtered_out` = 1. |
+| LT07 | `--would-tag` at an untagged HEAD, older tags present. | `no_label_at_head`, exit 2; text says the label will be the tag. |
+| LT08 | `--would-tag`: older tag `v1.0` was tag-derived; HEAD dropped the tool and declares `[project] version = "1.0"` with different code. | `would_drift`, exit 1, naming `v1.0`. |
+| LT09 | `--compare v1.0 1.0`, different code. | `differs_under_one_label`, exit 1. |
+| LT10 | `--compare refs/tags/v1.0 refs/tags/1.0`, different code. | not exit 0. |
+| LT11 | `--compare <full id of v1.0> <full id of 1.0>`. | not exit 0. |
+| LT12 | `--compare <7-hex id of v1.0> <7-hex id of 1.0>`. | not exit 0. |
+| LT13 | Tags `v1.0` (code X) and `1.0` (code Y), plus a ref `refs/v1.0` at the commit of `1.0`; `--compare v1.0 1.0`. | not exit 0 (the two tags build 1.0 from different code). |
+| LT14 | `--explain 1.0` on LT09's repository. | exit 1; the explanation lists `src/a.py` as changed. |
+| LT15 | `--at commits`; HEAD declares `[project] version`; older commits were tag-derived. | no traceback; exit matches the verdict; the tag-derived commits are counted in `points_without_label`, never labelled. |
+| LT16 | *(hardening)* Tags `v1.0` and `v1.0.0` (equal under PEP 440) on different code. | not exit 0. |
+| LT17 | Tags `v1.0‮` and `v1.1\u009b31m` (bidi override, C1 CSI) in a tag-derived project. | text output carries neither character raw; JSON valid. |
+| LT18 | A tag name that is not UTF-8 (`v1.\xff`). | no traceback; exit in {0,1,2} matching the verdict. |
+
+### LD — denial of service in the in-process patterns
+
+Each file is built at one tag; the requirement is that the detector returns within 10 s
+(limit 12 s; a run past it is a hang). The time of a half-size run is recorded in the detail.
+
+| id | attacker controls / does | required outcome |
+|---|---|---|
+| LD01 | `pyproject.toml` = `[tool.hatch.version]` followed by 2 MiB of newlines (the hatch pointer pattern). | returns ≤ 10 s, no traceback. |
+| LD02 | `pyproject.toml` = 2 MiB of newlines (the `^\s*version` pointer and source patterns). | ≤ 10 s. |
+| LD03 | `setup.cfg` = 2 MiB of newlines, no other build file. | ≤ 10 s. |
+| LD04 | `setup.py` = `version=` + 2 MiB of `a`, then 2 MiB of `version=a.` repeated. | ≤ 10 s. |
+| LD05 | `pyproject.toml` names the project; `pkg/__init__.py` = 2 MiB of newlines (rule 5, `DUNDER_ATTR`). | ≤ 10 s. |
+| LD06 | `VERSION` = 2 MiB of `" \n"` (`ONE_TOKEN`), in a Python project. | ≤ 10 s. |
+| LD07 | `Cargo.toml` = 2 MiB of newlines. | ≤ 10 s. |
+| LD08 | `version = {attr = "pkg."}` (an empty attribute name); `pkg/__init__.py` = 64 KiB of spaces. | ≤ 10 s. |
+| LD09 | `version = {attr = "pkg.__version__"}`; `pkg/__init__.py` = 2 MiB of newlines (`attr_pattern`). | ≤ 10 s. |
+| LD10 | 5,000 candidate modules `mNNNN/__init__.py`, none declaring a version, at 20 tags. | ≤ 90 s, a determination or a named refusal. |
+| LD11 | `pyproject.toml` of 100 MB (short lines, no version). | ≤ 90 s, no traceback, no `internal error`. |
+| LD12 | `[tool.hatch.version] path = "pkg/v.py"`; `pkg/v.py` = 2 MiB of newlines (`VERSION_ATTR`). | ≤ 10 s. |
+
+### LC — the source cache and the order of visits
+
+The label a tag gets must not depend on which other commits were looked at first.
+
+| id | attacker controls / does | required outcome |
+|---|---|---|
+| LC01 | Same `pyproject.toml` (`version = {attr = "pkg.__version__"}`) at T1, T2 and HEAD. T1 has only `src/pkg/__init__.py` (1.0); T2 has `pkg/__init__.py` (2.0) and `src/pkg/__init__.py` (1.0); HEAD is a third layout with a different `pyproject.toml`. | `--compare T1 T2` and `--compare T2 T1` give the same verdict, exit code and per-tag labels. |
+| LC02 | As LC01 with `setup.py` `version=pkg.__version__` (rule 4). | the same. |
+| LC03 | Same build files: `[tool.hatch.version] path = "pkg/__about__.py"` and `setup.cfg` `version = file: VERSION.txt`. T1 lacks `pkg/__about__.py`; T2 has it (2.0) and `VERSION.txt` (1.0). | the same. |
+| LC04 | Same `pyproject.toml` (setuptools_scm in requires and `version = {attr = "pkg.__version__"}`) at tag v2.0 and HEAD; v2.0 has `pkg/__init__.py` with `__version__ = "1.0"`, HEAD does not. | the label of v2.0 (`--compare v2.0 v2.0`) is the same with HEAD on `main` and with HEAD detached at v2.0. |
+| LC05 | Same build files at T1 and T2 (rule 5 decides): T1 `pkg/__init__.py` 1.0; T2 adds a shallower `_version.py` (2.0). | the labels of T1 and T2 do not depend on the order of `--compare`. |
+| LC06 | One repository mixing every rule and a tag-derived period; two runs, text and JSON. | byte-identical stdout across the two runs. |
+| LC07 | The LC06 repository under the campaign's interpreter and under `/usr/bin/python3` (when it is another version). | identical JSON. |
+| LC08 | `--json` measurement reports at tags and at commits. | `label_sources` present, keys sorted, counts summing to `publication_points_compared`. |
+
+### LR — regression against `--version-file`
+
+One static version file at every tag. The automatic result (verdict, exit, drift labels, number of
+labels) must equal the result with `--version-file <that file>`.
+
+| id | attacker controls / does | required outcome |
+|---|---|---|
+| LR01 | `package.json` only; three tags, a drift. | equal. |
+| LR02 | `Cargo.toml` with `rust-version = "1.70"` before `version` in `[package]`. | equal. |
+| LR03 | `Cargo.toml` at every tag; one tag also carries a `package.json` (a wasm demo, `"version": "0.0.0"`). | equal. |
+| LR04 | `version.txt` holding one token at every tag. | equal. |
+| LR05 | `setup.py` with `required_version = "3.8"` above `setup(version=...)`. | equal. |
+| LR06 | `pyproject.toml` `[project] version` at every tag, a stale `setup.py` with another version at older tags. | equal. |
+| LR07 | `package.json` at every tag; one tag also carries a `pyproject.toml` for a helper script with `[tool.hatch.version] path = "scripts/v.py"`. | equal. |
+
+### Amendments to extension 2, 2026-10-04 (after the first run)
+
+No line above is changed; no expectation in `tests/adversarial.py` is changed. Two staging changes
+were made after the first development run and before the recorded runs:
+
+- **LT18 staging.** On macOS the files backend refused to create a ref whose name is not UTF-8
+  ("Illegal byte sequence"), so the case came out not-run. It now builds its history in a reftable
+  repository (`git init --ref-format=reftable`), which stores such a name; the requirement is
+  unchanged.
+- **LD timing.** The LD cases first printed their wall times in the detail line, which made two
+  campaign bodies differ. The times are no longer printed; the requirement (return within 10 s) is
+  unchanged. Measured by hand on this machine (python 3.14), one tag, time against size:
+  `pyproject.toml` of newlines 8, 16, 32, 64 KiB → 0.6, 1.4, 4.0, 15.5 s; `pkg/__init__.py` of
+  spaces under `attr = "pkg."` 8, 16, 32, 64 KiB → 1.2, 2.8, 12.7, 44.3 s. Each doubling multiplies
+  the time by about four: quadratic. At 2 MiB the extrapolation is hours.
+  The detail line also no longer says which of the two runs (half or full size) passed the limit:
+  LD08's half-size run sits near 12 s and the line differed between two runs. Loose either way.
+
+How the loose results are classified (the expectations stand as written):
+
+- **Where the expectation tests something older than §9.** LR02, LR04 and LR05 differ because
+  `--version-file` without `--version-regex` applies `DEFAULT_VERSION_REGEX`, which matches inside
+  `rust-version` and `required_version` and cannot read a one-token file. The automatic label is the
+  right one there; the difference is in `--version-file`'s default pattern, not in the resolution.
+  LD06 and LD07 hang in patterns of `VERSION_SOURCES` that were already matched in-process at HEAD
+  before §9; §9 matches them, and the new pointer, attribute and module patterns, at every tag.
+- **TV01 and TV04 (extension 1)** were loose before this extension was written: §9 removed the
+  refusals they require. TV01's input (`pbrt-tools`) is now read as tag-derived, which is LS10's
+  defect.
+- **Hardening only:** LS24, LS25, LT16.
+- Every other loose case in this extension is a defect of the resolution: a hidden drift
+  (LS01–LS03, LS07, LS10–LS13, LT03, LR03, LR07), a false drift (LS04–LS06, LS08, LS09, LS14–LS18),
+  an answer that depends on the order of visits (LC01–LC04), `--compare` reading the label of one
+  ref and the code of another (LT13), or a hang (LD01–LD03, LD05, LD08, LD09, LD12). Of these, LS16
+  and LS18 follow the declared rule "the shallowest version module wins" (§9 VP08): declared, and
+  still a false drift.

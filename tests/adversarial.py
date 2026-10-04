@@ -2914,6 +2914,924 @@ def tf05(root):
     exit_in(txt, (1,))
 
 
+# =========================================================================== Extension 2
+# Where the label is read from: Sources, Labels, attr_pattern, uncommented, module_files,
+# depth_first, tag_label. Pre-registered in PREREGISTRATION_ADVERSARIAL.md, section
+# "Extension 2, 2026-10-04", before any of these was run.
+L_LIMIT = 20.0
+LD_LIMIT = 12.0          # a run past this is a hang
+LD_BUDGET = 10.0         # the required wall time on a file of at most 2 MiB
+OUT_SENT = "6.6.6-OUTSIDE"
+MIB = 1 << 20
+
+SCM = (b'[build-system]\nrequires = ["setuptools", "setuptools_scm"]\n'
+       b'[project]\nname = "pkg"\ndynamic = ["version"]\n')
+DYN = b'[project]\nname = "pkg"\ndynamic = ["version"]\n'
+
+
+def _pyp(v):
+    return b'[project]\nname = "pkg"\nversion = "%s"\n' % v.encode()
+
+
+def _dunder(v):
+    return b'__version__ = "%s"\n' % v.encode()
+
+
+def lrun(repo, *args, timeout=L_LIMIT, as_json=True, pyexe=None, cwd=None):
+    """As run(), with stdin closed: the detector never waits on a terminal."""
+    path = str(repo.path if isinstance(repo, Repo) else repo)
+    cmd = [pyexe or sys.executable, DETECTOR, path] + (["--json"] if as_json else []) + list(args)
+    t0 = time.monotonic()
+    timed_out = False
+    try:
+        r = subprocess.run(cmd, capture_output=True, env=dict(BASE_ENV), cwd=cwd, timeout=timeout,
+                           stdin=subprocess.DEVNULL)
+        code, out, err = r.returncode, r.stdout, r.stderr
+    except subprocess.TimeoutExpired as te:
+        timed_out = True
+        code, out, err = None, te.stdout or b"", te.stderr or b""
+    secs = time.monotonic() - t0
+    out_s, err_s = out.decode("utf-8", "replace"), err.decode("utf-8", "replace")
+    doc = None
+    if as_json and not timed_out and out_s.strip():
+        try:
+            doc = json.loads(out_s)
+        except ValueError:
+            doc = None
+    return dict(code=code, out=out_s, err=err_s, doc=doc, secs=secs, timed_out=timed_out)
+
+
+class _LFI(FastImport):
+    """FastImport with modes: a value (b"120000", target) is a symlink, (b"160000", hex) a
+    submodule entry; annotated tags through `atag`."""
+
+    def commit(self, files: dict, branch=b"refs/heads/main", msg=b"c"):
+        self.mark += 1
+        self.t += 86400
+        p = [b"commit " + branch, b"mark :%d" % self.mark,
+             b"committer adv <adv@example.invalid> %d +0000" % self.t,
+             b"data %d" % len(msg), msg, b"deleteall"]
+        for path, data in files.items():
+            path = path if isinstance(path, bytes) else path.encode("utf-8")
+            mode = b"100644"
+            if isinstance(data, tuple):
+                mode, data = data
+            data = data if isinstance(data, bytes) else data.encode("utf-8")
+            if mode == b"160000":
+                p.append(b"M 160000 " + data + b" " + _q(path))
+                continue
+            p.append(b"M " + mode + b" inline " + _q(path))
+            p.append(b"data %d" % len(data))
+            p.append(data)
+        self.parts.append(b"\n".join(p) + b"\n\n")
+        return self.mark
+
+    def atag(self, name, mark):
+        name = name if isinstance(name, bytes) else name.encode("utf-8")
+        self.parts.append(b"tag " + name + b"\nfrom :%d\ntagger adv <adv@example.invalid> %d +0000\n"
+                          b"data 2\nt\n\n" % (mark, self.t))
+
+
+def _hist(root, steps, name="repo", repo=None):
+    """steps: [(tags, files)], oldest first; tags is a name, a list of names, or None. A name
+    starting with '@' is an annotated tag."""
+    r = repo or Repo(root, name)
+    fi = _LFI()
+    for tags, files in steps:
+        m = fi.commit(files)
+        for t in ([tags] if isinstance(tags, (str, bytes)) else (tags or [])):
+            if isinstance(t, str) and t.startswith("@"):
+                fi.atag(t[1:], m)
+            else:
+                fi.tag(t, m)
+    fi.run(r)
+    return r
+
+
+def _two(root, a: dict, b: dict, tags=("v1", "v2")):
+    """Two tagged commits; HEAD is the second."""
+    return _hist(root, [(tags[0], a), (tags[1], b)])
+
+
+def _ok(res, what=""):
+    no_traceback(res)
+    need(not res["timed_out"], "%sthe detector did not return within the limit (a hang)" % what)
+    need("internal error" not in res["err"], "%sthe catch-all answered: %r" % (what, res["err"][:200]))
+
+
+def _consistent(res):
+    """The exit code is the one the verdict calls for."""
+    v = verdict(res)
+    if v is None:
+        need(res["code"] == 2, "exit %r with no verdict; stderr=%r" % (res["code"], res["err"][:200]))
+    else:
+        want = {"clean": 0, "drift": 1, "would_be_clean": 0, "would_drift": 1, "identical": 0,
+                "differs_under_two_labels": 0, "differs_under_one_label": 1}.get(v, 2)
+        need(res["code"] == want, "verdict %r with exit %r" % (v, res["code"]))
+
+
+def _seen(res):
+    d = res["doc"] or {}
+    return "verdict=%r exit=%r label_sources=%r drift=%r stderr=%r" % (
+        d.get("verdict"), res["code"], d.get("label_sources"), d.get("drift"), res["err"][:160])
+
+
+def _not_exit(res, bad, why):
+    _ok(res)
+    exit_in(res, (0, 1, 2))
+    _consistent(res)
+    need(res["code"] != bad, "%s: %s" % (why, _seen(res)))
+
+
+def _label(r, ref, **kw):
+    res = lrun(r, "--compare", ref, ref, **kw)
+    _ok(res)
+    return ((res["doc"] or {}).get("a") or {}).get("label")
+
+
+def _raw_controls(text):
+    return sorted({"U+%04X" % ord(c) for c in text
+                   if (ord(c) < 32 and c not in "\n") or 127 <= ord(c) < 160
+                   or c in "‪‫‬‭‮⁦⁧⁨⁩"})
+
+
+# --------------------------------------------------------------------------- LS: the source
+@case("LS01", "a package.json at one tag only hides drift of a pyproject version")
+def ls01(root):
+    r = _two(root, {"pyproject.toml": _pyp("1.0"), "src/a.py": b"A=1\n"},
+             {"pyproject.toml": _pyp("1.0"), "src/a.py": b"A=2\n",
+              "package.json": b'{"private": true, "version": "0.0.0"}\n'})
+    _not_exit(lrun(r), 0, "both tags build 1.0 with different code, and the run passed")
+
+
+def _rule5(v, extra=None, code=b"A=1\n"):
+    f = {"pyproject.toml": DYN, "pkg/__init__.py": _dunder(v), "src/a.py": code}
+    f.update(extra or {})
+    return f
+
+
+@case("LS02", "a VERSION file at one tag only hides drift of a module version")
+def ls02(root):
+    r = _two(root, _rule5("1.0"), _rule5("1.0", {"VERSION": b"schema-3\n"}, b"A=2\n"))
+    _not_exit(lrun(r), 0, "both tags build 1.0 with different code, and the run passed")
+
+
+@case("LS03", "a prose version.txt at one tag only hides drift")
+def ls03(root):
+    prose = b"Versioning policy\n\nsee\nCHANGELOG.md for the details\n"
+    r = _two(root, _rule5("1.0"), _rule5("1.0", {"version.txt": prose}, b"A=2\n"))
+    _not_exit(lrun(r), 0, "both tags build 1.0 with different code, and the run passed")
+
+
+def _setup_mod(v, setup_py, code):
+    return {"setup.py": setup_py, "pkg/__init__.py": _dunder(v), "src/a.py": code}
+
+
+SETUP_MOD = b"from setuptools import setup\nimport pkg\nsetup(name='pkg', version=pkg.__version__)\n"
+
+
+def _ls_false_drift(root, prefix):
+    s = prefix + SETUP_MOD
+    r = _two(root, _setup_mod("1.0", s, b"A=1\n"), _setup_mod("2.0", s, b"A=2\n"))
+    res = lrun(r)
+    _not_exit(res, 1, "the tags build 1.0 and 2.0, and the run says drift")
+    need(verdict(res) == "clean" and res["code"] == 0, "not clean: %s" % _seen(res))
+
+
+@case("LS04", "a version= string in a setup.py comment is not the label")
+def ls04(root):
+    _ls_false_drift(root, b"# version='0.0.0' was used before 2019\n")
+
+
+@case("LS05", "a version= string in a setup.py docstring is not the label")
+def ls05(root):
+    _ls_false_drift(root, b'"""Build script. Pass version="dev" to override."""\n')
+
+
+@case("LS06", "a version= argument of an unrelated call in setup.py is not the label")
+def ls06(root):
+    _ls_false_drift(root, b'def check_python(version):\n    pass\ncheck_python(version="3.8")\n')
+
+
+@case("LS07", "a version= comment added to setup.py at one tag hides drift")
+def ls07(root):
+    r = _two(root, _setup_mod("1.0", SETUP_MOD, b"A=1\n"),
+             _setup_mod("1.0", b'# version="0.9" was the last py2 release\n' + SETUP_MOD, b"A=2\n"))
+    res = lrun(r)
+    _not_exit(res, 0, "both tags build 1.0 with different code, and the run passed")
+    need(verdict(res) == "drift", "not drift: %s" % _seen(res))
+
+
+@case("LS08", "poetry-dynamic-versioning's 0.0.0 placeholder is not the label")
+def ls08(root):
+    pp = (b'[build-system]\nrequires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]\n'
+          b'build-backend = "poetry_dynamic_versioning.backend"\n\n'
+          b'[tool.poetry]\nname = "pkg"\nversion = "0.0.0"\n\n[tool.poetry-dynamic-versioning]\nenable = true\n')
+    r = _two(root, {"pyproject.toml": pp, "src/a.py": b"A=1\n"}, {"pyproject.toml": pp, "src/a.py": b"A=2\n"},
+             tags=("v1.0", "v1.1"))
+    _not_exit(lrun(r), 1, "the tags build 1.0 and 1.1, and the run says drift")
+
+
+@case("LS09", "a version key in a tool table of a setuptools_scm project is not the label")
+def ls09(root):
+    pp = SCM + b'[tool.mytool]\nversion = "2"\n'
+    r = _two(root, {"pyproject.toml": pp, "src/a.py": b"A=1\n"}, {"pyproject.toml": pp, "src/a.py": b"A=2\n"},
+             tags=("v1.0", "v1.1"))
+    _not_exit(lrun(r), 1, "the tags build 1.0 and 1.1, and the run says drift")
+
+
+def _ls_tag_switch(root, extra_line):
+    a = _rule5("1.0")
+    b = _rule5("1.0", {"pyproject.toml": DYN + extra_line}, b"A=2\n")
+    r = _two(root, a, b, tags=("build-a", "build-b"))
+    res = lrun(r)
+    _not_exit(res, 0, "both tags build 1.0 with different code, and the run passed")
+    need(verdict(res) == "drift", "not drift: %s" % _seen(res))
+
+
+@case("LS10", "'pbr' inside another dependency's name does not switch a tag to tag-derived")
+def ls10(root):
+    _ls_tag_switch(root, b'dependencies = ["pbrt-tools>=1"]\n')
+
+
+@case("LS11", "'versioneer' inside the description does not switch a tag to tag-derived")
+def ls11(root):
+    _ls_tag_switch(root, b'description = "a versioneer-free tool"\n')
+
+
+@case("LS12", "'dunamai' inside a URL does not switch a tag to tag-derived")
+def ls12(root):
+    _ls_tag_switch(root, b'[project.urls]\nNotes = "https://example.invalid/dunamai-notes"\n')
+
+
+@case("LS13", "setuptools_scm as a dev extra, not a build requirement, does not switch a tag")
+def ls13(root):
+    _ls_tag_switch(root, b'[project.optional-dependencies]\ndev = ["setuptools_scm"]\n')
+
+
+@case("LS14", "a hatch version file with an indented version= before __version__")
+def ls14(root):
+    pp = DYN + b'[build-system]\nrequires = ["hatchling"]\n[tool.hatch.version]\npath = "pkg/__about__.py"\n'
+    about = b'def _fallback():\n    version = "0.0.0"\n    return version\n\n\n'
+    r = _two(root, {"pyproject.toml": pp, "pkg/__about__.py": about + _dunder("1.0"), "src/a.py": b"A=1\n"},
+             {"pyproject.toml": pp, "pkg/__about__.py": about + _dunder("2.0"), "src/a.py": b"A=2\n"})
+    res = lrun(r)
+    _not_exit(res, 1, "the tags build 1.0 and 2.0, and the run says drift")
+    need(verdict(res) == "clean", "not clean: %s" % _seen(res))
+
+
+@case("LS15", "an attr pointer to pkg.VERSION does not fall back to a stale _version.py")
+def ls15(root):
+    pp = DYN + b'[tool.setuptools.dynamic]\nversion = {attr = "pkg.VERSION"}\n'
+
+    def tree(v, code):
+        return {"pyproject.toml": pp, "pkg/__init__.py": b"from ._meta import VERSION\n",
+                "pkg/_meta.py": b'VERSION = "%s"\n' % v.encode(), "pkg/_version.py": _dunder("0.0.0"),
+                "src/a.py": code}
+    r = _two(root, tree("1.0", b"A=1\n"), tree("2.0", b"A=2\n"))
+    _not_exit(lrun(r), 1, "the tags build 1.0 and 2.0, and the run says drift")
+
+
+@case("LS16", "rule 5 does not prefer an unrelated scripts/version.py over the package")
+def ls16(root):
+    s = (b"from setuptools import setup\ndef find_version(p):\n    return open(p).read()\n"
+         b'setup(name="pkg", version=find_version("src/pkg/__init__.py"))\n')
+
+    def tree(v, code):
+        return {"setup.py": s, "src/pkg/__init__.py": _dunder(v), "scripts/version.py": b'VERSION = "unknown"\n',
+                "src/a.py": code}
+    r = _two(root, tree("1.0", b"A=1\n"), tree("2.0", b"A=2\n"))
+    _not_exit(lrun(r), 1, "the tags build 1.0 and 2.0, and the run says drift")
+
+
+@case("LS17", "setup.py's version=pkg.__version__ is not read from a tests/pkg.py fixture")
+def ls17(root):
+    def tree(v, code):
+        return {"setup.py": SETUP_MOD, "src/pkg/__init__.py": _dunder(v), "tests/pkg.py": _dunder("0.0.0"),
+                "src/a.py": code}
+    r = _two(root, tree("1.0", b"A=1\n"), tree("2.0", b"A=2\n"))
+    _not_exit(lrun(r), 1, "the tags build 1.0 and 2.0, and the run says drift")
+
+
+@case("LS18", "rule 5 does not read a vendored extern/__init__.py")
+def ls18(root):
+    s = b'from setuptools import setup\nsetup(name="pkg", version=get_version())\n'
+
+    def tree(v, code):
+        return {"setup.py": s, "src/pkg/__init__.py": _dunder(v), "extern/__init__.py": _dunder("1.16.0"),
+                "src/a.py": code}
+    r = _two(root, tree("1.0", b"A=1\n"), tree("2.0", b"A=2\n"))
+    _not_exit(lrun(r), 1, "the tags build 1.0 and 2.0, and the run says drift")
+
+
+def _outside(root):
+    d = root / "OUTSIDE"
+    d.mkdir(exist_ok=True)
+    (d / "v.py").write_bytes(b'__version__ = "%s"\n' % OUT_SENT.encode())
+    (d / "pyproject.toml").write_bytes(b'[project]\nname = "x"\nversion = "%s"\n' % OUT_SENT.encode())
+    return d
+
+
+def _no_sentinel(r, root, *extra):
+    for as_json in (True, False):
+        for args in ((), ("--at", "commits")) + tuple(extra):
+            res = lrun(r, *args, as_json=as_json, cwd=str(root))
+            _ok(res)
+            exit_in(res, (0, 1, 2))
+            need(OUT_SENT not in res["out"] + res["err"],
+                 "a value read outside the repository was printed (args %r): %s" % (args, _seen(res)))
+
+
+@case("LS19", "a hatch path with .. or an absolute path never reads outside the tree")
+def ls19(root):
+    d = _outside(root)
+    hv = b'[tool.hatch.version]\npath = "%s"\n'
+    r = _two(root, {"pyproject.toml": hv % b"../OUTSIDE/v.py", "package.json": _pj("1.0"), "src/a.py": b"A=1\n"},
+             {"pyproject.toml": hv % (d / "v.py").as_posix().encode(), "package.json": _pj("2.0"),
+              "src/a.py": b"A=2\n"})
+    r.git("checkout", "-q", "-f", "main")
+    _no_sentinel(r, root, ("--compare", "v1", "v2"))
+
+
+@case("LS20", "a symlinked pyproject.toml or version file never reads outside the tree")
+def ls20(root):
+    if WINDOWS:
+        raise NotRun("symlinks in the working tree need POSIX here")
+    d = _outside(root)
+    r = _two(root, {"pyproject.toml": (b"120000", (d / "pyproject.toml").as_posix().encode()),
+                    "setup.py": b"import pkg\nsetup(version=pkg.__version__)\n", "pkg/__init__.py": _dunder("1.0"),
+                    "src/a.py": b"A=1\n"},
+             {"pyproject.toml": b'[tool.hatch.version]\npath = "pkg/v.py"\n',
+              "pkg/v.py": (b"120000", b"../../OUTSIDE/v.py"), "package.json": _pj("2.0"), "src/a.py": b"A=2\n"})
+    r.git("checkout", "-q", "-f", "main")
+    _no_sentinel(r, root, ("--compare", "v1", "v2"))
+
+
+@case("LS21", "a pointer path holding control characters and shell syntax is printed escaped")
+def ls21(root):
+    name = "pkg/\x1b]0;PWN\x07‮$(touch MARK)v.py".encode("utf-8")
+    pp = b'[tool.hatch.version]\npath = "' + name + b'"\n'
+    r = _two(root, {"pyproject.toml": pp, name: _dunder("1.0"), "src/a.py": b"A=1\n"},
+             {"pyproject.toml": pp, name: _dunder("2.0"), "src/a.py": b"A=2\n"})
+    for args in ((), ("--would-tag",), ("--compare", "v1", "v2")):
+        txt = lrun(r, *args, as_json=False, cwd=str(root))
+        _ok(txt)
+        need(not _raw_controls(txt["out"] + txt["err"]),
+             "raw control characters in text output (args %r): %r" % (args, _raw_controls(txt["out"] + txt["err"])))
+        js = lrun(r, *args, cwd=str(root))
+        _ok(js)
+        need(js["doc"] is not None, "JSON output not valid (args %r)" % (args,))
+    need(not (root / "MARK").exists() and not (r.path / "MARK").exists(), "a shell ran the pointer path")
+    res = lrun(r)
+    need(verdict(res) == "clean", "the pointed file was not read: %s" % _seen(res))
+
+
+@case("LS22", "an attr module that is a folder or a submodule, a hatch path that is a folder")
+def ls22(root):
+    pa = DYN + b'[tool.setuptools.dynamic]\nversion = {attr = "pkg.__version__"}\n'
+    ph = b'[tool.hatch.version]\npath = "pkg.py"\n'
+    r = _two(root, {"pyproject.toml": pa, "pkg.py/inner.txt": b"x\n", "pkg/__init__.py": (b"160000", b"1" * 40),
+                    "src/a.py": b"A=1\n"},
+             {"pyproject.toml": ph, "pkg.py/inner.py": _dunder("1.0"), "src/a.py": b"A=2\n"})
+    for args in ((), ("--compare", "v1", "v2"), ("--would-tag",)):
+        res = lrun(r, *args)
+        _ok(res, "args %r: " % (args,))
+        exit_in(res, (0, 1, 2))
+        _consistent(res)
+
+
+def _garbage(n, seed):
+    out, h = b"", hashlib.sha256(seed).digest()
+    while len(out) < n:
+        h = hashlib.sha256(h).digest()
+        out += h
+    return out[:n]
+
+
+@case("LS23", "build files holding NUL, invalid UTF-8 and random bytes")
+def ls23(root):
+    junk = b"\x00\xff\xfe[tool.hatch.version]\npath = \"\x00\xff\"\nversion = {attr = \"\xff.\x00\"}\n"
+    r = _hist(root, [("v1", {"pyproject.toml": _pyp("1.0"), "src/a.py": b"A=1\n"}),
+                     ("v2", {"pyproject.toml": junk + _garbage(4096, b"p"),
+                             "setup.cfg": b"[metadata]\nversion = attr: \xff\x00\n" + _garbage(4096, b"c"),
+                             "setup.py": _garbage(4096, b"s") + b"\nversion=\x00.\xff,\n", "src/a.py": b"A=2\n"}),
+                     ("v3", {"pyproject.toml": _pyp("2.0"), "src/a.py": b"A=3\n"})])
+    for args in ((), ("--compare", "v1", "v2"), ("--at", "commits")):
+        res = lrun(r, *args)
+        _ok(res, "args %r: " % (args,))
+        exit_in(res, (0, 1, 2))
+        _consistent(res)
+
+
+@case("LS24", "the text report names every source the labels came from (hardening)")
+def ls24(root):
+    r = _two(root, {"setup.py": b'from setuptools import setup\nsetup(name="pkg", version="1.0")\n',
+                    "src/a.py": b"A=1\n"}, _setup_mod("2.0", SETUP_MOD, b"A=2\n"))
+    js = lrun(r)
+    need(set((js["doc"] or {}).get("label_sources") or {}) == {"setup.py", "pkg/__init__.py"},
+         "the labels did not come from the two sources: %s" % _seen(js))
+    txt = lrun(r, as_json=False)
+    _ok(txt)
+    need("setup.py" in txt["out"] and "pkg/__init__.py" in txt["out"],
+         "the text report names only: %r" % [l for l in txt["out"].splitlines() if l.startswith("version from")])
+
+
+@case("LS25", "HEAD without a label does not stop the tags from being measured (hardening)")
+def ls25(root):
+    r = _hist(root, [("v1", {"pyproject.toml": _pyp("1.0"), "src/a.py": b"A=1\n"}),
+                     ("v2", {"pyproject.toml": _pyp("1.0"), "src/a.py": b"A=2\n"}),
+                     (None, {"pyproject.toml": DYN, "src/a.py": b"A=3\n"})])
+    res = lrun(r)
+    _ok(res)
+    need(verdict(res) == "drift" and res["code"] == 1, "not measured: %s" % _seen(res))
+
+
+@case("LS26", "--version-file disables the resolution: a hatch pointer is not followed")
+def ls26(root):
+    pp = b'[tool.hatch.version]\npath = "pkg/v.py"\n'
+    r = _two(root, {"package.json": _pj("1.0"), "pyproject.toml": pp, "pkg/v.py": _dunder("5.0"), "src/a.py": b"A=1\n"},
+             {"package.json": _pj("2.0"), "pyproject.toml": pp, "pkg/v.py": _dunder("5.0"), "src/a.py": b"A=2\n"})
+    res = lrun(r, "--version-file", "package.json")
+    _ok(res)
+    need(list(((res["doc"] or {}).get("label_sources") or {})) == ["package.json"], "label_sources: %s" % _seen(res))
+    need(verdict(res) == "clean", "verdict: %s" % _seen(res))
+
+
+@case("LS27", "a pyproject.toml that is a symlink inside the tree does not hide drift")
+def ls27(root):
+    link = (b"120000", b"meta/pyproject.toml")
+    r = _two(root, {"pyproject.toml": link, "meta/pyproject.toml": _pyp("1.0"), "src/a.py": b"A=1\n"},
+             {"pyproject.toml": link, "meta/pyproject.toml": _pyp("1.0"), "src/a.py": b"A=2\n"})
+    _not_exit(lrun(r), 0, "both tags build 1.0 with different code, and the run passed")
+
+
+# --------------------------------------------------------------------------- LT: the tag is the label
+def _scm(code, extra=None):
+    f = {"pyproject.toml": SCM, "src/a.py": code}
+    f.update(extra or {})
+    return f
+
+
+class _RefRepo(Repo):
+    """A repository whose refs are kept in a reftable, so tag names differing only in case are
+    distinct on a case-insensitive filesystem."""
+
+    def __init__(self, root: Path, name: str = "repo"):
+        self.path = root / name
+        self.path.mkdir(parents=True)
+        self.day = 0
+        if self._git("init", "-q", "--ref-format=reftable", check=False).returncode != 0:
+            raise NotRun("this git cannot create a reftable repository")
+        self._git("symbolic-ref", "HEAD", "refs/heads/main")
+
+
+@case("LT01", "tags v1.0, 1.0 and V1.0 on different code are one label in drift")
+def lt01(root):
+    r = _hist(root, [("v1.0", _scm(b"A=1\n")), ("1.0", _scm(b"A=2\n")), ("V1.0", _scm(b"A=3\n"))],
+              repo=_RefRepo(root))
+    need(len(r.git("for-each-ref", "refs/tags").splitlines()) == 3, "the three tags were not all stored")
+    res = lrun(r)
+    _ok(res)
+    need(res["code"] == 1 and len(((res["doc"] or {}).get("drift") or {}).get("1.0") or {}) == 3,
+         "label 1.0 does not cover 3 closures: %s" % _seen(res))
+
+
+@case("LT02", "a v not followed by a digit stays in the label")
+def lt02(root):
+    names = ("vX", "v.1.0", "version-1")
+    r = _hist(root, [(n, _scm(b"A=%d\n" % i)) for i, n in enumerate(names)])
+    _ok(lrun(r))
+    got = {n: _label(r, n) for n in names}
+    need(got == {n: n for n in names}, "labels %r" % got)
+
+
+@case("LT03", "pkg-v1.0 and v1.0 both build 1.0 under setuptools_scm")
+def lt03(root):
+    r = _two(root, _scm(b"A=1\n"), _scm(b"A=2\n"), tags=("pkg-v1.0", "v1.0"))
+    _not_exit(lrun(r), 0, "both tags build 1.0 with different code, and the run passed")
+
+
+@case("LT04", "an annotated v1.0 and a lightweight 1.0 on different code")
+def lt04(root):
+    r = _two(root, _scm(b"A=1\n"), _scm(b"A=2\n"), tags=("@v1.0", "1.0"))
+    res = lrun(r)
+    _ok(res)
+    need(verdict(res) == "drift" and res["code"] == 1, "not drift: %s" % _seen(res))
+
+
+@case("LT05", "v1.0 and 1.0 on the same commit are not drift")
+def lt05(root):
+    r = _hist(root, [(["v1.0", "1.0"], _scm(b"A=1\n"))])
+    res = lrun(r)
+    _not_exit(res, 1, "one commit under two tag spellings")
+    need(verdict(res) in ("inconclusive", "clean"), "verdict: %s" % _seen(res))
+
+
+@case("LT06", "--tags 'v*' with tag-derived labels")
+def lt06(root):
+    r = _hist(root, [("v1.0", _scm(b"A=1\n")), ("1.0", _scm(b"A=2\n")), ("v1.1", _scm(b"A=3\n"))])
+    res = lrun(r, "--tags", "v*")
+    _ok(res)
+    need(verdict(res) == "clean" and res["code"] == 0 and (res["doc"] or {}).get("tags_filtered_out") == 1,
+         "%s filtered=%r" % (_seen(res), (res["doc"] or {}).get("tags_filtered_out")))
+
+
+@case("LT07", "--would-tag at an untagged tag-derived HEAD")
+def lt07(root):
+    r = _hist(root, [("v1.0", _scm(b"A=1\n")), (None, _scm(b"A=2\n"))])
+    res = lrun(r, "--would-tag")
+    _ok(res)
+    need(verdict(res) == "no_label_at_head" and res["code"] == 2, "verdict: %s" % _seen(res))
+    txt = lrun(r, "--would-tag", as_json=False)
+    need("derives its version from the tag" in txt["out"], "the text does not say the label will be the tag")
+
+
+@case("LT08", "--would-tag: HEAD's file label collides with an older tag-derived tag")
+def lt08(root):
+    r = _hist(root, [("v1.0", _scm(b"A=1\n")), (None, {"pyproject.toml": _pyp("1.0"), "src/a.py": b"A=2\n"})])
+    res = lrun(r, "--would-tag")
+    _ok(res)
+    need(verdict(res) == "would_drift" and res["code"] == 1
+         and any("v1.0" in w for w in (res["doc"] or {}).get("collides_with") or []), "verdict: %s" % _seen(res))
+
+
+def _lt_pair(root):
+    return _two(root, _scm(b"A=1\n"), _scm(b"A=2\n"), tags=("v1.0", "1.0"))
+
+
+@case("LT09", "--compare v1.0 1.0 on different code")
+def lt09(root):
+    r = _lt_pair(root)
+    res = lrun(r, "--compare", "v1.0", "1.0")
+    _ok(res)
+    need(verdict(res) == "differs_under_one_label" and res["code"] == 1, "verdict: %s" % _seen(res))
+
+
+@case("LT10", "--compare refs/tags/v1.0 refs/tags/1.0")
+def lt10(root):
+    r = _lt_pair(root)
+    _not_exit(lrun(r, "--compare", "refs/tags/v1.0", "refs/tags/1.0"), 0, "two tags building 1.0 compared as fine")
+
+
+@case("LT11", "--compare with the full commit ids of two tags")
+def lt11(root):
+    r = _lt_pair(root)
+    _not_exit(lrun(r, "--compare", r.git("rev-parse", "v1.0^{commit}"), r.git("rev-parse", "1.0^{commit}")),
+              0, "two tags building 1.0 compared as fine")
+
+
+@case("LT12", "--compare with abbreviated commit ids of two tags")
+def lt12(root):
+    r = _lt_pair(root)
+    _not_exit(lrun(r, "--compare", r.git("rev-parse", "v1.0^{commit}")[:7], r.git("rev-parse", "1.0^{commit}")[:7]),
+              0, "two tags building 1.0 compared as fine")
+
+
+@case("LT13", "--compare v1.0 1.0 with a decoy ref refs/v1.0")
+def lt13(root):
+    r = _lt_pair(root)
+    r.git("update-ref", "refs/v1.0", r.git("rev-parse", "1.0^{commit}"))
+    _not_exit(lrun(r, "--compare", "v1.0", "1.0"), 0, "the tags v1.0 and 1.0 build 1.0 from different code")
+
+
+@case("LT14", "--explain with a tag-derived label")
+def lt14(root):
+    r = _lt_pair(root)
+    res = lrun(r, "--explain", "1.0")
+    _ok(res)
+    others = (((res["doc"] or {}).get("explain") or {}).get("others") or [{}])
+    need(res["code"] == 1 and "src/a.py" in (others[0].get("changed") or []), "explain: %s" % _seen(res))
+
+
+@case("LT15", "--at commits: tag-derived commits are never labelled")
+def lt15(root):
+    r = _hist(root, [("v1.0", _scm(b"A=1\n")), (None, _scm(b"A=2\n")),
+                     (None, {"pyproject.toml": _pyp("1.0"), "src/a.py": b"A=3\n"})])
+    res = lrun(r, "--at", "commits")
+    _ok(res)
+    exit_in(res, (0, 1, 2))
+    _consistent(res)
+    need((res["doc"] or {}).get("points_without_label") == 2, "points_without_label: %s" % _seen(res))
+
+
+@case("LT16", "v1.0 and v1.0.0 (one version under PEP 440) on different code (hardening)")
+def lt16(root):
+    r = _two(root, _scm(b"A=1\n"), _scm(b"A=2\n"), tags=("v1.0", "v1.0.0"))
+    _not_exit(lrun(r), 0, "both tags build version 1.0 with different code, and the run passed")
+
+
+@case("LT17", "tag labels with a bidi override and a C1 CSI are printed escaped")
+def lt17(root):
+    r = _two(root, _scm(b"A=1\n"), _scm(b"A=2\n"), tags=("v1.0‮", "v1.1\u009b31m"))
+    for args in ((), ("--compare", "v1.0‮", "v1.1\u009b31m"), ("--explain", "1.0‮")):
+        txt = lrun(r, *args, as_json=False)
+        _ok(txt)
+        need(not _raw_controls(txt["out"] + txt["err"]),
+             "raw characters in text output (args %r): %r" % (args, _raw_controls(txt["out"] + txt["err"])))
+        js = lrun(r, *args)
+        need(js["doc"] is not None or not js["out"].strip(), "JSON output not valid (args %r)" % (args,))
+
+
+@case("LT18", "a tag name that is not UTF-8 in a tag-derived project")
+def lt18(root):
+    # a reftable: a files-backend ref name that is not UTF-8 cannot be created on some filesystems
+    r = _hist(root, [(b"v1.\xff", _scm(b"A=1\n")), ("v2", _scm(b"A=2\n"))], repo=_RefRepo(root))
+    for as_json in (True, False):
+        res = lrun(r, as_json=as_json)
+        _ok(res)
+        exit_in(res, (0, 1, 2))
+        if as_json:
+            _consistent(res)
+
+
+# --------------------------------------------------------------------------- LD: denial of service
+def _ld(root, files, half_files=None):
+    """One tagged commit holding `files`; the run must return within LD_BUDGET. The half-size
+    variant runs first: a hang there is reported as such. Times are not printed, so that two
+    runs of the campaign give the same body."""
+    if half_files is not None:
+        rh = _hist(root, [("v1", dict(half_files, **{"src/a.py": b"A=1\n"}))], name="half")
+        _ok(lrun(rh, timeout=LD_LIMIT))
+    r = _hist(root, [("v1", dict(files, **{"src/a.py": b"A=1\n"}))])
+    res = lrun(r, timeout=LD_LIMIT)
+    _ok(res)
+    need(res["secs"] <= LD_BUDGET, "returned, but over %.0fs" % LD_BUDGET)
+    exit_in(res, (0, 1, 2))
+
+
+@case("LD01", "the hatch pointer pattern on 2 MiB of newlines")
+def ld01(root):
+    _ld(root, {"pyproject.toml": b"[tool.hatch.version]\n" + b"\n" * (2 * MIB)},
+        {"pyproject.toml": b"[tool.hatch.version]\n" + b"\n" * MIB})
+
+
+@case("LD02", "the pyproject pointer and source patterns on 2 MiB of newlines")
+def ld02(root):
+    _ld(root, {"pyproject.toml": b"\n" * (2 * MIB)}, {"pyproject.toml": b"\n" * MIB})
+
+
+@case("LD03", "the setup.cfg pointer patterns on 2 MiB of newlines")
+def ld03(root):
+    _ld(root, {"setup.cfg": b"\n" * (2 * MIB)}, {"setup.cfg": b"\n" * MIB})
+
+
+@case("LD04", "the setup.py patterns on long version= runs")
+def ld04(root):
+    def body(n):
+        return b"version=" + b"a" * n + b"\n" + b"version=a." * (n // 10)
+    _ld(root, {"setup.py": body(MIB)}, {"setup.py": body(MIB // 2)})
+
+
+@case("LD05", "rule 5's DUNDER_ATTR on a 2 MiB module of newlines")
+def ld05(root):
+    pp = b'[project]\nname = "pkg"\n'
+    _ld(root, {"pyproject.toml": pp, "pkg/__init__.py": b"\n" * (2 * MIB)},
+        {"pyproject.toml": pp, "pkg/__init__.py": b"\n" * MIB})
+
+
+@case("LD06", "ONE_TOKEN on a 2 MiB VERSION file of blank lines")
+def ld06(root):
+    pp = b'[project]\nname = "pkg"\n'
+    _ld(root, {"pyproject.toml": pp, "VERSION": b" \n" * MIB}, {"pyproject.toml": pp, "VERSION": b" \n" * (MIB // 2)})
+
+
+@case("LD07", "the Cargo.toml source pattern on 2 MiB of newlines")
+def ld07(root):
+    _ld(root, {"Cargo.toml": b"\n" * (2 * MIB)}, {"Cargo.toml": b"\n" * MIB})
+
+
+@case("LD08", "an empty attribute name (attr = \"pkg.\") on 64 KiB of spaces")
+def ld08(root):
+    pp = DYN + b'[tool.setuptools.dynamic]\nversion = {attr = "pkg."}\n'
+    _ld(root, {"pyproject.toml": pp, "pkg/__init__.py": b" " * 65536},
+        {"pyproject.toml": pp, "pkg/__init__.py": b" " * 32768})
+
+
+@case("LD09", "attr_pattern on a 2 MiB module of newlines")
+def ld09(root):
+    pp = DYN + b'[tool.setuptools.dynamic]\nversion = {attr = "pkg.__version__"}\n'
+    _ld(root, {"pyproject.toml": pp, "pkg/__init__.py": b"\n" * (2 * MIB)},
+        {"pyproject.toml": pp, "pkg/__init__.py": b"\n" * MIB})
+
+
+@case("LD10", "5,000 candidate modules at 20 tags")
+def ld10(root):
+    r = Repo(root)
+    fi = _LFI()
+    mods = {"m%04d/__init__.py" % i: b"X = 1\n" for i in range(5000)}
+    for t in range(20):
+        f = dict(mods)
+        f.update({"pyproject.toml": b'[project]\nname = "pkg"\n', "zzzz/__init__.py": _dunder("1.%d" % t),
+                  "src/a.py": b"A=%d\n" % t})
+        fi.tag("v%d" % t, fi.commit(f))
+    fi.run(r)
+    res = lrun(r, timeout=EXT_LIMIT)
+    _ok(res)
+    exit_in(res, (0, 1, 2))
+    _consistent(res)
+    need(verdict(res) == "clean", "verdict: %s" % _seen(res))
+
+
+@case("LD11", "a 100 MB pyproject.toml")
+def ld11(root):
+    line = b"a = 1\n"
+    r = _hist(root, [("v1", {"pyproject.toml": line * (100 * 1000 * 1000 // len(line)), "src/a.py": b"A=1\n"})])
+    res = lrun(r, timeout=EXT_LIMIT)
+    _ok(res)
+    exit_in(res, (0, 1, 2))
+    need(res["secs"] <= EXT_LIMIT, "returned, but over %.0fs" % EXT_LIMIT)
+
+
+@case("LD12", "VERSION_ATTR on a 2 MiB hatch version file of newlines")
+def ld12(root):
+    pp = b'[tool.hatch.version]\npath = "pkg/v.py"\n'
+    _ld(root, {"pyproject.toml": pp, "pkg/v.py": b"\n" * (2 * MIB)}, {"pyproject.toml": pp, "pkg/v.py": b"\n" * MIB})
+
+
+# --------------------------------------------------------------------------- LC: cache and order
+def _swap(r, a, b):
+    one = lrun(r, "--compare", a, b)
+    two = lrun(r, "--compare", b, a)
+    _ok(one)
+    _ok(two)
+    la = {x["ref"]: x["label"] for x in ((one["doc"] or {}).get("a") or {}, (one["doc"] or {}).get("b") or {}) if x}
+    lb = {x["ref"]: x["label"] for x in ((two["doc"] or {}).get("a") or {}, (two["doc"] or {}).get("b") or {}) if x}
+    need(verdict(one) == verdict(two) and one["code"] == two["code"] and la == lb,
+         "the order of --compare changes the answer: %s %r exit %r | %s %r exit %r"
+         % ((a, b), la, one["code"], (b, a), lb, two["code"]))
+
+
+def _lc_layout(root, build: dict):
+    t1 = dict(build, **{"src/pkg/__init__.py": _dunder("1.0"), "src/a.py": b"A=1\n"})
+    t2 = dict(build, **{"pkg/__init__.py": _dunder("2.0"), "src/pkg/__init__.py": _dunder("1.0"), "src/a.py": b"A=2\n"})
+    head = {k: (v + b"\n# head\n" if k in build else v) for k, v in t2.items()}
+    head["src/a.py"] = b"A=3\n"
+    return _hist(root, [("T1", t1), ("T2", t2), (None, head)])
+
+
+@case("LC01", "attr pointer: the label of a tag does not depend on the order of --compare")
+def lc01(root):
+    _swap(_lc_layout(root, {"pyproject.toml": DYN + b'[tool.setuptools.dynamic]\nversion = {attr = "pkg.__version__"}\n'}),
+          "T1", "T2")
+
+
+@case("LC02", "setup.py module (rule 4): the label does not depend on the order of --compare")
+def lc02(root):
+    _swap(_lc_layout(root, {"setup.py": SETUP_MOD}), "T1", "T2")
+
+
+@case("LC03", "hatch path and setup.cfg file pointer: the label does not depend on the order")
+def lc03(root):
+    pp = b'[tool.hatch.version]\npath = "pkg/__about__.py"\n'
+    cfg = b"[metadata]\nversion = file: VERSION.txt\n"
+    r = _hist(root, [("T1", {"pyproject.toml": pp, "setup.cfg": cfg, "VERSION.txt": b"1.0\n", "src/a.py": b"A=1\n"}),
+                     ("T2", {"pyproject.toml": pp, "setup.cfg": cfg, "VERSION.txt": b"1.0\n",
+                             "pkg/__about__.py": _dunder("2.0"), "src/a.py": b"A=2\n"}),
+                     (None, {"pyproject.toml": pp + b"# head\n", "setup.cfg": cfg, "VERSION.txt": b"3.0\n",
+                             "src/a.py": b"A=3\n"})])
+    _swap(r, "T1", "T2")
+
+
+@case("LC04", "the label of a tag does not depend on where HEAD is")
+def lc04(root):
+    pp = SCM + b'[tool.setuptools.dynamic]\nversion = {attr = "pkg.__version__"}\n'
+    r = _hist(root, [("v2.0", {"pyproject.toml": pp, "pkg/__init__.py": _dunder("1.0"), "src/a.py": b"A=1\n"}),
+                     (None, {"pyproject.toml": pp,
+                             "pkg/__init__.py": b'from importlib.metadata import version\n__version__ = version("pkg")\n',
+                             "src/a.py": b"A=2\n"})])
+    on_main = _label(r, "v2.0")
+    r.git("update-ref", "--no-deref", "HEAD", r.git("rev-parse", "v2.0^{commit}"))
+    detached = _label(r, "v2.0")
+    need(on_main == detached, "label of v2.0: %r with HEAD on main, %r with HEAD at v2.0" % (on_main, detached))
+
+
+@case("LC05", "rule 5 (not cached): the label does not depend on the order of --compare")
+def lc05(root):
+    r = _hist(root, [("T1", _rule5("1.0")), ("T2", _rule5("1.0", {"_version.py": _dunder("2.0")}, b"A=2\n"))])
+    _swap(r, "T1", "T2")
+    need(_label(r, "T2") == "2.0" and _label(r, "T1") == "1.0", "labels %r %r" % (_label(r, "T1"), _label(r, "T2")))
+
+
+def _mixed(root, name="repo"):
+    hv = b'[tool.hatch.version]\npath = "pkg/__about__.py"\n'
+    pa = DYN + b'[tool.setuptools.dynamic]\nversion = {attr = "pkg.__version__"}\n'
+    return _hist(root, [
+        ("v0.9", {"setup.py": b'from setuptools import setup\nsetup(name="pkg", version="0.9")\n', "src/a.py": b"A=0\n"}),
+        ("v1.0", _scm(b"A=1\n")),
+        ("1.0", _scm(b"A=2\n")),
+        ("v1.1", {"pyproject.toml": pa, "pkg/__init__.py": _dunder("1.1"), "src/a.py": b"A=3\n"}),
+        ("v2.0", {"pyproject.toml": hv, "pkg/__about__.py": _dunder("2.0"), "src/a.py": b"A=4\n"}),
+    ], name=name)
+
+
+@case("LC06", "two runs over a mixed-source repository print the same bytes")
+def lc06(root):
+    r = _mixed(root)
+    for args in ((), ("--explain", "1.0"), ("--compare", "v1.0", "1.0"), ("--at", "commits")):
+        for as_json in (True, False):
+            a, b = lrun(r, *args, as_json=as_json), lrun(r, *args, as_json=as_json)
+            _ok(a)
+            need(a["out"] == b["out"] and a["code"] == b["code"], "two runs differ (args %r json=%r)" % (args, as_json))
+
+
+@case("LC07", "the campaign's interpreter and /usr/bin/python3 give the same JSON")
+def lc07(root):
+    other = "/usr/bin/python3"
+    if not POSIX or not Path(other).exists():
+        raise NotRun("no /usr/bin/python3 here")
+    v = subprocess.run([other, "-c", "import sys; print(sys.version.split()[0])"], capture_output=True,
+                       stdin=subprocess.DEVNULL, env=BASE_ENV).stdout.decode().strip()
+    if v == sys.version.split()[0]:
+        raise NotRun("/usr/bin/python3 is this interpreter (%s)" % v)
+    r = _mixed(root)
+    for args in ((), ("--explain", "1.0"), ("--compare", "v1.0", "1.0")):
+        a, b = lrun(r, *args), lrun(r, *args, pyexe=other)
+        _ok(a)
+        _ok(b)
+        need(a["doc"] == b["doc"] and a["code"] == b["code"], "Python %s and %s differ (args %r)"
+             % (sys.version.split()[0], v, args))
+
+
+@case("LC08", "label_sources is present, sorted, and counts the compared points")
+def lc08(root):
+    r = _mixed(root)
+    for args in ((), ("--at", "commits")):
+        d = lrun(r, *args)["doc"] or {}
+        ls = d.get("label_sources")
+        need(isinstance(ls, dict) and list(ls) == sorted(ls)
+             and sum(ls.values()) == d.get("publication_points_compared"),
+             "args %r: label_sources %r, compared %r" % (args, ls, d.get("publication_points_compared")))
+
+
+# --------------------------------------------------------------------------- LR: against --version-file
+def _lr(root, steps, vfile):
+    r = _hist(root, steps)
+    auto, fixed = lrun(r), lrun(r, "--version-file", vfile)
+    _ok(auto)
+    _ok(fixed)
+
+    def key(res):
+        d = res["doc"] or {}
+        return (res["code"], d.get("verdict"), sorted((d.get("drift") or {})), d.get("labels"))
+    need(key(auto) == key(fixed), "automatic %r, --version-file %s %r" % (key(auto), vfile, key(fixed)))
+
+
+@case("LR01", "package.json at every tag: automatic equals --version-file")
+def lr01(root):
+    _lr(root, [("v1", {"package.json": _pj("1.0"), "src/a.js": b"1\n"}),
+               ("v2", {"package.json": _pj("1.0"), "src/a.js": b"2\n"}),
+               ("v3", {"package.json": _pj("2.0"), "src/a.js": b"3\n"})], "package.json")
+
+
+def _cargo(v, pre=b""):
+    return b'[package]\nname = "x"\n' + pre + b'version = "%s"\nedition = "2021"\n' % v.encode()
+
+
+@case("LR02", "Cargo.toml with rust-version before version")
+def lr02(root):
+    pre = b'rust-version = "1.70"\n'
+    _lr(root, [("v1", {"Cargo.toml": _cargo("0.1.0", pre), "src/main.rs": b"1\n"}),
+               ("v2", {"Cargo.toml": _cargo("0.2.0", pre), "src/main.rs": b"2\n"})], "Cargo.toml")
+
+
+@case("LR03", "Cargo.toml at every tag, a package.json at one")
+def lr03(root):
+    _lr(root, [("v1", {"Cargo.toml": _cargo("0.1.0"), "src/main.rs": b"1\n"}),
+               ("v2", {"Cargo.toml": _cargo("0.1.0"), "src/main.rs": b"2\n",
+                       "package.json": b'{"name": "demo", "version": "0.0.0"}\n'})], "Cargo.toml")
+
+
+@case("LR04", "version.txt holding one token at every tag")
+def lr04(root):
+    _lr(root, [("v1", {"version.txt": b"1.0\n", "src/a.py": b"1\n"}),
+               ("v2", {"version.txt": b"1.0\n", "src/a.py": b"2\n"}),
+               ("v3", {"version.txt": b"2.0\n", "src/a.py": b"3\n"})], "version.txt")
+
+
+@case("LR05", "setup.py with required_version above setup(version=...)")
+def lr05(root):
+    def s(v):
+        return b'required_version = "3.8"\nfrom setuptools import setup\nsetup(name="x", version="%s")\n' % v.encode()
+    _lr(root, [("v1", {"setup.py": s("1.0"), "src/a.py": b"1\n"}),
+               ("v2", {"setup.py": s("2.0"), "src/a.py": b"2\n"})], "setup.py")
+
+
+@case("LR06", "pyproject version at every tag, a stale setup.py at older tags")
+def lr06(root):
+    stale = b'from setuptools import setup\nsetup(name="pkg", version="0.1")\n'
+    _lr(root, [("v1", {"pyproject.toml": _pyp("1.0"), "setup.py": stale, "src/a.py": b"1\n"}),
+               ("v2", {"pyproject.toml": _pyp("1.0"), "setup.py": stale, "src/a.py": b"2\n"}),
+               ("v3", {"pyproject.toml": _pyp("2.0"), "src/a.py": b"3\n"})], "pyproject.toml")
+
+
+@case("LR07", "package.json at every tag, a helper pyproject with a hatch path at one")
+def lr07(root):
+    _lr(root, [("v1", {"package.json": _pj("1.0"), "src/a.js": b"1\n"}),
+               ("v2", {"package.json": _pj("1.0"), "src/a.js": b"2\n",
+                       "pyproject.toml": b'[tool.hatch.version]\npath = "scripts/v.py"\n',
+                       "scripts/v.py": _dunder("0.1")})], "package.json")
+
+
 # --------------------------------------------------------------------------- driver
 def main():
     global DETECTOR
