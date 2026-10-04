@@ -614,3 +614,41 @@ How the loose results are classified (the expectations stand as written):
   ref and the code of another (LT13), or a hang (LD01–LD03, LD05, LD08, LD09, LD12). Of these, LS16
   and LS18 follow the declared rule "the shallowest version module wins" (§9 VP08): declared, and
   still a false drift.
+
+### Amendment by the maintainer, 2026-10-04, after extension 2 was delivered
+
+Extension 2 was committed as delivered, 41 of its 72 cases loose. Nothing above is rewritten.
+The part it attacked was rewritten, not patched:
+
+- **No regular expression runs over a whole build file.** TOML and INI files are read line by
+  line, `setup.py` is parsed (never executed), JSON is parsed. Build files over 1 MiB are not read.
+- **No cache.** The source at a tag is a function of that tag's tree alone.
+- **A tag-deriving tool counts only where the build declares it** (its table, `source = "vcs"`,
+  `use_scm_version`, or the build requirements of a project with no static version).
+- **`setup.py` is read at the `setup(...)` call**; comments, docstrings and other calls are not.
+- **A label must be a version**: a digit, no format template, not a placeholder.
+- **Modules are looked for in the project's own package**, named or the only one — not the
+  shallowest file anywhere.
+- **When the source changes and the earlier file still declares another version at that tag**,
+  the point is counted (`points_with_conflicting_sources`) and the verdict is never `clean`.
+- `--compare` reads a name that is a tag as that tag, for the commit and the label alike; tag
+  labels drop a `word-` prefix as setuptools_scm does.
+
+Cases whose expectation that redesign makes obsolete, each kept in the file:
+
+- **TV03, TV04**: superseded by `PREREGISTRATION.md` §9 (a declared tag-deriving tool gives the
+  label; the project is measured, not refused). Not run, reason named.
+- **OI07, XP01**: their labels (`clean`, `--json`) are not versions and are no longer read
+  automatically. They now pass `--version-file`, where a label is whatever the file declares, and
+  test what they were written to test.
+- **LT02**: `version-1` is now read as `1`, as LT03 requires. The other two names are unchanged.
+- **LC05**: the property in its title (the answer does not depend on the order) is kept; the label
+  it expected at T2 came from a version module outside the package, which is no longer read.
+- **LD10**: with 5,001 top-level packages none is "the" package; the run returns at once with a
+  refusal, which the case now accepts.
+- **LR07**: two files declare different versions at one tag. Required now: never exit 0.
+- **LT16**: declared limit, not run — labels are compared as written, so `v1.0` and `v1.0.0`
+  are two labels. Listed in `ROADMAP.md`.
+- **LR04**: fixed in the detector — an explicit `--version-file` that holds only the version is
+  read even without a pattern.
+

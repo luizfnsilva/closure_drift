@@ -3,7 +3,7 @@
  "stamp": {
   "measured_at_head": "33cfa8743c4e",
   "working_tree_dirty": false,
-  "detector_closure": "4633bd5abd0f34c4"
+  "detector_closure": "1e8ed65d29b85000"
  },
  "repo": ".",
  "version_file": "VERSION",
@@ -35,5 +35,6 @@
  "points_without_label": 0,
  "points_with_empty_closure": 0,
  "points_not_commits": 0,
- "range_truncated": false
+ "range_truncated": false,
+ "points_with_conflicting_sources": 0
 }

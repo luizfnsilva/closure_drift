@@ -484,7 +484,7 @@ def raw_controls(text):
 @proof("E01")
 def e01(root):
     for drift in (False, True):
-        rc, _, out, err = run(hostile_repo(root, "e01%d" % drift, drift), text=True)
+        rc, _, out, err = run(hostile_repo(root, "e01%d" % drift, drift), "--version-file", "pyproject.toml", text=True)
         check(rc == (1 if drift else 2), "exit %d" % rc)
         check(not raw_controls(out + err), "raw control characters printed: %s" % raw_controls(out + err))
         forged = [l for l in out.splitlines() if l.startswith("CLEAN")]
@@ -495,7 +495,7 @@ def e01(root):
 
 @proof("E02")
 def e02(root):
-    doc = expect(hostile_repo(root, "e02", True), "drift", 1)
+    doc = expect(hostile_repo(root, "e02", True), "drift", 1, "--version-file", "pyproject.toml")
     check(list(doc["drift"]) == [HOSTILE], "the label did not round-trip: %r" % list(doc["drift"]))
 
 
@@ -577,7 +577,7 @@ def f03(root):
 def f04(root):
     src = Path(DETECTOR).read_text(encoding="utf-8")
     allowed = {"__future__", "argparse", "fnmatch", "hashlib", "json", "os", "re", "subprocess",
-               "sys", "collections", "pathlib", "shlex", "unicodedata"}
+               "sys", "collections", "pathlib", "shlex", "unicodedata", "ast", "warnings"}
     found = set()
     for node in ast.walk(ast.parse(src)):
         if isinstance(node, ast.Import):
@@ -1245,7 +1245,7 @@ def scm_repo(root, name, tags, comment_only=False):
                                    'dynamic = ["version"]\n%s')
                 % ("" if comment_only else ', "setuptools_scm"',
                    "# we do not use setuptools_scm\n" if comment_only else ""))
-        r.write("pkg/__init__.py", '__version__ = "unknown"\n')
+        r.write("pkg/__init__.py", '__version__ = "%s"\n' % ("1.0" if comment_only else "unknown"))
         r.write("pkg/core.py", "state %d\n" % i)
         r.commit(tag); r.tag(tag)
     return r
@@ -1365,6 +1365,7 @@ def vp08(root):
     r = Repo(root, "vp08")
     for tag, version, vendored in (("t1", "2.0.0", "0.1"), ("t2", "2.1.0", "0.2")):
         r.write("setup.py", "from setuptools import setup\nsetup(name='pkg')\n")
+        r.write("pkg/__init__.py", "from ._version import __version__\n")
         r.write("pkg/_version.py", '__version__ = "%s"\n' % version)
         r.write("pkg/io/extern/clip/__init__.py", '__version__ = "%s"\n' % vendored)
         r.write("pkg/core.py", "code for %s\n" % version)
@@ -1380,6 +1381,60 @@ def vp09(root):
     r.commit(); r.tag("v1")
     rc, _, out, err = run(r, "--closure", "*.c")
     refusal(rc, out, err, "could not find a version label")
+
+
+# ---------------------------------------------------------------- PL — a label must be a version
+
+def two_versions(root, name, files_for, *args, verdict="clean", code=0, **fields):
+    r = Repo(root, name)
+    for tag, version in (("t1", "1.2.3"), ("t2", "1.2.4")):
+        for path, body in files_for(version).items():
+            r.write(path, body)
+        r.write("pkg/core.py", "code for %s\n" % version)
+        r.commit(tag); r.tag(tag)
+    return expect(r, verdict, code, "--closure", "pkg/core.py", *args, **fields)
+
+
+@proof("PL01")
+def pl01(root):
+    for n, bad in enumerate(("%(version)s", "{}.{}.{}", "%s", "unknown", ".", "0.0.0")):
+        doc = two_versions(root, "pl01-%d" % n, lambda v: {
+            "pyproject.toml": '[project]\nname = "pkg"\nversion = "%s"\n' % bad,
+            "pkg/__init__.py": '__version__ = "%s"\n' % v}, labels=2)
+        check(doc["label_sources"] == {"pkg/__init__.py": 2},
+              "with %r in pyproject.toml the label came from %r" % (bad, doc["label_sources"]))
+
+
+@proof("PL02")
+def pl02(root):
+    doc = two_versions(root, "pl02", lambda v: {
+        "setup.py": "from setuptools import setup\nsetup(name='pkg')\n",
+        "pkg/_version.py": "version_info = (1, 2)\n__version__ = '.'.join(map(str, version_info))\n",
+        "pkg/__init__.py": '__version__ = "%s"\n' % v}, labels=2)
+    check(doc["label_sources"] == {"pkg/__init__.py": 2}, "label read from %r" % doc["label_sources"])
+
+
+@proof("PL03")
+def pl03(root):
+    doc = two_versions(root, "pl03", lambda v: {
+        "setup.py": 'from ez_setup import use_setuptools\nuse_setuptools(version="0.6c5")\n'
+                    'from setuptools import setup\nsetup(name="pkg", version="%s")\n' % v}, labels=2)
+    check(doc["label_sources"] == {"setup.py": 2}, "label read from %r" % doc["label_sources"])
+
+
+@proof("PL04")
+def pl04(root):
+    doc = two_versions(root, "pl04", lambda v: {
+        "setup.py": 'print "building"\nfrom setuptools import setup\nsetup(name="pkg",\n      version="%s")\n' % v},
+        labels=2)
+    check(doc["label_sources"] == {"setup.py": 2}, "label read from %r" % doc["label_sources"])
+
+
+@proof("PL05")
+def pl05(root):
+    doc = two_versions(root, "pl05", lambda v: {"REL": 'rel = "%(v)s-1"\n'},
+                       "--version-file", "REL", "--version-regex", 'rel = "([^"]+)"', verdict="drift", code=1)
+    check(list(doc["drift"]) == ["%(v)s-1"], "an explicit source was filtered: %r" % list(doc["drift"]))
 
 
 # ---------------------------------------------------------------- K02 — the report is a contract

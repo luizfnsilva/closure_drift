@@ -18,6 +18,7 @@ input produces a traceback, and no failure ends at 1.
 from __future__ import annotations
 
 import argparse
+import ast
 import fnmatch
 import hashlib
 import json
@@ -27,39 +28,32 @@ import shlex
 import subprocess
 import sys
 import unicodedata
+import warnings
 from collections import defaultdict
 from pathlib import Path
 
 __version__ = "0.9.0"
 REPORT_FORMAT = 2
 
-# (file, regex with one capture group) — first match in the repo wins
-VERSION_SOURCES = [
-    ("package.json",   r'"version"\s*:\s*"([^"]+)"'),
-    ("pyproject.toml", r'^\s*version\s*=\s*["\']([^"\']+)["\']'),
-    ("Cargo.toml",     r'^\s*version\s*=\s*["\']([^"\']+)["\']'),
-    ("setup.py",       r'(?<![\w.])version\s*=\s*["\']([^"\']+)["\']'),
-    ("setup.py",       r'^(?:VERSION|version|__version__)\s*=\s*["\']([^"\']+)["\']'),
-    ("composer.json",  r'"version"\s*:\s*"([^"]+)"'),
-    ("build.gradle",   r'^\s*version\s*=?\s*["\']([^"\']+)["\']'),
-    ("VERSION",        r'^\s*(\S+)\s*$'),
-    ("version.txt",    r'^\s*(\S+)\s*$'),
-]
-
-# A version kept in a module rather than in the build file.
-VERSION_ATTR = r'^\s*(?:__version__|VERSION|version)\s*(?::[^=\n]*)?=\s*["\']([^"\']+)["\']'
-DUNDER_ATTR = r'^\s*__version__\s*(?::[^=\n]*)?=\s*["\']([^"\']+)["\']'
-ONE_TOKEN = r'^\s*(\S+)\s*$'
-VERSION_MODULES = ("__version__.py", "_version.py", "version.py", "__about__.py", "__init__.py")
+# Where a version can be declared. Python build files are read first; a repository that has
+# them is a Python project, and only then are the other ecosystems' files consulted.
 BUILD_FILES = ("pyproject.toml", "setup.cfg", "setup.py")
-TAG_SOURCE = "(the tag)"      # the label is the tag name: the version is derived from it at build time
-DEFAULT_VERSION_REGEX = r'"?version"?\s*[:=]\s*["\']([^"\']+)["\']'
-BUILT_IN_PATTERNS = ({p for _, p in VERSION_SOURCES}
-                     | {DEFAULT_VERSION_REGEX, VERSION_ATTR, DUNDER_ATTR, ONE_TOKEN})
+OTHER_ECOSYSTEMS = (("Cargo.toml", "cargo"), ("package.json", "json"), ("composer.json", "json"),
+                    ("build.gradle", "gradle"), ("VERSION", "token"), ("version.txt", "token"))
+VERSION_MODULES = ("__version__.py", "_version.py", "version.py", "__about__.py", "__init__.py")
+VERSION_NAMES = ("__version__", "VERSION", "version")
+TAG_SOURCE = "(the tag)"      # the version is derived from the tag at build time: the label is the tag
+DEFAULT_VERSION_REGEX = r'(?<![\w-])"?version"?\s*[:=]\s*["\']([^"\']+)["\']'
+BUILT_IN_PATTERNS = {DEFAULT_VERSION_REGEX}
 
-# Build tools that take the version from the tag itself.
-TAG_DERIVED = ("setuptools_scm", "setuptools-scm", "hatch-vcs", "hatch_vcs", "versioneer",
-               "poetry-dynamic-versioning", "dunamai", "versioningit", "pbr")
+# Build tools that take the version from the tag. They count only where the build declares them.
+SCM_TOOLS = {"setuptools-scm", "hatch-vcs", "versioneer", "versioningit", "poetry-dynamic-versioning",
+             "setuptools-git-versioning", "dunamai", "pbr"}
+SCM_TABLES = {"tool.setuptools_scm", "tool.versioneer", "tool.versioningit", "tool.setuptools-git-versioning"}
+NOT_PACKAGES = {"src", "lib", "tests", "test", "docs", "doc", "examples", "example", "scripts", "tools",
+                "benchmarks", "bench", "extern", "vendor", "_vendor", "third_party", "build", "dist"}
+PLACEHOLDERS = {"0.0.0", "0.0.0.dev0", "0+unknown"}
+MAX_BUILD_FILE = 1 << 20      # a build file larger than this is not read for a version
 
 DIAGNOSTICS: dict = {}     # filled only with --diagnose; added to every JSON report
 
@@ -330,22 +324,108 @@ def match_on_stdin() -> int:
     return 0
 
 
-def attr_pattern(name: str) -> str:
-    """The pattern for `<name> = "..."`. Built from an escaped name, so it is safe to match in-process."""
-    pattern = r'^\s*' + re.escape(name) + r'\s*(?::[^=\n]*)?=\s*["\']([^"\']+)["\']'
-    BUILT_IN_PATTERNS.add(pattern)
-    return pattern
+def plausible(label) -> bool:
+    """A label is a version someone wrote: it has a digit, and it is not a format template
+    (`%(version)s`, `{}.{}`) nor a placeholder."""
+    return (isinstance(label, str) and any(c.isdigit() for c in label)
+            and not any(c in label for c in "%{}") and label not in PLACEHOLDERS)
 
 
-def uncommented(text: str) -> str:
-    return "\n".join(line.split("#", 1)[0] for line in text.splitlines())
+_KEY = re.compile(r'^([A-Za-z_][\w.-]*)[ \t]*=[ \t]*(.*)$')
+_STRING = re.compile(r'^(["\'])([^"\'\n]*)\1[ \t]*(?:[#;].*)?$')
 
 
-def module_files(dotted: list[str], blobs: dict) -> list[str]:
-    """Where a dotted module name can live: at the root, under src/ or lib/, as a file or a package."""
-    tail = "/".join(dotted)
-    return [p for base in ("", "src/", "lib/") for p in (base + tail + ".py", base + tail + "/__init__.py")
-            if p in blobs]
+def tables(text: str) -> dict:
+    """{table: {key: right-hand side}} of a TOML or INI file. Read line by line, so the cost is
+    linear in the size of the file whatever the file holds."""
+    out: dict = {"": {}}
+    table, last, open_array = "", None, 0
+    for raw in text.split("\n"):
+        line = raw.strip()
+        if open_array:
+            out[table][last] += " " + line
+            open_array = 0 if "]" in line or open_array > 200 else open_array + 1
+            continue
+        if not line or line[0] in "#;":
+            continue
+        if line[0] == "[":
+            table = line.split("#", 1)[0].strip().strip("[]").strip().strip("\"'")
+            out.setdefault(table, {})
+            last = None
+            continue
+        m = _KEY.match(line)
+        if m and not (raw[:1] in " \t" and last and not m.group(2)):
+            last = m.group(1)
+            out[table].setdefault(last, m.group(2).strip())
+            if out[table][last].startswith("[") and "]" not in out[table][last]:
+                open_array = 1
+        elif raw[:1] in " \t" and last:
+            out[table][last] += " " + line          # an INI continuation line
+    return out
+
+
+def string(rhs) -> str | None:
+    m = _STRING.match(rhs or "")
+    return m.group(2) if m else None
+
+
+def requirement(spec: str) -> str:
+    m = re.match(r"[A-Za-z0-9][A-Za-z0-9._-]*", spec.strip())
+    return re.sub(r"[._]", "-", m.group(0).lower()) if m else ""
+
+
+def attribute_value(text: str, name: str) -> str | None:
+    """`name = "..."` at the start of a line, the string being the whole right-hand side."""
+    tail = re.compile(r'[ \t]*(?::[^=\n]*)?=[ \t]*(["\'])([^"\'\n]*)\1[ \t]*(?:#.*)?$')
+    for line in text.split("\n"):
+        if line.startswith(name):
+            m = tail.match(line, len(name))
+            if m:
+                return m.group(2)
+    return None
+
+
+def setup_info(text: str) -> dict:
+    """What `setup(...)` in a setup.py says about the version — parsed, never executed. A
+    setup.py that is not valid Python 3 is read from the text after `setup(`."""
+    info = {"version": None, "module": None, "name": None, "scm": False}
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            tree = ast.parse(text)
+    except (SyntaxError, ValueError, RecursionError, MemoryError, OverflowError):
+        body = "\n".join(l.split("#", 1)[0] for l in text[max(text.find("setup("), 0):].split("\n")) \
+            if "setup(" in text else ""
+        for key in ("version", "name"):
+            m = re.search(r'(?:^|[(,])[ \t]*' + key + r'[ \t]*=[ \t]*["\']([^"\'\n]+)["\']', body, re.M)
+            info[key] = m.group(1) if m else None
+        info["scm"] = "use_scm_version" in body
+        return info
+    consts = {n.targets[0].id: n.value.value for n in tree.body
+              if isinstance(n, ast.Assign) and len(n.targets) == 1 and isinstance(n.targets[0], ast.Name)
+              and isinstance(n.value, ast.Constant) and isinstance(n.value.value, str)}
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        called = node.func.id if isinstance(node.func, ast.Name) else getattr(node.func, "attr", None)
+        if called != "setup":
+            continue
+        for kw in node.keywords:
+            v = kw.value
+            text_value = (v.value if isinstance(v, ast.Constant) and isinstance(v.value, str)
+                          else consts.get(v.id) if isinstance(v, ast.Name) else None)
+            if kw.arg == "version":
+                info["version"] = text_value
+                if isinstance(v, ast.Attribute) and isinstance(v.value, ast.Name):
+                    info["module"] = (v.value.id, v.attr)
+                elif isinstance(v, ast.Call) and "versioneer" in ast.dump(v.func):
+                    info["scm"] = True
+            elif kw.arg == "name":
+                info["name"] = text_value
+            elif kw.arg in ("use_scm_version", "pbr") and not (isinstance(v, ast.Constant) and not v.value):
+                info["scm"] = True
+        break
+    return info
 
 
 def depth_first(paths) -> list[str]:
@@ -353,101 +433,190 @@ def depth_first(paths) -> list[str]:
 
 
 class Sources:
-    """Where the version label is, at one commit. Resolved at every publication point: a project
-    moves its version from setup.py to a module to pyproject.toml over the years, and a source
-    chosen once at HEAD reads nothing at the older tags.
+    """Where the version label is, at one commit. Resolved at every publication point, with no
+    memory of the other points: a project moves its version from setup.py to a module to
+    pyproject.toml over the years, and the answer for a tag must not depend on which tag was
+    looked at before it.
 
-    In order: a pointer the build files declare; a version written in a known file; a tool that
-    derives the version from the tag (then the label IS the tag); a module named in setup.py; the
-    shallowest version module in the tree."""
+    For a Python project, in order: a pointer the build files declare; a tool the build declares
+    that derives the version from the tag (then the label IS the tag); a version written in the
+    build files; the version module of the project's own package. Otherwise the version file of
+    another ecosystem."""
 
     def __init__(self, objects: Objects):
         self.objects = objects
-        self.cache: dict = {}
+        self.values: dict = {}        # (object id, how) -> label; a pure function of the bytes
+        self.parsed: dict = {}
 
-    def find(self, entries) -> tuple[str, str] | None:
-        blobs = {path: oid for path, kind, oid in entries if kind == "blob"}
-        key = tuple(blobs.get(n) for n in BUILD_FILES + tuple(f for f, _ in VERSION_SOURCES))
-        hit = self.cache.get(key)
-        if hit is not None and (hit[0] == TAG_SOURCE or self.reads(blobs, *hit)):
-            return hit
-        found, cacheable = self.resolve(blobs)
-        if found is not None and cacheable:
-            self.cache[key] = found
-        return found
+    def text(self, blobs: dict, path: str) -> str:
+        oid = blobs.get(path)
+        if oid is None:
+            return ""
+        text = self.objects.text(oid)
+        return text if len(text) <= MAX_BUILD_FILE else ""
 
-    def reads(self, blobs: dict, path: str, pattern: str) -> bool:
-        return path in blobs and re.search(pattern, self.objects.text(blobs[path]), re.MULTILINE) is not None
+    def tables(self, blobs: dict, path: str) -> dict:
+        oid = blobs.get(path)
+        if (oid, "tables") not in self.parsed:
+            self.parsed[(oid, "tables")] = tables(self.text(blobs, path))
+        return self.parsed[(oid, "tables")]
 
-    def resolve(self, blobs: dict):
-        text = {n: uncommented(self.objects.text(blobs[n])) if n in blobs else "" for n in BUILD_FILES}
-        pp, cfg, setup = text["pyproject.toml"], text["setup.cfg"], text["setup.py"]
+    def setup(self, blobs: dict) -> dict:
+        oid = blobs.get("setup.py")
+        if (oid, "setup") not in self.parsed:
+            self.parsed[(oid, "setup")] = setup_info(self.text(blobs, "setup.py"))
+        return self.parsed[(oid, "setup")]
+
+    def read(self, blobs: dict, path: str, how) -> str | None:
+        """The label a source gives at this commit, or None when it gives no plausible one."""
+        oid = blobs.get(path)
+        if oid is None:
+            return None
+        if (oid, how) in self.values:
+            return self.values[(oid, how)]
+        text, value = self.text(blobs, path), None
+        if how == "project":
+            t = tables(text)
+            value = string(t.get("project", {}).get("version")) or string(t.get("tool.poetry", {}).get("version"))
+        elif how == "cargo":
+            t = tables(text)
+            value = string(t.get("package", {}).get("version")) or string(t.get("workspace.package", {}).get("version"))
+        elif how == "cfg":
+            value = tables(text).get("metadata", {}).get("version")
+        elif how == "setup":
+            value = setup_info(text)["version"]
+        elif how == "json":
+            try:
+                doc = json.loads(text, strict=False)
+                value = doc.get("version") if isinstance(doc, dict) else None
+            except (ValueError, RecursionError):
+                value = None
+        elif how == "token":
+            value = text.strip() if len(text.split()) == 1 else None
+        elif how == "gradle":
+            for line in text.split("\n"):
+                m = re.match(r'[ \t]*version[ \t]*=?[ \t]*["\']([^"\'\n]+)["\']', line)
+                if m:
+                    value = m.group(1)
+                    break
+        else:
+            value = attribute_value(text, how[1])
+        self.values[(oid, how)] = value if plausible(value) else None
+        return self.values[(oid, how)]
+
+    def find(self, blobs: dict):
+        """(path, how), (TAG_SOURCE, None), or None."""
+        if any(n in blobs for n in BUILD_FILES):
+            return self.python(blobs)
+        for path, how in OTHER_ECOSYSTEMS:
+            if self.read(blobs, path, how):
+                return path, how
+        return None
+
+    def python(self, blobs: dict):
+        pp, cfg, setup = self.tables(blobs, "pyproject.toml"), self.tables(blobs, "setup.cfg"), self.setup(blobs)
+        project, hatch = pp.get("project", {}), pp.get("tool.hatch.version", {})
+        metadata, build = cfg.get("metadata", {}), pp.get("build-system", {})
+        name = (string(project.get("name")) or string(pp.get("tool.poetry", {}).get("name"))
+                or metadata.get("name") or setup["name"])
+        backend = string(build.get("build-backend")) or ""
+        requires = {requirement(q) for q in re.findall(r'["\']([^"\'\n]*)["\']', build.get("requires", ""))}
+        dynamic = "version" in project.get("dynamic", "")
 
         # 1. a pointer the build files declare
-        m = re.search(r'^\[tool\.hatch\.version\][^\[]*?^\s*path\s*=\s*["\']([^"\']+)["\']', pp, re.M | re.S)
-        if m and self.reads(blobs, m.group(1), VERSION_ATTR):
-            return (m.group(1), VERSION_ATTR), True
-        m = (re.search(r'^\s*version\s*=\s*\{\s*file\s*=\s*\[?\s*["\']([^"\']+)["\']', pp, re.M)
-             or re.search(r'^\s*version\s*=\s*file:\s*(\S+)', cfg, re.M))
-        if m and self.reads(blobs, m.group(1), ONE_TOKEN):
-            return (m.group(1), ONE_TOKEN), True
-        m = (re.search(r'^\s*version\s*=\s*\{\s*attr\s*=\s*["\']([\w.]+)["\']', pp, re.M)
-             or re.search(r'^\s*version\s*=\s*attr:\s*([\w.]+)', cfg, re.M))
-        if m and "." in m.group(1):
-            got = self.attribute(blobs, m.group(1).split(".")[:-1], m.group(1).split(".")[-1])
-            if got:
-                return got, True
-        if "flit_core" in pp or "flit.buildapi" in pp:
-            m = re.search(r'^\s*name\s*=\s*["\']([^"\']+)["\']', pp, re.M)
+        if string(hatch.get("path")):
+            for attr in VERSION_NAMES:
+                if self.read(blobs, string(hatch.get("path")), ("attr", attr)):
+                    return string(hatch.get("path")), ("attr", attr)
+        for rhs in (pp.get("tool.setuptools.dynamic", {}).get("version", ""), metadata.get("version", "")):
+            m = re.match(r'\{?[ \t]*attr[ \t]*[=:][ \t]*["\']?([A-Za-z_][\w.]*\.[A-Za-z_]\w*)', rhs)
             if m:
-                got = self.attribute(blobs, [m.group(1).replace("-", "_")], "__version__")
+                got = self.attribute(blobs, m.group(1).split(".")[:-1], m.group(1).split(".")[-1])
                 if got:
-                    return got, True
+                    return got
+            m = re.match(r'\{?[ \t]*file[ \t]*[=:][ \t]*\[?[ \t]*["\']?([^"\'\],}\s]+)', rhs)
+            if m and self.read(blobs, m.group(1), "token"):
+                return m.group(1), "token"
+        if "maturin" in backend and dynamic and self.read(blobs, "Cargo.toml", "cargo"):
+            return "Cargo.toml", "cargo"
+        if "flit" in backend and name:
+            got = self.attribute(blobs, [name.replace("-", "_")], "__version__")
+            if got:
+                return got
 
-        # 2. a version written in a known file
-        for path, pattern in VERSION_SOURCES:
-            if self.reads(blobs, path, pattern):
-                return (path, pattern), True
+        # 2. the build declares a tool that derives the version from the tag
+        if (set(pp) & SCM_TABLES or string(hatch.get("source")) == "vcs"
+                or pp.get("tool.poetry-dynamic-versioning", {}).get("enable", "").startswith("true")
+                or string(pp.get("tool.pdm.version", {}).get("source")) == "scm"
+                or (requires & SCM_TOOLS and not string(project.get("version")))
+                or setup["scm"] or "versioneer" in cfg or "pbr" in cfg):
+            return TAG_SOURCE, None
 
-        # 3. the version is derived from the tag at build time: the label is the tag
-        if any(tool in body for body in text.values() for tool in TAG_DERIVED):
-            return (TAG_SOURCE, ""), True
+        # 3. a version written in the build files
+        if self.read(blobs, "pyproject.toml", "project"):
+            return "pyproject.toml", "project"
+        if not metadata.get("version", "").startswith(("attr", "file")) and self.read(blobs, "setup.cfg", "cfg"):
+            return "setup.cfg", "cfg"
+        if self.read(blobs, "setup.py", "setup"):
+            return "setup.py", "setup"
+        if setup["module"]:
+            got = self.attribute(blobs, [setup["module"][0]], setup["module"][1], anywhere=True)
+            if got:
+                return got
 
-        # 4. setup.py names a module: version=pkg.__version__
-        m = re.search(r'(?<![\w.])version\s*=\s*([A-Za-z_]\w*)\.([A-Za-z_]\w*)\s*[,)\n]', setup)
-        if m:
-            name, attr = m.group(1), m.group(2)
-            anywhere = depth_first(p for p in blobs if p in (name + ".py", name + "/__init__.py")
-                                   or p.endswith(("/" + name + ".py", "/" + name + "/__init__.py")))
-            for path in anywhere:
-                if self.reads(blobs, path, attr_pattern(attr)):
-                    return (path, attr_pattern(attr)), True
+        # 4. the version module of the project's own package
+        for package in self.packages(blobs, name):
+            for module in VERSION_MODULES:
+                for attr in (("__version__",) if module == "__init__.py" else VERSION_NAMES):
+                    if self.read(blobs, package + "/" + module, ("attr", attr)):
+                        return package + "/" + module, ("attr", attr)
+        return None
 
-        # 5. the shallowest version module, when this is a Python project at all
-        if any(n in blobs for n in BUILD_FILES):
-            for path in depth_first(p for p in blobs if p.count("/") <= 2
-                                    and p.rsplit("/", 1)[-1] in VERSION_MODULES
-                                    and not matches(p, CLOSURE_EXCLUDE)):
-                pattern = DUNDER_ATTR if path.endswith("__init__.py") else VERSION_ATTR
-                if self.reads(blobs, path, pattern):
-                    return (path, pattern), False
-        return None, False
+    def packages(self, blobs: dict, name: str | None) -> list[str]:
+        """The folders of the package this project builds: the one its name says, or the only
+        top-level package there is. Not a vendored one, not a tests folder."""
+        if name:
+            n = name.replace("-", "_").replace(".", "/")
+            named = [base + c for c in dict.fromkeys((n, n.lower())) for base in ("", "src/", "lib/")
+                     if base + c + "/__init__.py" in blobs]
+            if named:
+                return named
+        tops = set()
+        for p in blobs:
+            parts = p.split("/")
+            if parts[-1] != "__init__.py":
+                continue
+            if len(parts) == 2 and parts[0] not in NOT_PACKAGES:
+                tops.add(parts[0])
+            elif len(parts) == 3 and parts[0] in ("src", "lib") and parts[1] not in NOT_PACKAGES:
+                tops.add(parts[0] + "/" + parts[1])
+        return sorted(tops) if len(tops) == 1 else []
 
-    def attribute(self, blobs: dict, module: list[str], attr: str) -> tuple[str, str] | None:
-        """`pkg.__version__`: in the module itself, or in a version module of that package."""
-        for path in module_files(module, blobs):
-            if self.reads(blobs, path, attr_pattern(attr)):
-                return path, attr_pattern(attr)
-            folder = path.rsplit("/", 1)[0] + "/" if path.endswith("__init__.py") else None
-            for name in VERSION_MODULES[:-1]:
-                if folder and self.reads(blobs, folder + name, VERSION_ATTR):
-                    return folder + name, VERSION_ATTR
+    def attribute(self, blobs: dict, module: list[str], attr: str, anywhere: bool = False):
+        """`pkg.attr`: in the module itself, or in a sibling module of that package."""
+        tail = "/".join(module)
+        files = [p for base in ("", "src/", "lib/") for p in (base + tail + ".py", base + tail + "/__init__.py")
+                 if p in blobs]
+        if not files and anywhere:
+            files = depth_first(p for p in blobs if p.endswith(("/" + tail + ".py", "/" + tail + "/__init__.py"))
+                                and not matches(p, CLOSURE_EXCLUDE))
+        for path in files:
+            if self.read(blobs, path, ("attr", attr)):
+                return path, ("attr", attr)
+            if path.endswith("/__init__.py"):
+                folder = path[:-len("__init__.py")]
+                for sibling in sorted(p for p in blobs if p.startswith(folder) and p.endswith(".py")
+                                      and "/" not in p[len(folder):]):
+                    if self.read(blobs, sibling, ("attr", attr)):
+                        return sibling, ("attr", attr)
         return None
 
 
 def tag_label(name: str) -> str:
-    """The version a tag-derived build gives a tag: the name, without a leading `v`."""
-    return name[1:] if re.match(r"^[vV]\d", name) else name
+    """The version a tag-derived build gives a tag: an optional `word-` prefix and a leading `v`
+    are dropped, as setuptools_scm does."""
+    m = re.match(r"^(?:[\w-]+-)?[vV]?(\d[^+]*)(?:\+.*)?$", name)
+    return m.group(1) if m else name
 
 
 def publication_points(repo: str, at: str, limit: int, tag_globs: list[str] | None):
@@ -494,18 +663,40 @@ class Labels:
         self.objects, self.fixed = objects, fixed
         self.sources, self.seen = Sources(objects), {}
         self.counts: dict[str, int] = {}
+        self.previous, self.conflicts = None, 0
 
-    def source(self, entries) -> tuple[str, str] | None:
-        return self.fixed or self.sources.find(entries)
+    def source(self, entries):
+        if self.fixed:
+            return self.fixed
+        return self.sources.find({path: oid for path, kind, oid in entries if kind == "blob"})
 
     def at(self, entries, tag: str | None, count: bool = True) -> str | None:
-        src = self.source(entries)
-        if src is None:
-            return None
-        if src[0] == TAG_SOURCE:
-            label = tag_label(tag) if tag else None
-        else:
+        if self.fixed:
+            src = self.fixed
             label = declared_version(self.objects, entries, src[0], src[1], self.seen)
+            if label is None and src[1] == DEFAULT_VERSION_REGEX:      # a file that is just the version
+                for path, kind, oid in entries:
+                    if path == src[0] and kind == "blob" and len(self.objects.text(oid).split()) == 1 \
+                            and plausible(self.objects.text(oid).strip()):
+                        label = self.objects.text(oid).strip()
+        else:
+            blobs = {path: oid for path, kind, oid in entries if kind == "blob"}
+            src = self.sources.find(blobs)
+            if src is None:
+                return None
+            if src[0] == TAG_SOURCE:
+                label = tag_label(tag) if tag else None
+            else:
+                label = self.sources.read(blobs, *src)
+            # the source changed since the last point, and the earlier one still declares
+            # something else here: two files disagree about the version of this commit
+            if (count and label and self.previous and self.previous != src
+                    and TAG_SOURCE not in (src[0], self.previous[0])):
+                other = self.sources.read(blobs, *self.previous)
+                if other and other != label:
+                    self.conflicts += 1
+            if count and label:
+                self.previous = src
         if label and count:
             self.counts[src[0]] = self.counts.get(src[0], 0) + 1
         return label
@@ -669,15 +860,8 @@ def run() -> int:
 def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vregex, cfg) -> int:
     head_entries = objects.entries(head_sha)
     labels = Labels(objects, (vfile, vregex or DEFAULT_VERSION_REGEX) if vfile else None)
-    if vfile:
-        vsrc = labels.fixed
-    else:
-        vsrc = labels.source(head_entries)
-        if not vsrc:
-            raise Refusal("could not find a version label. Pass --version-file / --version-regex.\n"
-                          f"tried: {', '.join(p for p, _ in VERSION_SOURCES)}, "
-                          "and dynamic-version fallbacks.")
-    vpath, vpat = vsrc
+    vsrc = labels.source(head_entries)
+    vpath, vpat = (vsrc[0], vsrc[1] if vfile else None) if vsrc else (None, None)
     if vpath == TAG_SOURCE and at == "commits":
         raise Refusal("the version of this project is derived from the tag at build time, and "
                       "--at commits has no tag to read it from. Pass --version-file if a file declares it.")
@@ -710,15 +894,6 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
             print(msg, file=sys.stderr)
         return 2
 
-    plain = not (a.json or a.badge)
-    if plain:
-        print(f"repository        {printable(a.repo)}")
-        print(f"version from      {printable(vpath)}")
-        print(f"closure           {printable(', '.join(include))}")
-        print(f"publication point {at} ({len(pts)} scanned"
-              + (f", the most recent of {total}" if total > len(pts) else "")
-              + (f"; --tags {printable(' '.join(tag_globs))}" if tag_globs else "") + ")\n")
-
     # label -> full closure id -> {key (the 16-hex id), where it was first seen, commit}
     by_label: dict[str, dict[str, dict]] = defaultdict(dict)
     churn, compared, no_label, empty = 0, 0, 0, 0
@@ -747,6 +922,18 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
         if prev is not None and full != prev:
             churn += 1
         prev = full
+
+    if not labels.counts and vsrc is None and not a.would_tag:
+        raise Refusal("could not find a version label. Pass --version-file / --version-regex.\n"
+                      "tried: pyproject.toml, setup.cfg, setup.py and the project's own package; "
+                      "Cargo.toml, package.json, composer.json, build.gradle, VERSION, version.txt.")
+    if not (a.json or a.badge):
+        print(f"repository        {printable(a.repo)}")
+        print(f"version from      {printable(vpath or '(nothing at HEAD)')}")
+        print(f"closure           {printable(', '.join(include))}")
+        print(f"publication point {at} ({len(pts)} scanned"
+              + (f", the most recent of {total}" if total > len(pts) else "")
+              + (f"; --tags {printable(' '.join(tag_globs))}" if tag_globs else "") + ")\n")
 
     drifting = {v: cs for v, cs in by_label.items() if len(cs) > 1}
     worst = max((len(cs) for cs in by_label.values()), default=0)
@@ -779,6 +966,7 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
         "points_with_empty_closure": empty,
         "points_not_commits": not_commits,
         "range_truncated": truncated,
+        "points_with_conflicting_sources": labels.conflicts,
     }
     if tag_globs:
         coverage["tag_globs"] = tag_globs
@@ -796,7 +984,7 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
         verdict = "no_labels"
     elif len(by_label) == 1:
         verdict = "inconclusive"
-    elif a.strict and (no_label or empty or truncated):
+    elif labels.conflicts or (a.strict and (no_label or empty or truncated)):
         verdict = "incomplete"
     else:
         verdict = "clean"
@@ -886,12 +1074,13 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
         print("INCONCLUSIVE: only one distinct label across the range scanned.")
     elif verdict == "incomplete":
         print("INCOMPLETE: no label names more than one closure, but not every publication point")
-        print("scanned could be compared, and --strict was asked for. See the counts below.")
+        print("scanned could be compared with confidence. See the counts below.")
     else:
         print(f"CLEAN: each of the {len(by_label)} labels names exactly one closure at publication.")
         print(f"Your version label identifies your code, over the {compared} points compared.")
 
     print_coverage(coverage, a.max_commits, total)
+    print_sources(labels)
     print(f"\nBetween publication points the closure changed {churn} time(s). That is development,")
     print("not drift, and is reported only so the two are never confused.")
     print_method(stamp, dirty, dirty_note)
@@ -922,7 +1111,7 @@ def would_tag(a, closure, head_entries, labels, vpath, by_label, drifting,
         report = {
             "report_format": REPORT_FORMAT, "stamp": stamp, "mode": "would_tag",
             "repo": a.repo, "version_file": vpath, "closure_globs": include, "published_at": at,
-            "verdict": verdict, "label_at_head": label,
+            "verdict": verdict, "label_at_head": label, "label_source": vpath,
             "closure_at_head": short if nfiles else None, "closure_id_at_head": full if nfiles else None,
             "collides_with": collides, "existing_drift_labels": len(drifting),
         }
@@ -964,16 +1153,19 @@ def compare(a, objects, closure, labels, vpath, include, head_sha) -> int:
     that differ. It looks at exactly these two commits; publication points play no part."""
     sides = []
     for ref in a.compare:
-        sha = git(["rev-parse", "--verify", "--quiet", "--end-of-options", ref + "^{commit}"],
+        # a name that is a tag is read as that tag, for the commit and for the label alike
+        tag = git(["rev-parse", "--verify", "--quiet", "--end-of-options", "refs/tags/" + ref + "^{commit}"],
                   a.repo, may_fail=True).strip()
+        sha = tag or git(["rev-parse", "--verify", "--quiet", "--end-of-options", ref + "^{commit}"],
+                         a.repo, may_fail=True).strip()
         if not sha:
             raise Refusal(f"--compare: {printable(repr(ref))} does not name a commit in this repository")
         entries = objects.entries(sha)
         short, full, n = closure.ids(entries)
+        src = labels.source(entries)
         sides.append({"ref": ref, "commit": sha[:12],
-                      "label": labels.at(entries, ref if git_bytes(
-                          ["rev-parse", "--verify", "--quiet", "--end-of-options", "refs/tags/" + ref],
-                          a.repo, may_fail=True) else None, count=False),
+                      "label": labels.at(entries, ref if tag else None, count=False),
+                      "label_source": src[0] if src else None,
                       "closure": short if n else None, "closure_id": full if n else None,
                       "files": n,
                       "members": {p: (k, o) for p, k, o in closure.members(entries)}})
@@ -1075,6 +1267,16 @@ def diagnose_repository(a) -> None:
     }
     if not a.json:
         print("  repository      " + ", ".join(f"{k}={v}" for k, v in DIAGNOSTICS["repository"].items()) + "\n")
+
+
+def print_sources(labels) -> None:
+    if len(labels.counts) > 1:
+        print("  labels were read from: " + ", ".join(
+            f"{printable(k)} ({n})" for k, n in sorted(labels.counts.items())) + ".")
+    if labels.conflicts:
+        print(f"  at {labels.conflicts} point(s) the source changed and the earlier file still declares")
+        print("  a different version there: two files disagree, and that is never reported as clean.")
+        print("  Pass --version-file to say which one declares the version.")
 
 
 def print_coverage(c: dict, max_commits: int, total) -> None:

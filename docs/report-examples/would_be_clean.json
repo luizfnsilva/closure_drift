@@ -3,7 +3,7 @@
  "stamp": {
   "measured_at_head": "33cfa8743c4e",
   "working_tree_dirty": false,
-  "detector_closure": "4633bd5abd0f34c4"
+  "detector_closure": "1e8ed65d29b85000"
  },
  "mode": "would_tag",
  "repo": ".",
@@ -22,6 +22,7 @@
  "published_at": "tags",
  "verdict": "would_be_clean",
  "label_at_head": "1.1.0",
+ "label_source": "VERSION",
  "closure_at_head": "f1c007e78a122ba0",
  "closure_id_at_head": "1f21bf1ef2baffa75956231f9c1733fd0fb74422dd7b1f39f7ca4d9a511b33ad",
  "collides_with": [],
@@ -31,5 +32,6 @@
  "points_without_label": 0,
  "points_with_empty_closure": 0,
  "points_not_commits": 0,
- "range_truncated": false
+ "range_truncated": false,
+ "points_with_conflicting_sources": 0
 }
