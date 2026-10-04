@@ -26,7 +26,7 @@ before a refusal — that is what it is for.)
 | `stamp.working_tree_dirty` | `true` / `false` / `null` | `null` when it was not checked; then `stamp.working_tree_dirty_note` says why |
 | `stamp.detector_closure` | string | first 16 hex of the SHA-256 of the detector that ran |
 | `repo` | string | the path as passed on the command line |
-| `version_file` | string | where the label was read from |
+| `version_file` | string or `null` | where the label is read from at `HEAD` |
 | `closure_globs` | list of strings | the globs used |
 | `published_at` | `"tags"` / `"commits"` | |
 | `verdict` | string | one of the verdicts above |
@@ -36,6 +36,8 @@ before a refusal — that is what it is for.)
 | `drift` | object | label → { 16-hex closure → "tag (date)" where first seen } — only labels in drift |
 | `closure_ids` | object | 16-hex closure → 64-hex identifier, for every closure in `drift` |
 | `closure_changes_between_points` | integer | development churn; not drift |
+| `label_sources` | object | where labels were read from → number of points; `"(the tag)"` when the version is derived from the tag |
+| `points_with_conflicting_sources` | integer | points where the source changed and the earlier file still declares another version; never `clean` when above zero |
 | `publication_points` | integer | points with a non-empty closure |
 | `publication_points_scanned` | integer | |
 | `publication_points_compared` | integer | points that had both a label and a closure |
@@ -54,14 +56,14 @@ more prefixes), `diagnostics` (with `--diagnose`, in every kind of report: `dete
 
 `report_format`, `stamp`, `mode` (`"would_tag"`), `repo`, `version_file`, `closure_globs`,
 `published_at`, `verdict`, `label_at_head`, `closure_at_head`, `closure_id_at_head`,
-`collides_with` (list of "tag (date)"), `existing_drift_labels`, and the six coverage fields above;
+`label_source`, `collides_with` (list of "tag (date)"), `existing_drift_labels`, and the six coverage fields above;
 with `--tags`, also `tag_globs` and `tags_filtered_out`. `--would-tag` looks at every tag, so its
 `range_truncated` is always `false`.
 
 ## Fields of a `--compare` report
 
 `report_format`, `stamp`, `mode` (`"compare"`), `repo`, `version_file`, `closure_globs`, `verdict`,
-`a` and `b` (each: `ref`, `commit`, `label`, `closure`, `closure_id`, `files`), `changed`,
+`a` and `b` (each: `ref`, `commit`, `label`, `label_source`, `closure`, `closure_id`, `files`), `changed`,
 `only_in_a`, `only_in_b`.
 
 ## `no_publication_points`

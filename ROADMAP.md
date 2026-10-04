@@ -5,9 +5,8 @@ ships with pre-registered proofs and an entry in `CHANGELOG.md`; nothing here is
 
 ## Next
 
-1. **Read the version a tag-derived project would be built with.** 0.9.0 says when a version comes
-   from the tag (`setuptools_scm`, `hatch-vcs`) and stops there. Whether there is anything to
-   measure for those projects — the tag is the label — is an open question, not a missing flag.
+1. **Labels compared as versions, not as text.** `1.0` and `1.0.0` are one version to a package
+   index and two labels here.
 2. **Per-family verdicts in one run.** `--tags` measures one family; a monorepo wants the table.
 3. **A closure that can include file modes**, opt-in, for projects where an executable bit is part
    of what is released.
@@ -15,9 +14,10 @@ ships with pre-registered proofs and an entry in `CHANGELOG.md`; nothing here is
 
 ## Known problems, still open
 
-- The default closure globs are a guess, and the study in `tools/study/` shows how often the
-  default version source reads the wrong file (7 of 21 drift results). Better defaults need
-  evidence about what determines each ecosystem's output, not more patterns.
+- The default closure globs are a guess about what determines each project's output.
+- Finding the label is a set of rules (`docs/LABELS.md`), not a build. 8 of the 100 repositories of
+  the study are still undecided: versions computed from a tuple, and monorepos with no build file
+  at the root.
 - A change of file mode alone, and anything under the excluded folders, is not seen (`SCOPE.md`).
 - `RESULTS.md` is empty: nobody outside the author has reported a measurement yet.
 - Not measured: repositories with more than a few hundred thousand files, network file systems,
