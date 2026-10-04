@@ -1,0 +1,68 @@
+{
+ "exit": 1,
+ "head": "429524de0c19171c561b6a60690ed2e3cdad5c62",
+ "outcome": "drift",
+ "report": {
+  "closure_changes_between_points": 143,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {
+   "1d27465cc9605b5b": "a8e079ed2e5e42c3af559b2f6949b3ff728053b617edd174c6a712b71e269fa0",
+   "4f098581de6416a3": "7d34c6bbaae97bd6369982527086f53bbddf18d65f162ff2226fc823352a3f40",
+   "6c44c943167cb7db": "9372b13a18c2938b228d36b39c240501944e3a9800774804c29146877ce08523",
+   "8477a153d23888ae": "1afe32f500ca3947670a6ecbc9877807b9643f7acc4bc1bf8af3f6a3de37366d",
+   "caa3394367ea6ce4": "ddcbfb448a4ea35709657c5c1077f7c6cbd1d538eb560d41228a5f9428bf06a6",
+   "e983f9825c34d60a": "aeb2d795d862ab36aaaacbd23dadb458af9de8973f4b353446a940416521f3d3"
+  },
+  "drift": {
+   "4.9.3": {
+    "6c44c943167cb7db": "lxml-4.9.3-2 (2023-07-10)",
+    "e983f9825c34d60a": "lxml-4.9.3 (2023-07-05)"
+   },
+   "5.0.1": {
+    "4f098581de6416a3": "lxml-5.0.1-1 (2024-01-08)",
+    "8477a153d23888ae": "lxml-5.0.1 (2024-01-05)"
+   },
+   "7.0.0b1": {
+    "1d27465cc9605b5b": "lxml-7.0.0b1 (2026-08-22)",
+    "caa3394367ea6ce4": "lxml-7.0.0b1-1 (2026-08-22)"
+   }
+  },
+  "label_sources": {
+   "setup.py": 1,
+   "src/lxml/__init__.py": 59
+  },
+  "labels": 45,
+  "labels_covering_multiple_closures": 3,
+  "max_closures_per_label": 2,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 105,
+  "publication_points": 165,
+  "publication_points_compared": 60,
+  "publication_points_scanned": 165,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "lxml/lxml",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "6548f891a826034c",
+   "measured_at_head": "429524de0c19",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "drift",
+  "version_file": "src/lxml/__init__.py"
+ },
+ "repository": "lxml/lxml"
+}

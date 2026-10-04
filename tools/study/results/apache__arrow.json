@@ -1,0 +1,7 @@
+{
+ "cause": "could not find a version label. Pass --version-file / --version-regex.",
+ "exit": 2,
+ "head": "e85e181188ac3c5e8407b2160331faf5e78fd429",
+ "outcome": "refused",
+ "repository": "apache/arrow"
+}

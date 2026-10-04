@@ -1,0 +1,49 @@
+{
+ "exit": 0,
+ "head": "a602f78ff670f22be90fb8aea501a6cc30e10fdd",
+ "outcome": "clean",
+ "report": {
+  "closure_changes_between_points": 36,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {},
+  "drift": {},
+  "label_sources": {
+   "(the tag)": 10,
+   "attr/__init__.py": 2,
+   "src/attr/__init__.py": 21
+  },
+  "labels": 32,
+  "labels_covering_multiple_closures": 0,
+  "max_closures_per_label": 1,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 5,
+  "publication_points": 38,
+  "publication_points_compared": 33,
+  "publication_points_scanned": 38,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "python-attrs/attrs",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "6548f891a826034c",
+   "measured_at_head": "a602f78ff670",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "clean",
+  "version_file": "(the tag)"
+ },
+ "repository": "python-attrs/attrs"
+}

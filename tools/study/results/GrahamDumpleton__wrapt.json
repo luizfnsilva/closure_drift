@@ -1,0 +1,7 @@
+{
+ "cause": "could not find a version label. Pass --version-file / --version-regex.",
+ "exit": 2,
+ "head": "cf102c205da815bcdecc0d193b38569f24e7fe2b",
+ "outcome": "refused",
+ "repository": "GrahamDumpleton/wrapt"
+}

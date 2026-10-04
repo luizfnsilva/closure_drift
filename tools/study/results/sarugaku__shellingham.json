@@ -1,0 +1,47 @@
+{
+ "exit": 0,
+ "head": "926401c4543b84f9f579932d30fb52a104639398",
+ "outcome": "clean",
+ "report": {
+  "closure_changes_between_points": 20,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {},
+  "drift": {},
+  "label_sources": {
+   "src/shellingham/__init__.py": 19
+  },
+  "labels": 19,
+  "labels_covering_multiple_closures": 0,
+  "max_closures_per_label": 1,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 2,
+  "publication_points": 21,
+  "publication_points_compared": 19,
+  "publication_points_scanned": 21,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "sarugaku/shellingham",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "6548f891a826034c",
+   "measured_at_head": "926401c4543b",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "clean",
+  "version_file": "src/shellingham/__init__.py"
+ },
+ "repository": "sarugaku/shellingham"
+}

@@ -1,0 +1,47 @@
+{
+ "exit": 2,
+ "head": "f803ae834288032a700331977639fc49c62fcd7f",
+ "outcome": "inconclusive",
+ "report": {
+  "closure_changes_between_points": 75,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {},
+  "drift": {},
+  "label_sources": {
+   "pyparsing/__init__.py": 1
+  },
+  "labels": 1,
+  "labels_covering_multiple_closures": 0,
+  "max_closures_per_label": 1,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 78,
+  "publication_points": 79,
+  "publication_points_compared": 1,
+  "publication_points_scanned": 79,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "pyparsing/pyparsing",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "6548f891a826034c",
+   "measured_at_head": "f803ae834288",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "inconclusive",
+  "version_file": null
+ },
+ "repository": "pyparsing/pyparsing"
+}

@@ -1,0 +1,70 @@
+{
+ "exit": 1,
+ "head": "06b2a678741131fd577ce170e23e5ca0aeba0309",
+ "outcome": "drift",
+ "report": {
+  "closure_changes_between_points": 70,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {
+   "01242a01efd1d875": "5913b26b836939b5277f906d741bcb7255c5643df945612fe35b396bdb94becc",
+   "73cbb372121c0111": "0de9c7f832ea53e83e76ef527bd267cded609a26684d767731e7ad86d43e9552",
+   "84e3a6e462d8da0b": "3e8feeded3ae839c5e4679acb306d58fdd503edb3e068d184454c35c1ba007a3",
+   "a0170829f2c21b03": "5e897ea94348df2ef8a88860593c0476d6be6ff69393715aeb98f5da2aae71ca",
+   "e9bb198248f5a22a": "6a5f6abe7a5a09db919eee40f773c2e77955cd0bf9db4f8553b512fd24b44506",
+   "eb61e56ddaab02c2": "dd64d1f51e04fd61836079edd282fadeeb8e26c2de529e5e639840318e97d481"
+  },
+  "drift": {
+   "3.3": {
+    "e9bb198248f5a22a": "3.3 (2014-09-07)",
+    "eb61e56ddaab02c2": "3.x (2024-10-24)"
+   },
+   "6.7": {
+    "01242a01efd1d875": "6.x (2024-10-24)",
+    "a0170829f2c21b03": "6.7 (2017-01-06)"
+   },
+   "7.1.2": {
+    "73cbb372121c0111": "7.x (2024-10-24)",
+    "84e3a6e462d8da0b": "7.1.2 (2020-04-27)"
+   }
+  },
+  "label_sources": {
+   "click/__init__.py": 28,
+   "pyproject.toml": 11,
+   "setup.py": 11,
+   "src/click/__init__.py": 21
+  },
+  "labels": 66,
+  "labels_covering_multiple_closures": 3,
+  "max_closures_per_label": 2,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points": 71,
+  "publication_points_compared": 71,
+  "publication_points_scanned": 71,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "pallets/click",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "6548f891a826034c",
+   "measured_at_head": "06b2a6787411",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "drift",
+  "version_file": "pyproject.toml"
+ },
+ "repository": "pallets/click"
+}

@@ -1,0 +1,48 @@
+{
+ "exit": 0,
+ "head": "51cd75e399c760e5aa3adce600dcce1385756ab0",
+ "outcome": "clean",
+ "report": {
+  "closure_changes_between_points": 98,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {},
+  "drift": {},
+  "label_sources": {
+   "(the tag)": 90,
+   "jsonschema/__init__.py": 5
+  },
+  "labels": 95,
+  "labels_covering_multiple_closures": 0,
+  "max_closures_per_label": 1,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 1,
+  "points_without_label": 15,
+  "publication_points": 110,
+  "publication_points_compared": 95,
+  "publication_points_scanned": 111,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "python-jsonschema/jsonschema",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "6548f891a826034c",
+   "measured_at_head": "51cd75e399c7",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "clean",
+  "version_file": "(the tag)"
+ },
+ "repository": "python-jsonschema/jsonschema"
+}

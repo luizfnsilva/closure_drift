@@ -1,0 +1,48 @@
+{
+ "exit": 0,
+ "head": "7ebf3ad086789e56c2de09859d9fc738a434607f",
+ "outcome": "clean",
+ "report": {
+  "closure_changes_between_points": 191,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {},
+  "drift": {},
+  "label_sources": {
+   "coverage/__init__.py": 23,
+   "coverage/version.py": 13
+  },
+  "labels": 36,
+  "labels_covering_multiple_closures": 0,
+  "max_closures_per_label": 1,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 156,
+  "publication_points": 192,
+  "publication_points_compared": 36,
+  "publication_points_scanned": 192,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "coveragepy/coveragepy",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "6548f891a826034c",
+   "measured_at_head": "7ebf3ad08678",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "clean",
+  "version_file": null
+ },
+ "repository": "coveragepy/coveragepy"
+}
