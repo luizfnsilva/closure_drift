@@ -41,6 +41,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verify the nine deposited files against DEPOSIT.sha256
         run: python3 tools/verify_deposit.py
+      - name: The report examples in docs/ are what the detector prints
+        run: python3 tools/make_report_examples.py --check
 
   record:
     # Against the published record, which is outside this package. Scheduled and manual only: a pull

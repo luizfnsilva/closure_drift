@@ -80,6 +80,20 @@ runs:
                       "different closures: %s" % (clean(label), len(states), clean("; ".join(states.values()))))
         elif v not in ("clean", "would_be_clean"):
             print("::warning title=closure_drift: nothing was determined::verdict %s" % clean(v))
+        import os
+        summary = os.environ.get("GITHUB_STEP_SUMMARY")
+        if summary:
+            cell = lambda t: str(t).replace("|", "\\|").replace("\n", " ").replace("<", "&lt;")
+            rows = [("verdict", "**%s**" % cell(v)),
+                    ("measured at", cell(r.get("stamp", {}).get("measured_at_head", ""))),
+                    ("detector", cell(r.get("stamp", {}).get("detector_closure", "")))]
+            for key in ("label_at_head", "labels", "labels_covering_multiple_closures",
+                        "publication_points_scanned", "publication_points_compared", "points_without_label"):
+                if key in r:
+                    rows.append((key.replace("_", " "), cell(r[key])))
+            with open(summary, "a", encoding="utf-8") as fh:
+                fh.write("### closure_drift\n\n| | |\n|---|---|\n")
+                fh.write("".join("| %s | %s |\n" % row for row in rows))
         PY
         echo "verdict=$verdict" >> "$GITHUB_OUTPUT"
         echo "code=$code" >> "$GITHUB_OUTPUT"

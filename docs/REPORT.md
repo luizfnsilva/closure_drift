@@ -7,13 +7,15 @@ it. Proof `K02` in `tests/battery.py` checks every report against the tables bel
 
 | kind | exit | how to recognise it |
 |---|---|---|
-| **a determination** | `0` or `1` | a report whose `verdict` is `clean` / `would_be_clean` (0) or `drift` / `would_drift` (1) |
-| **not enough to determine** | `2` | a report whose `verdict` is `inconclusive`, `incomplete`, `no_labels`, `empty_closure`, `no_publication_points`, `no_label_at_head` or `empty_closure_at_head` |
+| **a determination** | `0` or `1` | a report whose `verdict` is `clean` / `would_be_clean` / `identical` / `differs_under_two_labels` (0) or `drift` / `would_drift` / `differs_under_one_label` (1) |
+| **not enough to determine** | `2` | a report whose `verdict` is `inconclusive`, `incomplete`, `no_labels`, `empty_closure`, `no_publication_points`, `no_label_at_head`, `empty_closure_at_head` or `not_comparable` |
 | **an operational refusal** | `2` | **no JSON on standard output**; one or more lines on standard error naming the cause |
 
-So: exit `1` always comes with a report saying `drift` or `would_drift`; exit `0` always comes with
-`clean` or `would_be_clean`; and with exit `2`, standard output either holds a report with one of the
-seven verdicts above or is empty. There is never a traceback.
+So: exit `1` always comes with a report saying one label covers more than one closure; exit `0`
+always comes with a report saying none does; and with exit `2`, standard output either holds a
+report with one of the eight undetermined verdicts or is empty. There is never a traceback. (One
+exception to "empty": with `--diagnose` and without `--json`, the diagnostics block is printed
+before a refusal — that is what it is for.)
 
 ## Fields of a measurement report (every verdict except `no_publication_points`)
 
@@ -42,7 +44,9 @@ seven verdicts above or is empty. There is never a traceback.
 | `points_not_commits` | integer | tags that point at a blob or a tree |
 | `range_truncated` | boolean | older points exist outside `--max-commits` |
 
-Present only when relevant: `tag_globs` and `tags_filtered_out` (with `--tags`), `explain` (with
+Present only when relevant: `tag_families` (prefix → count, when the tags in drift carry two or
+more prefixes), `diagnostics` (with `--diagnose`, in every kind of report: `detector_version`,
+`detector_closure`, `python`, `platform`, `git`, `options`, `repository`), `tag_globs` and `tags_filtered_out` (with `--tags`), `explain` (with
 `--explain`: `label`, `first`, and `others[]` each with `changed`, `only_in_first`,
 `only_in_other`).
 
@@ -52,9 +56,23 @@ Present only when relevant: `tag_globs` and `tags_filtered_out` (with `--tags`),
 `published_at`, `verdict`, `label_at_head`, `closure_at_head`, `closure_id_at_head`,
 `collides_with` (list of "tag (date)"), `existing_drift_labels`, and the six coverage fields above.
 
+## Fields of a `--compare` report
+
+`report_format`, `stamp`, `mode` (`"compare"`), `repo`, `version_file`, `closure_globs`, `verdict`,
+`a` and `b` (each: `ref`, `commit`, `label`, `closure`, `closure_id`, `files`), `changed`,
+`only_in_a`, `only_in_b`.
+
 ## `no_publication_points`
 
 `report_format`, `verdict`, `note`.
+
+## An example of every kind
+
+[`report-examples/`](report-examples/) holds one real report of each kind — `clean`, `drift`, `drift`
+with `--explain`, `inconclusive`, `no_publication_points`, `would_drift`, `would_be_clean` and
+`--compare` — printed by the detector on tiny repositories built with fixed dates.
+`tools/make_report_examples.py --check` runs in CI and fails when they differ from what the detector
+prints, so they cannot go stale.
 
 ## Compatibility
 

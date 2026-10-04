@@ -3,7 +3,10 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
-## 0.8.0 — 2026-10-04
+## 0.9.0 — 2026-10-04
+
+*There is no 0.9.0. That label was the working name of this release on its branch; it was never
+tagged, published or deposited, and nothing was ever addressed by it.*
 
 **The detector was wrong in ways its one fixture could not see, and this release is what an audit
 of it found.** 0.7.1 was put through the procedure applied to every other instrument of this
@@ -73,6 +76,17 @@ is now decided by a full-length SHA-256 over `path NUL type SP id LF`, reported 
 - **`--strict`** — `clean` only if every point scanned was compared; otherwise `incomplete`.
 - **`--explain LABEL`** — the paths that differ under a label in drift. Only on request: without
   it the report names no file inside the closure, as before.
+- **`--compare A B`** — two tags or commits side by side: the label and closure of each, and the
+  paths of the closure that differ. Exit `1` when one label covers both and the code differs.
+- **`--diagnose`** — what a bug report needs: detector version and hash, Python and git versions,
+  options in effect, facts about the repository. No label, no repository path, no path inside the
+  closure.
+- **A version derived from the tag is said to be so.** Where a project takes its version from the
+  tag at build time (`setuptools_scm`, `hatch-vcs`, …) there is no version file to read; the
+  refusal now names that, instead of "could not find a version label".
+- **Tag families are pointed out.** When the tags in drift carry different prefixes, the report
+  says so and names the `--tags` to measure one family.
+- **`--version`**, and `__version__` in the file, held equal to `VERSION` by the version gate.
 - **`--badge`** — one line of Markdown naming the verdict and the commit measured.
 - **`report_format: 2`** in every JSON report, and the fields `publication_points_scanned`,
   `publication_points_compared`, `points_without_label`, `points_with_empty_closure`,
@@ -83,14 +97,18 @@ is now decided by a full-length SHA-256 over `path NUL type SP id LF`, reported 
   `battery.py` (81 declared · 80 green · 0 red · 1 not run), `negative_controls.py` (15 mutants · 15 caught by the required proof · 0 not caught), `adversarial.py`
   (85 attacks · 84 as required · 0 loose · 1 not run) — measured on macOS with CPython 3.9 and 3.14, and run on Linux, macOS and
   Windows on every push.
-- **A package** (`pipx run closure-drift`), **a GitHub Action** and **a pre-commit hook**, all
-  running the deposited file; the package build is checked byte for byte against it before upload.
+- **A package** (`pipx run closure-drift`), **a GitHub Action** (with annotations and a job
+  summary built from the report) and **a pre-commit hook**, all running the deposited file; the
+  package build is checked byte for byte against it before upload.
+- **The JSON report is a documented contract** (`docs/REPORT.md`, proof `K02`), with an example
+  of every kind of report; **a one-minute demonstration** (`examples/demo.py`); integration
+  recipes for other pipelines (`docs/CI.md`); and `ROADMAP.md`.
 - **A study** over the 100 most-downloaded PyPI projects, selection rule and method fixed before
   the first measurement: `tools/study/`, summarised in `README.md`.
 
 ### What this does to results already published
 
-Over the seven public repositories of the reference table, measured with 0.7.1 and with 0.8.0 at
+Over the seven public repositories of the reference table, measured with 0.7.1 and with 0.9.0 at
 the same commits and the same version file, **every verdict field is identical** — verdict, labels,
 labels in drift, worst label, points, churn and the whole `drift` object. None of the seven holds a
 non-ASCII path or a submodule pointer inside its closure. A result from an earlier version on a

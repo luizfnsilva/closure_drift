@@ -1,0 +1,37 @@
+{
+ "report_format": 2,
+ "stamp": {
+  "measured_at_head": "232eb920bff0",
+  "working_tree_dirty": false,
+  "detector_closure": "83e3fea978e0f24f"
+ },
+ "mode": "would_tag",
+ "repo": ".",
+ "version_file": "VERSION",
+ "closure_globs": [
+  "src/**",
+  "lib/**",
+  "app/**",
+  "*.py",
+  "*.js",
+  "*.ts",
+  "*.rs",
+  "*.go",
+  "*.java"
+ ],
+ "published_at": "tags",
+ "verdict": "would_drift",
+ "label_at_head": "1.0.0",
+ "closure_at_head": "5b39d933f6cc8d25",
+ "closure_id_at_head": "994e56b57e0324f1a5dffb392106e1056d60239d88e9660264974ea349442cf6",
+ "collides_with": [
+  "v1.0.0 (2020-01-02)"
+ ],
+ "existing_drift_labels": 0,
+ "publication_points_scanned": 1,
+ "publication_points_compared": 1,
+ "points_without_label": 0,
+ "points_with_empty_closure": 0,
+ "points_not_commits": 0,
+ "range_truncated": false
+}

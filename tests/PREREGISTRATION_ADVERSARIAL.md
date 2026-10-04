@@ -205,3 +205,209 @@ Nothing above is rewritten. Three notes on what happened next.
   or from anything that keeps standard input open, the campaign waited there for ever. The
   helper now passes an empty standard input. Found when a run started in the background stopped
   at that call for eleven minutes.
+
+---
+
+## Extension, 2026-10-04 — the features of 0.9.0
+
+Written 2026-10-04 by an independent reviewer (not the author of the detector, of `battery.py`, of
+`negative_controls.py`, nor of the 85 cases above), **before any case below was run**. Nothing above
+is changed. The detector under attack is `closure_drift.py` 0.9.0 on branch `release-0.8.0`.
+
+The surface: `--would-tag`, `--tags GLOB`, `--strict`, `--explain LABEL`, `--compare A B`,
+`--diagnose`, `--version`, the tag-derived-version refusal (`TAG_DERIVED`), the tag-families hint,
+`--badge`/`--json` in every mode, and the tree reader (`Objects`: one `git cat-file --batch`).
+
+The contract is the one at the top of this file, widened by PREREGISTRATION.md §7–§8 and
+`docs/REPORT.md`: exit 0 only for `clean`, `would_be_clean`, `identical`,
+`differs_under_two_labels`; exit 1 only for `drift`, `would_drift`, `differs_under_one_label`;
+everything else exit 2 with the cause named; never a traceback; never a write to the measured
+repository; no program started but `git` and the detector itself (`--match-on-stdin`); no network;
+no command named by the measured repository's configuration executed; no raw control character
+from the repository in text output; without `--explain`/`--compare` no path inside the closure in
+the report; the `--diagnose` block carries no version label, no repository path and no path inside
+the closure.
+
+**Id prefixes.** `WT` would-tag · `TG` `--tags` · `SR` `--strict` · `XP` `--explain` · `CP`
+`--compare` · `DG` `--diagnose` · `TV` tag-derived version · `TF` tag families · `MX` combinations,
+`--version`, `--badge`, `--json` · `TR` tree reader. (`SR` and not `ST` for `--strict`: `ST01`–`ST04`
+above already name the stamp attacks, and one id must not name two cases.)
+
+**What "the cause named" means here.** A refusal whose stderr is the detector's own catch-all
+(`internal error (…): … This is a defect in closure_drift`) has the right exit code but names no
+cause in the input; where a case below says "named refusal", the catch-all does not satisfy it.
+
+**Classification announced in advance.** Where a requirement below is not a clause of the contract
+but a hardening property, the line says *(hardening)*; a loose result there is reported under
+hardening, not as a contract defect. Where a behaviour is declared (README, SCOPE, SECURITY,
+REPORT, §7–§8), the line says *(declared)* and requires the declaration to hold *and to be
+disclosed in the report*.
+
+Common sentinels for leak checks: label `9.8.7-LBLSENTINEL`, repository folder `REPOSENTINEL`,
+closure file `src/PATHSENTINEL.py`, `HOME` folder `HOMESENTINEL`, an environment variable holding
+`ENVSENTINEL`. "The diagnose block" = in text, the lines from the one starting `diagnostics` through
+the one starting `  repository` (or through `  options` when the run stops before the repository
+is read); in JSON, the `diagnostics` object.
+
+Time limits: 20 s per detector invocation unless stated; 90 s where the case builds thousands of
+entries or hundreds of tags. A run past its limit is `loose` (a hang).
+
+### WT — `--would-tag`: exit 0 on a real collision?
+
+| id | attacker controls / does | required outcome |
+|---|---|---|
+| WT01 | 402 tags: `v0` (label `1.0`, `src/a.py` = 1) is the oldest; 401 newer tags all point at a commit labelled `2.0`; HEAD declares `1.0` with `src/a.py` = 3. **Default** `--max-commits` (400), so `v0` falls outside the range without the user asking for a range. | **Not exit 0.** `would_drift` exit 1 (naming `v0`), or exit 2. `would_be_clean` here is a gate passing a real collision, and its text line "no existing tag declares 1.0 with different code" is false. |
+| WT02 | Colliding tag `old-1.0` (label `1.0`, other code); `--tags 'v*'` on the command line excludes it. | *(declared: only matching tags are publication points)* exit 0 is acceptable **only if** the JSON reports `tags_filtered_out` ≥ 1 and the text report prints the count of tags not matching `--tags`. |
+| WT03 | Colliding tag `v1` exists; `--would-tag --tags 'nothing-*'` (a glob that matches no tag). | **Not exit 0.** In the normal mode the same glob is `no_publication_points`, exit 2 (§7 T02); a gate whose selection is empty has compared HEAD with nothing and must not pass. |
+| WT04 | The repository's own `.closure-drift.json` holds `"tags": ["release-*"]`; the colliding tag is `v1` (label `1.0`, other code); HEAD declares `1.0`. | *(declared)* exit 0 acceptable only if the JSON carries `tag_globs` = `["release-*"]` and `tags_filtered_out` ≥ 1, and the text prints the count of tags left out. |
+| WT05 | Tag `v1` declares `1.0` but its closure is empty under the default globs (only `package.json` and `README.md`); HEAD declares `1.0` with `src/a.py`. | **Not exit 0.** The label `1.0` would name an empty closure and a non-empty one; at minimum the gate must not say "no existing tag declares 1.0 with different code" at exit 0. Exit 1 or 2. |
+| WT06 | Control. Tag `v1` declares no label (no `package.json`), other code; HEAD declares `1.0`. | `would_be_clean`, exit 0, `points_without_label` = 1 in JSON. |
+| WT07 | Tag `v1` declares `1.0`; HEAD declares `1.0` followed by U+200B ZERO WIDTH SPACE, other code. | *(declared: labels are compared as strings)* exit 0 `would_be_clean`; JSON `label_at_head` round-trips exactly. *(hardening)* the text line `label at HEAD` must not read exactly `1.0`: an invisible character in a label must be made visible, or the report shows the collision it says is not one. |
+| WT08 | HEAD detached at a commit declaring `1.0`, other code than tag `v1` (`1.0`). | `would_drift`, exit 1, `collides_with` names `v1`. |
+| WT09 | HEAD on an unborn branch (`checkout --orphan`), tags exist. | named refusal, exit 2. |
+| WT10 | HEAD is already tagged `v2` (label `1.0`); older tag `v1` declares `1.0` with other code. | `would_drift`, exit 1; `collides_with` names `v1` and does not name `v2`. |
+| WT11 | Tag `v1` declares `1.0` (code A); HEAD declares `1.0` (code B); a replace ref maps HEAD's commit onto `v1`'s commit to make them look identical. | `would_drift`, exit 1 (HEAD is measured as the commit it names, not its replacement). |
+| WT12 | Shallow clone (`--depth 1`) of a repository whose tag `v1` declares `1.0` with other code; the ref `refs/tags/v1` is present in the clone but its commit object is not. HEAD declares `1.0`. | **Not exit 0.** A tag whose object cannot be read is a failed read (§0 X4, D14), not "a tag that does not point at a commit"; refusal exit 2 or `would_drift`. |
+| WT13 | `package.json` in the working tree is changed to the colliding label `1.0` but not committed; the commit declares `2.0`. | *(declared, §7 W09)* the answer is for the commit: `would_be_clean`, exit 0, `working_tree_dirty` true, text says the commit is measured, not the working tree. |
+| WT14 | A branch named `v1` exists beside the tag `v1` (label `1.0`, other code); HEAD declares `1.0`; `--would-tag --tags 'v*'`. | `would_drift`, exit 1: the tag `v1` matches `v*`. A tag left out because a branch shares its name is a false clean. |
+| WT15 | Tag named `$(>MARK)v1` declares `1.0` with other code; HEAD declares `1.0`; text mode. | `would_drift`, exit 1. *(hardening)* the suggested `--compare … HEAD` line, pasted into a POSIX shell, runs nothing (the marker file is not created) and passes the tag name literally. |
+
+### TG — `--tags GLOB`
+
+| id | attacker controls / does | required outcome |
+|---|---|---|
+| TG01 | Drift repository (`v1`, `v2`, one label); `--tags '*'`. | `drift`, exit 1 (same as no `--tags`). |
+| TG02 | Same; `--tags '['` (unbalanced bracket). | no traceback, not the catch-all; exit 2 `no_publication_points` (matches nothing) or exit 1 if it is read as matching; never 0. |
+| TG03 | Same; `--tags '[z-a]'` (reversed range) on the command line, and the same glob as `"tags": ["[z-a]"]` in the repository's `.closure-drift.json`. | no traceback, not the catch-all; exit 2, both. |
+| TG04 | Same; `--tags=-*` and `--tags -x` (leading dash). | exit 2 (argparse error or `no_publication_points`); no traceback. |
+| TG05 | Same; `--tags ''` (empty string). | exit 2 (refusal or `no_publication_points`); never 0 or 1 from an empty selection. |
+| TG06 | The repository's config holds `"tags": ["nomatch-*"]`, drift in `v*`. | `no_publication_points`, exit 2, the note names the glob. |
+| TG07 | `py-1`, `py-2` share a label with different code (older); ten newer `rs-*` tags; `--tags 'py-*' --max-commits 2`. | `drift`, exit 1: tags are selected before the range is cut. |
+| TG08 | A tag `v-tree` pointing at a tree matches `--tags 'v*'`. | counted in `points_not_commits` (≥ 1), not in `tags_filtered_out`; no crash. |
+| TG09 | Drift between tags `v1` and `v2`; a branch named `v1` also exists; `--tags 'v*'`. | `drift`, exit 1. The glob is matched against tag names; a branch of the same name must not make the tag leave the selection. |
+
+### SR — `--strict`: `clean` while some point was not compared?
+
+| id | attacker controls / does | required outcome |
+|---|---|---|
+| SR01 | Two labelled tags, distinct labels; a third tag points at a tree; `--strict`. | *(declared: a tag that does not point at a commit is not a publication point)* `clean` exit 0 acceptable only with `points_not_commits` ≥ 1 in JSON and printed in text. |
+| SR02 | Two labelled tags `v1`, `v2`; an unlabelled tag `x1`; `--strict --tags 'v*'`. | *(declared)* `clean` exit 0 acceptable only with `tags_filtered_out` = 1 in JSON. |
+| SR03 | Shallow clone; `refs/tags/v0` present, its commit object missing; two other tags labelled and comparable; `--strict`. | **Never `clean`.** Refusal exit 2 or `incomplete` exit 2. |
+| SR04 | `--strict --would-tag` and `--strict --compare A B`. | refusal, exit 2, each. |
+| SR05 | `--at commits --strict`, one commit in range declares no label, no drift. | `incomplete`, exit 2. |
+| SR06 | Tags `v1` (`1.0`), `v2` (`1.1`), `v3` (no label); a branch named `v3` exists; `--strict --tags 'v*'`. | **Never `clean`.** `incomplete` exit 2: `v3` matches the glob and was not compared. |
+
+### XP — `--explain LABEL`
+
+| id | attacker controls / does | required outcome |
+|---|---|---|
+| XP01 | A label `--json` in drift; `--explain=--json`. | `drift`, exit 1; `explain.label` = `--json`; the explanation lists the changed path. |
+| XP02 | A label with newline, ESC, BEL, U+202E, U+2028 and a forged `CLEAN:` line in drift; `--explain LABEL` in text; and `--explain` of the same string plus `X` (not in drift). | text: no raw control character, no forged verdict line; the refusal's stderr: no raw control character. |
+| XP03 | Drift where, besides `src/a.py`, also `README.md`, `docs/secret.py`, `tests/hidden_test.py` and `OUTSIDE.txt` change. | `--explain` (text and JSON) lists `src/a.py` and none of the four outside paths. |
+| XP04 | One label, two tags, 5,000 changed files in the closure. | within 90 s; exit 1; JSON `changed` holds 5,000; text lists at most 40 per kind plus an "… and N more" line. |
+| XP05 | One label at three tags with three different closures. | exit 1; `explain.others` has 2 entries. |
+| XP06 | `--explain ''` (empty label) on a drift repository. | refusal, exit 2. |
+
+### CP — `--compare A B`
+
+| id | attacker controls / does | required outcome |
+|---|---|---|
+| CP01 | Refs that look like options: `--compare --help HEAD`; `--compare '--output=OUTFILE x' HEAD` (a space keeps argparse from reading it as an option, so it reaches git). | exit 2 each, no help text at exit 0; no file `OUTFILE` created anywhere under the case folder; repository byte-identical. |
+| CP02 | Ranges: `v1..v2`, `v1...v2`. | refusal exit 2, each. |
+| CP03 | Non-commit objects: `HEAD:package.json`, `HEAD^{tree}`, a raw blob id, a tag pointing at a tree. | refusal exit 2, each. |
+| CP04 | The same commit twice: `v1 v1`; `v1` and its full commit id; `v1` and `v1^{}`. | `identical`, exit 0, each. |
+| CP05 | A ref holding ESC, a newline and a forged `IDENTICAL:` line. | refusal exit 2; stderr carries no raw control character and no line starting `IDENTICAL`. |
+| CP06 | `v1` (`1.0`, A=1), `v2` (`1.0`, A=2); a replace ref maps `v2`'s commit to `v1`'s. `--compare v1 v2`. | `differs_under_one_label`, exit 1. |
+| CP07 | `v1` (`1.0`) and an orphan branch with no common history declaring `1.0` with other code. | `differs_under_one_label`, exit 1. |
+| CP08 | Same label; besides `src/a.py`, `README.md`, `docs/secret.py`, `tests/hidden_test.py`, `OUTSIDE.txt` change. | text and JSON list `src/a.py` and none of the four outside paths. |
+| CP09 | `v1` declares `1.0`, `v2` declares `1.0` followed by U+00A0 NO-BREAK SPACE, other code. | *(declared)* `differs_under_two_labels`, exit 0, labels round-trip in JSON. *(hardening)* in text the two `label` lines must differ visibly (not render identically). |
+
+### DG — `--diagnose`
+
+| id | attacker controls / does | required outcome |
+|---|---|---|
+| DG01 | Drift repository in folder `REPOSENTINEL`, label `9.8.7-LBLSENTINEL`, closure file `src/PATHSENTINEL.py`, `HOME` under `HOMESENTINEL`, an env var `= ENVSENTINEL`; absolute repo path; text and `--json`. | the diagnose block contains none of the five sentinels. |
+| DG02 | Same, the repository passed as a relative path (`REPOSENTINEL`) from its parent folder. | no sentinel in the block (text and JSON). |
+| DG03 | Same, with `--closure 'src/PATHSENTINEL.py'` (a glob that is a literal path inside the closure). | the diagnose block does not contain `PATHSENTINEL`. |
+| DG04 | Same, with `--tags 'v9.8.7-LBLSENTINEL*'` (a tag glob carrying the version label). | the diagnose block does not contain `LBLSENTINEL`. |
+| DG05 | Same, with `--explain 9.8.7-LBLSENTINEL`, `--version-file package.json --version-regex '"version": "(9[^"]*LBLSENTINEL)"'`, and separately `--compare` of two refs named `REFSENTINEL-a`, `REFSENTINEL-b`. | the block carries only booleans for them: no `LBLSENTINEL`, no `REFSENTINEL`. |
+| DG06 | Drift, clean, `would_drift`, `would_be_clean`, `--compare` (one label), `no_publication_points`: each run with and without `--diagnose --json`. | identical exit codes; JSON identical apart from the `diagnostics` key. |
+| DG07 | `--diagnose` on a repository whose config sets `core.fsmonitor`, `core.hooksPath` hooks, a clean filter, and a promisor remote whose `uploadpack` is a marker script; run with the repository as cwd and `.` as argument. | marker absent; repository byte-identical. |
+| DG08 | `--diagnose` (text) and `--diagnose --json` on a folder `REPOSENTINEL` that is not a repository. | exit 2; text: the block is printed and holds no `REPOSENTINEL`; JSON: stdout empty. |
+| DG09 | `--diagnose --json` on a drift repository. | `diagnostics` holds exactly the keys of REPORT.md (`detector_version`, `detector_closure`, `python`, `platform`, `git`, `options`, `repository`) and `detector_version` equals `__version__` in the file. |
+
+### TV — the tag-derived-version refusal
+
+| id | attacker controls / does | required outcome |
+|---|---|---|
+| TV01 | No version file; `pyproject.toml` lists a dependency `pbrt-tools` (the substring `pbr`). | refusal exit 2, whose text tells the user `--version-file`. |
+| TV02 | No recognised version file; `pyproject.toml` holds the comment `# we do not use setuptools_scm`; the version is in `src/pkg/__init__.py` (`__version__ = "1.0"`) with no `dynamic`. | exit 2. *(hardening)* the refusal must not state that the version is derived from the tag: no tag-deriving tool is configured, and the repository is measurable with `--version-file`. |
+| TV03 | `package.json` declares the label (drift), and `pyproject.toml` names `setuptools_scm`. | measured: `drift`, exit 1. |
+| TV04 | `setup.py` with `import versioneer` and `version=versioneer.get_version()`, no other version file. | refusal exit 2 naming `versioneer`. |
+
+### TF — tag-families hint
+
+| id | attacker controls / does | required outcome |
+|---|---|---|
+| TF01 | Drift between tags `x'$(>MARK)-1.0` and `y-1.0` (two families), text mode. | `drift`, exit 1. *(hardening)* the suggested `--tags …` argument, evaluated by a POSIX shell, runs nothing (marker absent) and yields the literal prefix followed by `*`. |
+| TF02 | Drift between tags `1.0` (empty prefix) and `py-1.0`. | `drift`, exit 1; `tag_families` has keys `""` and `py-`; text prints `(none)` and suggests `--tags 'py-*'`. |
+| TF03 | 300 tags `f000-1` … `f299-1`, one label, 300 different closures. | within 90 s; `drift`, exit 1; `tag_families` has 300 keys; no traceback. |
+| TF04 | Drift between tags `‮abc-1.0` and `py-1.0` (a bidi override in a family prefix). | text: no raw U+202E. |
+
+### MX — `--version`, `--badge`, `--json`, `--help` across modes
+
+| id | attacker controls / does | required outcome |
+|---|---|---|
+| MX01 | `--version` together with `--json --badge --diagnose --would-tag --max-commits 0`, and with `--compare a b`. | stdout exactly `closure_drift <__version__>` and a line end; exit 0; stderr empty. |
+| MX02 | `--badge` with `--would-tag` (collision), `--compare` (one label), `--explain` (drift), `--strict` (incomplete). | stdout exactly one line, a badge naming that verdict and the 12-hex HEAD; exit 1, 1, 1, 2. |
+| MX03 | `--json` in each mode: normal (drift), `--explain`, `--would-tag`, `--would-tag --tags`, `--compare`, `no_publication_points`, `--diagnose`. | valid JSON; every field REPORT.md lists for that kind is present with its documented type. |
+| MX04 | `--diagnose --badge`; `--json --badge`. | refusal exit 2, stdout empty. |
+| MX05 | `--help` and `-h`. | *(literal contract)* not exit 0: exit 0 is reserved for the four verdicts. If exit 0, classified as a documentation/contract-wording gap, not a measurement defect. |
+
+### TR — the tree reader (`git cat-file --batch`)
+
+| id | attacker controls / does | required outcome |
+|---|---|---|
+| TR01 | One folder of 5,000 files in the closure; three tags under one label; one file changes. | within 90 s; `drift`, exit 1. |
+| TR02 | A file 200 folders deep under `src/` changes under one label. | within 90 s; `drift`, exit 1. |
+| TR03 | A tree entry named `a\nCLEAN: forged.py` under `src/` changes under one label (built with `fast-import`); `--explain 1.0` in text. | `drift`, exit 1; no raw newline inside a printed path; no forged `CLEAN` line. |
+| TR04 | A tree entry whose name is the bytes `\xff\xfe.py` under `src/` changes under one label; `--json --explain 1.0`. | `drift`, exit 1; valid JSON; text has no traceback. |
+| TR05 | A tagged commit whose root tree object is corrupt (bytes with no entry structure, written with `hash-object --literally`). | named refusal, exit 2 — not the catch-all, not a traceback, never 0. |
+| TR06 | The version-file blob at an older tag is deleted from the object store. | refusal exit 2; never `clean`. |
+| TR07 | `git cat-file --batch` dies after answering two requests (a `git` wrapper on `PATH` that proxies to the real git). | named refusal exit 2 within 20 s — no hang, not the catch-all, no traceback. |
+| TR08 | A `--object-format=sha256` repository: drift; `--compare` of the two tags; `--would-tag` with a colliding HEAD. | exit 1 each, verdicts `drift`, `differs_under_one_label`, `would_drift`. `not_run` where git cannot create one. |
+| TR09 | A tagged commit whose root tree ends with a truncated entry (the last object id cut to 10 bytes). | exit 2, no traceback; never 0. |
+| TR10 | A partial clone: `extensions.partialClone=origin`, `remote.origin.promisor=true`, `remote.origin.url` a local `file://` folder, `remote.origin.uploadpack` a marker script; the version-file blob at a tag is missing. | marker absent (no command named by the repository's config runs through a lazy fetch); repository byte-identical; exit 2 or a determination, no traceback. |
+
+### Amendments to this extension
+
+Written 2026-10-04, after the first full run of the extension (python 3.14). No line above is
+changed; no expectation in `tests/adversarial.py` is changed.
+
+- **TF03 — the reviewer's expectation was wrong.** The tags were named `f000-1` … `f299-1`. The
+  family of a tag is everything before its first digit (optionally preceded by `v`), so all 300
+  tags are one family, `f`, and the detector is right to report one. TF03 stays in the campaign as
+  pre-registered and stays `loose`; it is **not a finding**. To measure what TF03 meant to measure,
+  one case is added after the run and marked as such:
+
+  | id | attacker controls / does | required outcome |
+  |---|---|---|
+  | TF05 *(added after the first run)* | 300 tags whose prefixes are 300 distinct letter strings (`faaa-1`, `faab-1`, …), one label, 300 different closures. | within 90 s; `drift`, exit 1; `tag_families` has 300 keys; the text run completes without a traceback. |
+
+- **XP03 and CP08 — loose, but not for the reason the line anticipated.** `--explain` and
+  `--compare` do not list a path outside the closure the detector computed: they list
+  `docs/secret.py`, and the detector computes it **inside** the closure. The cause is
+  `matches()` with the exclusions `**/docs/**`, `**/tests/**`, `**/test/**`, `**/spec/**`,
+  `**/vendor/**`, `**/node_modules/**`: each needs at least one folder before the excluded one, so a
+  `docs/` or `tests/` folder **at the repository root** is not excluded, and `*.py` brings its
+  files in. SCOPE.md declares those folders "outside every closure". Measured by hand on the same
+  detector: two tags, one label, only `tests/conftest.py` at the root changed → `drift`, exit 1, and
+  `--explain` lists `tests/conftest.py`. The line's requirement (none of the four outside paths
+  listed) stands and is not met; the defect is in the closure definition, not in `--explain` or
+  `--compare`. (`tests/hidden_test.py` and `README.md` are excluded, by `**/*_test.*` and
+  `**/*.md`; `OUTSIDE.txt` matches no include glob.)
+- **TG03 differs by interpreter.** Under CPython 3.14 it is `as_required`; under CPython 3.9.6 it is
+  `loose`: there `fnmatch` compiles `[z-a]` to a regular expression with a reversed range and
+  raises `re.error`, which reaches the detector's catch-all (`internal error (error)`, exit 2).
+  The same pattern reaches `fnmatch` through `--closure` and the config's `closure`. Exit code right,
+  cause not named — a finding on 3.9 only.

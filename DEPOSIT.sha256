@@ -1,5 +1,5 @@
 # The nine files of the Zenodo deposit, byte for byte.
-# Version DOI <to be minted on publication> (0.8.0, 2026-10-04) - concept DOI 10.5281/zenodo.21763931
+# Version DOI <to be minted on publication> (0.9.0, 2026-10-04) - concept DOI 10.5281/zenodo.21763931
 # Generated from the bytes of this release AND checked against the published record named above:
 # tools/verify_deposit.py --from-zenodo re-fetches that record and hashes what comes back.
 # tools/verify_deposit.py reads the record id from the line above, and refuses --from-zenodo while

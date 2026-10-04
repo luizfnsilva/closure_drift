@@ -12,14 +12,14 @@ abstract: >-
   release-based publication (tags) from continuous publication (commits),
   because measuring at every commit reports drift in every repository and
   therefore carries no information. Each report stamps the commit measured and
-  the hash of the tool that measured it. 0.8.0 corrects the detector: a file
+  the hash of the tool that measured it. 0.9.0 corrects the detector: a file
   whose name is not plain ASCII, and a submodule pointer, were silently left
   out of the closure; a failing git call was read as an empty answer; an
   undetermined result ended at exit 0. Exit 0 now means clean and nothing
   else. It adds a gate to run before tagging (--would-tag), tag families
   (--tags), a strict mode, an explanation of which paths differ, and a second,
   full-length closure identifier. Over the seven public repositories of the
-  reference table, 0.7.1 and 0.8.0 give identical verdict fields. The release
+  reference table, 0.7.1 and 0.9.0 give identical verdict fields. The release
   ships three pre-registered batteries: acceptance proofs, negative controls
   by mutation, and an adversarial campaign.
 type: software
@@ -27,7 +27,7 @@ authors:
   - family-names: "Silva"
     given-names: "Luiz F. Nunes da"
     orcid: "https://orcid.org/0009-0002-5409-7074"
-version: 0.8.0
+version: 0.9.0
 date-released: "2026-10-04"
 license: Apache-2.0
 doi: 10.5281/zenodo.21763931

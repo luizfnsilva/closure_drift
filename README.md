@@ -25,7 +25,7 @@ pipx run closure-drift            # or: uvx closure-drift
 or, with nothing installed but Python 3.9+ and git:
 
 ```bash
-curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v0.8.0/closure_drift.py
+curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v0.9.0/closure_drift.py
 python3 closure_drift.py
 ```
 
@@ -47,19 +47,20 @@ GitHub Actions:
 - uses: actions/checkout@v4
   with:
     fetch-depth: 0          # the tags are the publication points
-- uses: luizfnsilva/closure_drift@v0.8.0
+- uses: luizfnsilva/closure_drift@v0.9.0
 ```
 
 pre-commit (runs on `git push`):
 
 ```yaml
 - repo: https://github.com/luizfnsilva/closure_drift
-  rev: v0.8.0
+  rev: v0.9.0
   hooks:
     - id: closure-drift-would-tag
 ```
 
-Anywhere else: `closure-drift --would-tag` exits `1` when the tag would create drift.
+Anywhere else: `closure-drift --would-tag` exits `1` when the tag would create drift. Recipes for
+GitLab CI, a plain shell release script and a Makefile are in `docs/CI.md` of the source repository.
 
 ## What the answer means
 
@@ -73,10 +74,11 @@ Anywhere else: `closure-drift --would-tag` exits `1` when the tag would create d
 | *(a refusal)* | `2` | the cause is named on stderr: not a repository, broken config, bad pattern, git failed |
 
 With `--would-tag`: `would_be_clean` `0` · `would_drift` `1` · `no_label_at_head`,
-`empty_closure_at_head` `2`.
+`empty_closure_at_head` `2`. With `--compare`: `identical`, `differs_under_two_labels` `0` ·
+`differs_under_one_label` `1` · `not_comparable` `2`.
 
 **Exit `0` means `clean` and nothing else.** An absence of measurement is never a pass, no input
-produces a traceback, and no failure ends at `1`. *(Changed in 0.8.0: up to 0.7.1 `inconclusive`
+produces a traceback, and no failure ends at `1`. *(Changed in 0.9.0: up to 0.7.1 `inconclusive`
 and `no_labels` also ended at `0`.)*
 
 The two things compared at each **publication point**:
@@ -100,6 +102,8 @@ from a `clean` over all of them, and the report prints the count.
 | `--closure 'src/**'` | which files determine your output (repeatable). The defaults are a guess; the report prints what was used |
 | `--strict` | `clean` only if every point scanned was compared; otherwise `incomplete` |
 | `--explain LABEL` | for a label in drift, list the paths that differ. Only on request: the report otherwise names no file of yours |
+| `--compare A B` | two tags or commits side by side: label, closure, and the paths that differ. Exit `1` if one label covers both and the code differs |
+| `--diagnose` | adds what a bug report needs — versions, options, facts about the repository — and no label or path of yours |
 | `--version-file`, `--version-regex` | where the label is, when it is not found automatically |
 | `--max-commits N` | the most recent N points (default 400) |
 | `--json` | the machine-readable report (`report_format: 2`); its fields and compatibility rules are a contract, in `docs/REPORT.md` of the source repository |
@@ -254,15 +258,15 @@ configuration.
 
 ## Version
 
-**0.8.0** — see `CITATION.cff` and `CHANGELOG.md`. The measurement script is sha256
+**0.9.0** — see `CITATION.cff` and `CHANGELOG.md`. The measurement script is sha256
 `1125e51615efc3698f09e7bce92bc8647eb468db5471ca79b8ee202cef684cda`, against
 `6d8906ef374b73e6b8c58adba813c77c4ff352f5c9c280aa43ff2baa4f804451` for 0.7.0–0.7.1 and
 `da5da3c0e781b67b9b3a55800d599c243edc8df649fc90b24a88e289533805c5` for 0.3.0–0.6.0.
 
 **What stays comparable, and what does not.** The 16-hex closure of every earlier version is still
 computed and printed, by the same formula. Over the seven public repositories of the reference
-table, 0.7.1 and 0.8.0 give identical verdict fields. Three kinds of repository can get a different
-answer from 0.8.0, and in each the earlier answer was the wrong one: a closure holding a path that is
+table, 0.7.1 and 0.9.0 give identical verdict fields. Three kinds of repository can get a different
+answer from 0.9.0, and in each the earlier answer was the wrong one: a closure holding a path that is
 not plain ASCII (0.7.1 silently left the file out), a closure holding a submodule pointer (ignored
 until now), and two file lists that the earlier formula hashed to the same bytes (identity is now
 decided by a second, unambiguous, full-length hash). Exit codes changed for `inconclusive` and

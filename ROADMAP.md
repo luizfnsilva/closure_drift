@@ -5,16 +5,23 @@ ships with pre-registered proofs and an entry in `CHANGELOG.md`; nothing here is
 
 ## Next
 
-1. **Compare two references** — `--compare A B`: which paths of the closure differ between two
-   tags or commits, named unambiguously. `--explain` answers this only for a label already in
-   drift; `--would-tag` names the colliding tag and not what differs.
-2. **`--diagnose`** — one block to paste into a bug report: detector version and hash, git
-   version, the options in effect, how many references were examined, what could not be read.
-   No file contents and no paths inside the closure.
-3. **Tag families found automatically** — suggest `--tags` globs when the drift in a repository
-   is explained by tag prefixes sharing one version file.
-4. **Version labels that come from the tag** — projects built with a version derived from the
-   tag itself have no version file to read; say so by name instead of "no label found".
+1. **Read the version a tag-derived project would be built with.** 0.9.0 says when a version comes
+   from the tag (`setuptools_scm`, `hatch-vcs`) and stops there. Whether there is anything to
+   measure for those projects — the tag is the label — is an open question, not a missing flag.
+2. **Per-family verdicts in one run.** `--tags` measures one family; a monorepo wants the table.
+3. **A closure that can include file modes**, opt-in, for projects where an executable bit is part
+   of what is released.
+4. **Annotations for pipelines other than GitHub's**, built from the same JSON report.
+
+## Known problems, still open
+
+- The default closure globs are a guess, and the study in `tools/study/` shows how often the
+  default version source reads the wrong file (7 of 21 drift results). Better defaults need
+  evidence about what determines each ecosystem's output, not more patterns.
+- A change of file mode alone, and anything under the excluded folders, is not seen (`SCOPE.md`).
+- `RESULTS.md` is empty: nobody outside the author has reported a measurement yet.
+- Not measured: repositories with more than a few hundred thousand files, network file systems,
+  git older than 2.24.
 
 ## Small, self-contained tasks — a good place to start
 

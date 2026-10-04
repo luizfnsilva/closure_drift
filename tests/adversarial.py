@@ -1424,6 +1424,1470 @@ def hc02(root):
     # The case passes as_required by demonstrating the ambiguity; the finding is in the report.
 
 
+# =========================================================================== extension, 2026-10-04
+# The features of 0.9.0: --would-tag, --tags, --strict, --explain, --compare, --diagnose, --version,
+# the tag-derived refusal, the tag-families hint, and the tree reader. Pre-registered in
+# PREREGISTRATION_ADVERSARIAL.md, section "Extension, 2026-10-04", before any of these was run.
+import unicodedata  # noqa: E402
+
+EXT_LIMIT = 90.0
+SENT_LABEL = "9.8.7-LBLSENTINEL"
+SENT_TOKENS = ("LBLSENTINEL", "REPOSENTINEL", "PATHSENTINEL", "HOMESENTINEL", "ENVSENTINEL")
+
+
+def _pj(label):
+    """package.json bytes holding `label` raw (non-ASCII stays as UTF-8, not \\u-escaped)."""
+    return _raw_pkg_bytes(label)
+
+
+def _q(path: bytes) -> bytes:
+    """A C-style quoted path for fast-import."""
+    out = bytearray(b'"')
+    for b in path:
+        if b in (0x22, 0x5C):
+            out += b"\\" + bytes([b])
+        elif b == 0x0A:
+            out += b"\\n"
+        elif b < 0x20 or b >= 0x7F:
+            out += b"\\%03o" % b
+        else:
+            out.append(b)
+    return bytes(out + b'"')
+
+
+class FastImport:
+    """Builds history quickly and deterministically through `git fast-import`. Every commit states
+    its whole tree (deleteall + every file), one day apart."""
+
+    def __init__(self):
+        self.parts = []
+        self.mark = 0
+        self.t = 1577880000
+
+    def commit(self, files: dict, branch=b"refs/heads/main", msg=b"c"):
+        self.mark += 1
+        self.t += 86400
+        p = [b"commit " + branch, b"mark :%d" % self.mark,
+             b"committer adv <adv@example.invalid> %d +0000" % self.t,
+             b"data %d" % len(msg), msg, b"deleteall"]
+        for path, data in files.items():
+            path = path if isinstance(path, bytes) else path.encode("utf-8")
+            data = data if isinstance(data, bytes) else data.encode("utf-8")
+            p.append(b"M 100644 inline " + _q(path))
+            p.append(b"data %d" % len(data))
+            p.append(data)
+        self.parts.append(b"\n".join(p) + b"\n\n")
+        return self.mark
+
+    def tag(self, name, mark):
+        name = name if isinstance(name, bytes) else name.encode("utf-8")
+        self.parts.append(b"reset refs/tags/" + name + b"\nfrom :%d\n\n" % mark)
+
+    def run(self, repo: "Repo"):
+        data = b"".join(self.parts) + b"done\n"
+        r = subprocess.run(["git", "fast-import", "--quiet", "--done"], cwd=str(repo.path), input=data,
+                           capture_output=True, env=BASE_ENV)
+        if r.returncode != 0:
+            raise NotRun("git fast-import refused the staged history: %s"
+                         % r.stderr.decode("utf-8", "replace").strip().splitlines()[:1])
+
+
+def _drift_repo(root, name="repo"):
+    r = Repo(root, name)
+    r.release("v1", "1.0", {"src/a.py": b"A=1\n"})
+    r.release("v2", "1.0", {"src/a.py": b"A=2\n"})
+    return r
+
+
+def _loose_object(repo_path: Path, oid: str) -> Path:
+    obj = repo_path / ".git" / "objects" / oid[:2] / oid[2:]
+    if not obj.exists():
+        raise NotRun("the object to delete is not loose here")
+    return obj
+
+
+def _invisible(text: str) -> list:
+    """Characters that render as nothing or as a plain space: format (Cf) and non-ASCII space (Zs)."""
+    return [c for c in text if unicodedata.category(c) == "Cf"
+            or (unicodedata.category(c) == "Zs" and c != " ")]
+
+
+def _shell_eval(root: Path, words: str):
+    """Evaluate `words` as arguments of printf in a POSIX shell, in a fresh folder; return
+    (stdout, whether the marker file MARK was created there)."""
+    if not POSIX:
+        raise NotRun("evaluating a suggested command line needs a POSIX shell")
+    d = root / "shell_eval"
+    d.mkdir(exist_ok=True)
+    r = subprocess.run(["sh", "-c", "printf '%s\\n' " + words], cwd=str(d), capture_output=True,
+                       env=BASE_ENV, stdin=subprocess.DEVNULL, timeout=TIME_LIMIT)
+    made = (d / "MARK").exists()
+    return r.stdout.decode("utf-8", "replace").rstrip("\n"), made
+
+
+def _shallow_with_missing_tag(root, tags_present, tag_missing):
+    """A depth-1/2 clone with refs written by hand: `tags_present` name commits whose objects are in
+    the clone; `tag_missing` names a commit whose object is not."""
+    src = Repo(root, "src")
+    src.release("v0", "1.0", {"src/a.py": b"A=0\n"})
+    src.release("v1", "1.1", {"src/a.py": b"A=1\n"})
+    src.release("v2", "1.2", {"src/a.py": b"A=2\n"})
+    dst = root / "shallow"
+    r = subprocess.run(["git", "clone", "-q", "--no-tags", "--depth", "2", "file://" + src.path.as_posix(),
+                        str(dst)], capture_output=True, env=BASE_ENV, stdin=subprocess.DEVNULL)
+    if r.returncode != 0:
+        raise NotRun("a shallow clone could not be made here")
+    shas = {t: src.git("rev-parse", t + "^{commit}") for t in ("v0", "v1", "v2")}
+    have = subprocess.run(["git", "cat-file", "-e", shas[tag_missing]], cwd=str(dst), env=BASE_ENV,
+                          capture_output=True, stdin=subprocess.DEVNULL).returncode == 0
+    if have:
+        raise NotRun("the shallow clone holds the commit meant to be missing")
+    tagdir = dst / ".git" / "refs" / "tags"
+    tagdir.mkdir(parents=True, exist_ok=True)
+    for t in list(tags_present) + [tag_missing]:
+        (tagdir / t).write_text(shas[t] + "\n")
+    return src, dst
+
+
+def _diag_block(out: str) -> str:
+    lines = out.splitlines()
+    starts = [i for i, ln in enumerate(lines) if ln.startswith("diagnostics")]
+    if not starts:
+        raise Loose("no diagnostics block was printed")
+    s = starts[0]
+    end = s
+    for i in range(s, len(lines)):
+        if lines[i].startswith("  options"):
+            end = i
+        if lines[i].startswith("  repository"):
+            end = i
+            break
+    return "\n".join(lines[s:end + 1])
+
+
+def _no_sentinels(where, text):
+    hits = [t for t in SENT_TOKENS if t in text]
+    need(not hits, "%s carries %s" % (where, ", ".join(hits)))
+
+
+def _sentinel_repo(root, parent=None):
+    base = parent or root
+    r = Repo(base, "REPOSENTINEL")
+    r.write("package.json", _pj(SENT_LABEL))
+    r.write("src/PATHSENTINEL.py", b"A=1\n")
+    r.commit("v1")
+    r.tag("v9.8.7-LBLSENTINEL.1")
+    r.write("src/PATHSENTINEL.py", b"A=2\n")
+    r.commit("v2")
+    r.tag("v9.8.7-LBLSENTINEL.2")
+    return r
+
+
+def _sentinel_env(root):
+    home = root / "HOMESENTINEL"
+    home.mkdir(exist_ok=True)
+    return dict(BASE_ENV, HOME=str(home), CD_ADV_EXTRA="ENVSENTINEL")
+
+
+def _detector_version():
+    m = re.search(r'^__version__\s*=\s*"([^"]+)"', Path(DETECTOR).read_text(encoding="utf-8"), re.M)
+    return m.group(1) if m else None
+
+
+# --------------------------------------------------------------------------- WT: --would-tag
+@case("WT01", "would-tag: a collision just outside the default --max-commits must not pass")
+def wt01(root):
+    r = Repo(root)
+    fi = FastImport()
+    c1 = fi.commit({"package.json": _pj("1.0"), "src/a.py": b"A=1\n"})
+    fi.tag("v0", c1)
+    c2 = fi.commit({"package.json": _pj("2.0"), "src/a.py": b"A=2\n"})
+    for i in range(401):
+        fi.tag("t%03d" % i, c2)
+    fi.commit({"package.json": _pj("1.0"), "src/a.py": b"A=3\n"})
+    fi.run(r)
+    res = run(r, "--would-tag", timeout=EXT_LIMIT)
+    no_traceback(res)
+    need(not res["timed_out"], "the run did not return within %.0fs" % EXT_LIMIT)
+    need(res["code"] != 0,
+         "exit 0 (%s): tag v0 declares 1.0 with other code, but it lies outside the default range of "
+         "400 points, and the gate passed" % verdict(res))
+
+
+@case("WT02", "would-tag: a collision excluded by --tags passes only with the exclusion disclosed")
+def wt02(root):
+    r = Repo(root)
+    r.release("old-1.0", "1.0", {"src/a.py": b"A=1\n"})
+    r.release("v2.0", "2.0", {"src/a.py": b"A=2\n"})
+    r.pkg("1.0")
+    r.write("src/a.py", b"A=3\n")
+    r.commit("head")
+    res = run(r, "--would-tag", "--tags", "v*")
+    no_traceback(res)
+    exit_in(res, (0, 1, 2))
+    if res["code"] == 0:
+        need((res["doc"] or {}).get("tags_filtered_out", 0) >= 1,
+             "exit 0 without tags_filtered_out >= 1 in the JSON")
+        txt = run(r, "--would-tag", "--tags", "v*", as_json=False)
+        need("do not match --tags" in txt["out"], "exit 0 and the text does not say a tag was left out")
+
+
+@case("WT03", "would-tag: a --tags glob matching no tag must not pass the gate")
+def wt03(root):
+    r = Repo(root)
+    r.release("v1", "1.0", {"src/a.py": b"A=1\n"})
+    r.write("src/a.py", b"A=2\n")
+    r.commit("head")
+    res = run(r, "--would-tag", "--tags", "nothing-*")
+    no_traceback(res)
+    exit_in(res, (0, 1, 2))
+    need(res["code"] != 0,
+         "exit 0 (%s): the glob selected no tag, so HEAD was compared with nothing, and the gate "
+         "passed while v1 declares the same label with other code" % verdict(res))
+
+
+@case("WT04", "would-tag: the repository's own tags glob hides a collision only with disclosure")
+def wt04(root):
+    r = Repo(root)
+    r.release("v1", "1.0", {"src/a.py": b"A=1\n"})
+    r.release("release-2", "2.0", {"src/a.py": b"A=2\n"})
+    r.write(".closure-drift.json", b'{"tags": ["release-*"]}')
+    r.pkg("1.0")
+    r.write("src/a.py", b"A=3\n")
+    r.commit("head")
+    res = run(r, "--would-tag")
+    no_traceback(res)
+    exit_in(res, (0, 1, 2))
+    if res["code"] == 0:
+        doc = res["doc"] or {}
+        need(doc.get("tag_globs") == ["release-*"] and doc.get("tags_filtered_out", 0) >= 1,
+             "exit 0 without tag_globs/tags_filtered_out disclosed: %r/%r"
+             % (doc.get("tag_globs"), doc.get("tags_filtered_out")))
+        txt = run(r, "--would-tag", as_json=False)
+        need("do not match --tags" in txt["out"], "exit 0 and the text does not say a tag was left out")
+
+
+@case("WT05", "would-tag: a same-label tag with an empty closure must not let the gate pass")
+def wt05(root):
+    r = Repo(root)
+    r.pkg("1.0")
+    r.write("README.md", b"readme\n")
+    r.commit("v1")
+    r.tag("v1")
+    r.write("src/a.py", b"A=1\n")
+    r.commit("head")
+    res = run(r, "--would-tag")
+    no_traceback(res)
+    exit_in(res, (0, 1, 2))
+    need(res["code"] != 0,
+         "exit 0 (%s): v1 declares 1.0 over an empty closure, HEAD declares 1.0 over src/a.py; "
+         "the label would name two closures" % verdict(res))
+
+
+@case("WT06", "would-tag control: an unlabelled tag does not collide, and is counted")
+def wt06(root):
+    r = Repo(root)
+    r.write("src/a.py", b"A=1\n")
+    r.commit("v1")
+    r.tag("v1")
+    r.pkg("1.0")
+    r.write("src/a.py", b"A=2\n")
+    r.commit("head")
+    res = run(r, "--would-tag")
+    no_traceback(res)
+    exit_in(res, (0,))
+    doc = res["doc"] or {}
+    need(doc.get("verdict") == "would_be_clean" and doc.get("points_without_label") == 1,
+         "verdict %r, points_without_label %r" % (doc.get("verdict"), doc.get("points_without_label")))
+
+
+@case("WT07", "would-tag: a label differing by an invisible character is made visible in text")
+def wt07(root):
+    r = Repo(root)
+    r.write("package.json", _pj("1.0"))
+    r.write("src/a.py", b"A=1\n")
+    r.commit("v1")
+    r.tag("v1")
+    lab = "1.0​"
+    r.write("package.json", _pj(lab))
+    r.write("src/a.py", b"A=2\n")
+    r.commit("head")
+    res = run(r, "--would-tag")
+    no_traceback(res)
+    exit_in(res, (0,))
+    need((res["doc"] or {}).get("label_at_head") == lab, "label_at_head did not round-trip")
+    txt = run(r, "--would-tag", as_json=False)
+    line = [ln for ln in txt["out"].splitlines() if ln.startswith("label at HEAD")]
+    need(line, "no 'label at HEAD' line")
+    shown = line[0][len("label at HEAD"):].strip(" ")
+    need(not _invisible(shown),
+         "the label is printed with an invisible character left raw (%s): it reads as '1.0', the "
+         "label of v1, beside 'WOULD BE CLEAN'" % ", ".join("U+%04X" % ord(c) for c in _invisible(shown)))
+
+
+@case("WT08", "would-tag: detached HEAD with a collision is would_drift")
+def wt08(root):
+    r = Repo(root)
+    r.release("v1", "1.0", {"src/a.py": b"A=1\n"})
+    r.write("src/a.py", b"A=2\n")
+    r.commit("head")
+    r.git("checkout", "-q", "--detach", "HEAD")
+    res = run(r, "--would-tag")
+    no_traceback(res)
+    exit_in(res, (1,))
+    doc = res["doc"] or {}
+    need(doc.get("verdict") == "would_drift" and any(w.startswith("v1 ") for w in doc.get("collides_with", [])),
+         "verdict %r collides_with %r" % (doc.get("verdict"), doc.get("collides_with")))
+
+
+@case("WT09", "would-tag: HEAD on an unborn branch refuses")
+def wt09(root):
+    r = Repo(root)
+    r.release("v1", "1.0", {"src/a.py": b"A=1\n"})
+    r.git("checkout", "-q", "--orphan", "fresh")
+    res = run(r, "--would-tag")
+    no_traceback(res)
+    exit_in(res, (2,))
+    need(res["doc"] is None and res["err"].strip(), "expected a refusal on stderr, got %r" % verdict(res))
+
+
+@case("WT10", "would-tag: HEAD already tagged, older tag collides")
+def wt10(root):
+    r = _drift_repo(root)
+    res = run(r, "--would-tag")
+    no_traceback(res)
+    exit_in(res, (1,))
+    names = [w.split(" (")[0] for w in (res["doc"] or {}).get("collides_with", [])]
+    need(names == ["v1"], "collides_with names %r, expected exactly v1" % names)
+
+
+@case("WT11", "would-tag: a replace ref on HEAD's commit does not hide the collision")
+def wt11(root):
+    r = Repo(root)
+    r.release("v1", "1.0", {"src/a.py": b"A=1\n"})
+    r.write("src/a.py", b"A=2\n")
+    r.commit("head")
+    r.git("replace", r.git("rev-parse", "HEAD"), r.git("rev-parse", "v1^{commit}"))
+    res = run(r, "--would-tag")
+    no_traceback(res)
+    exit_in(res, (1,))
+    need(verdict(res) == "would_drift", "verdict %r" % verdict(res))
+
+
+@case("WT12", "would-tag: a tag whose commit object is missing (shallow) must not let the gate pass")
+def wt12(root):
+    src = Repo(root, "src")
+    src.release("v1", "1.0", {"src/a.py": b"A=1\n"})
+    src.release("v2", "2.0", {"src/a.py": b"A=2\n"})
+    src.release("v3", "3.0", {"src/a.py": b"A=3\n"})
+    src.pkg("1.0")
+    src.write("src/a.py", b"A=9\n")
+    src.commit("head")
+    dst = root / "shallow"
+    cl = subprocess.run(["git", "clone", "-q", "--no-tags", "--depth", "1", "file://" + src.path.as_posix(),
+                         str(dst)], capture_output=True, env=BASE_ENV, stdin=subprocess.DEVNULL)
+    if cl.returncode != 0:
+        raise NotRun("a shallow clone could not be made here")
+    sha = src.git("rev-parse", "v1^{commit}")
+    if subprocess.run(["git", "cat-file", "-e", sha], cwd=str(dst), env=BASE_ENV, capture_output=True,
+                      stdin=subprocess.DEVNULL).returncode == 0:
+        raise NotRun("the shallow clone holds v1's commit")
+    (dst / ".git" / "refs" / "tags").mkdir(parents=True, exist_ok=True)
+    (dst / ".git" / "refs" / "tags" / "v1").write_text(sha + "\n")
+    res = run(dst, "--would-tag")
+    no_traceback(res)
+    exit_in(res, (0, 1, 2))
+    need(res["code"] != 0,
+         "exit 0 (%s): the tag v1 exists and could not be read; it was not treated as a failed read"
+         % verdict(res))
+
+
+@case("WT13", "would-tag: an uncommitted version change is not measured; the commit is (declared)")
+def wt13(root):
+    r = Repo(root)
+    r.release("v1", "1.0", {"src/a.py": b"A=1\n"})
+    r.pkg("2.0")
+    r.write("src/a.py", b"A=2\n")
+    r.commit("head")
+    r.pkg("1.0")
+    res = run(r, "--would-tag")
+    no_traceback(res)
+    exit_in(res, (0,))
+    doc = res["doc"] or {}
+    need(doc.get("verdict") == "would_be_clean" and doc.get("stamp", {}).get("working_tree_dirty") is True,
+         "verdict %r dirty %r" % (doc.get("verdict"), doc.get("stamp", {}).get("working_tree_dirty")))
+    txt = run(r, "--would-tag", as_json=False)
+    need("the commit is measured, not the modified working tree" in txt["out"],
+         "the text does not say that the commit was measured")
+
+
+@case("WT14", "would-tag: a branch named like the tag must not take the tag out of --tags")
+def wt14(root):
+    r = Repo(root)
+    r.release("v1", "1.0", {"src/a.py": b"A=1\n"})
+    r.git("branch", "v1", "v1")
+    r.write("src/a.py", b"A=2\n")
+    r.commit("head")
+    base = run(r, "--would-tag")
+    need(verdict(base) == "would_drift", "control without --tags gave %r" % verdict(base))
+    res = run(r, "--would-tag", "--tags", "v*")
+    no_traceback(res)
+    exit_in(res, (0, 1, 2))
+    need(res["code"] == 1 and verdict(res) == "would_drift",
+         "with --tags 'v*' the verdict is %r, exit %r: the tag v1 matches v* but a branch named v1 made "
+         "it leave the selection" % (verdict(res), res["code"]))
+
+
+@case("WT15", "would-tag: the suggested --compare line runs nothing when pasted (hardening)")
+def wt15(root):
+    if not POSIX:
+        raise NotRun("evaluating a suggested command line needs a POSIX shell")
+    r = Repo(root)
+    tag = "$(>MARK)v1"
+    r.release(tag, "1.0", {"src/a.py": b"A=1\n"})
+    r.write("src/a.py", b"A=2\n")
+    r.commit("head")
+    res = run(r, "--would-tag", as_json=False)
+    no_traceback(res)
+    exit_in(res, (1,))
+    line = [ln.strip() for ln in res["out"].splitlines() if ln.strip().startswith("--compare ")]
+    need(line, "no suggested --compare line")
+    words = line[0][len("--compare "):]
+    if words.endswith(" HEAD"):
+        words = words[:-len(" HEAD")]
+    out, made = _shell_eval(root, words)
+    need(not made and out == tag,
+         "pasting the suggested '--compare %s HEAD' into a shell %s"
+         % (words, "runs the tag name as a command (marker created)" if made else "does not pass the tag literally"))
+
+
+# --------------------------------------------------------------------------- TG: --tags
+@case("TG01", "--tags '*' is the same as no --tags")
+def tg01(root):
+    r = _drift_repo(root)
+    res = run(r, "--tags", "*")
+    no_traceback(res)
+    exit_in(res, (1,))
+    need(verdict(res) == "drift", "verdict %r" % verdict(res))
+
+
+@case("TG02", "--tags '[' (unbalanced) is handled")
+def tg02(root):
+    r = _drift_repo(root)
+    res = run(r, "--tags", "[")
+    no_traceback(res)
+    exit_in(res, (1, 2))
+    need("internal error" not in res["err"], "the catch-all answered: " + res["err"].strip()[:160])
+
+
+@case("TG03", "--tags '[z-a]' (reversed range), from the flag and from the repository's config")
+def tg03(root):
+    r = _drift_repo(root)
+    res = run(r, "--tags", "[z-a]")
+    no_traceback(res)
+    exit_in(res, (2,))
+    need("internal error" not in res["err"], "flag: the catch-all answered: " + res["err"].strip()[:160])
+    r.write(".closure-drift.json", b'{"tags": ["[z-a]"]}')
+    res2 = run(r)
+    no_traceback(res2)
+    exit_in(res2, (2,))
+    need("internal error" not in res2["err"], "config: the catch-all answered: " + res2["err"].strip()[:160])
+
+
+@case("TG04", "--tags with a leading dash")
+def tg04(root):
+    r = _drift_repo(root)
+    for args in (("--tags=-*",), ("--tags", "-x")):
+        res = run(r, *args)
+        no_traceback(res)
+        exit_in(res, (2,))
+
+
+@case("TG05", "--tags '' (empty glob) never yields a determination")
+def tg05(root):
+    r = _drift_repo(root)
+    res = run(r, "--tags", "")
+    no_traceback(res)
+    exit_in(res, (2,))
+
+
+@case("TG06", "the repository's tags glob matching nothing is no_publication_points naming it")
+def tg06(root):
+    r = _drift_repo(root)
+    r.write(".closure-drift.json", b'{"tags": ["nomatch-*"]}')
+    res = run(r)
+    no_traceback(res)
+    exit_in(res, (2,))
+    doc = res["doc"] or {}
+    need(doc.get("verdict") == "no_publication_points" and "nomatch-*" in doc.get("note", ""),
+         "verdict %r note %r" % (doc.get("verdict"), doc.get("note")))
+
+
+@case("TG07", "--tags selects before --max-commits cuts")
+def tg07(root):
+    r = Repo(root)
+    r.release("py-1", "1.0", {"src/a.py": b"A=1\n"})
+    r.release("py-2", "1.0", {"src/a.py": b"A=2\n"})
+    for i in range(10):
+        r.release("rs-%d" % i, "r%d" % i, {"src/a.py": b"R=%d\n" % i})
+    res = run(r, "--tags", "py-*", "--max-commits", "2")
+    no_traceback(res)
+    exit_in(res, (1,))
+    need(verdict(res) == "drift", "verdict %r" % verdict(res))
+
+
+@case("TG08", "a tree tag matching --tags is counted as not a commit, not as filtered")
+def tg08(root):
+    r = _drift_repo(root)
+    r.git("tag", "v-tree", r.git("rev-parse", "v1^{tree}"))
+    res = run(r, "--tags", "v*")
+    no_traceback(res)
+    exit_in(res, (1,))
+    doc = res["doc"] or {}
+    need(doc.get("points_not_commits", 0) >= 1 and doc.get("tags_filtered_out") == 0,
+         "points_not_commits %r tags_filtered_out %r" % (doc.get("points_not_commits"), doc.get("tags_filtered_out")))
+
+
+@case("TG09", "a branch named like a tag must not take the tag out of --tags")
+def tg09(root):
+    r = _drift_repo(root)
+    r.git("branch", "v1", "v1")
+    base = run(r)
+    need(verdict(base) == "drift", "control without --tags gave %r" % verdict(base))
+    res = run(r, "--tags", "v*")
+    no_traceback(res)
+    exit_in(res, (0, 1, 2))
+    need(res["code"] == 1 and verdict(res) == "drift",
+         "with --tags 'v*' the verdict is %r, exit %r, tags_filtered_out %r: a branch named v1 made the "
+         "tag v1 leave the selection" % (verdict(res), res["code"], (res["doc"] or {}).get("tags_filtered_out")))
+
+
+# --------------------------------------------------------------------------- SR: --strict
+@case("SR01", "--strict with a tree tag: clean only with points_not_commits disclosed")
+def sr01(root):
+    r = Repo(root)
+    r.release("v1", "1.0", {"src/a.py": b"A=1\n"})
+    r.release("v2", "2.0", {"src/a.py": b"A=2\n"})
+    r.git("tag", "vtree", r.git("rev-parse", "v1^{tree}"))
+    res = run(r, "--strict")
+    no_traceback(res)
+    exit_in(res, (0, 2))
+    if res["code"] == 0:
+        need((res["doc"] or {}).get("points_not_commits", 0) >= 1, "clean without points_not_commits")
+        txt = run(r, "--strict", as_json=False)
+        need("do not point at a commit" in txt["out"], "clean and the text does not say a tag was skipped")
+
+
+@case("SR02", "--strict --tags: clean only with tags_filtered_out disclosed")
+def sr02(root):
+    r = Repo(root)
+    r.release("v1", "1.0", {"src/a.py": b"A=1\n"})
+    r.release("v2", "2.0", {"src/a.py": b"A=2\n"})
+    r.git("rm", "-q", "package.json")
+    r.write("src/a.py", b"A=3\n")
+    r.commit("x1")
+    r.tag("x1")
+    r.pkg("2.0")
+    r.commit("head")
+    res = run(r, "--strict", "--tags", "v*")
+    no_traceback(res)
+    exit_in(res, (0, 2))
+    if res["code"] == 0:
+        need((res["doc"] or {}).get("tags_filtered_out") == 1,
+             "clean with tags_filtered_out %r" % (res["doc"] or {}).get("tags_filtered_out"))
+
+
+@case("SR03", "--strict with a tag whose commit object is missing is never clean")
+def sr03(root):
+    _src, dst = _shallow_with_missing_tag(root, ("v1", "v2"), "v0")
+    res = run(dst, "--strict")
+    no_traceback(res)
+    exit_in(res, (0, 1, 2))
+    need(res["code"] == 2,
+         "exit %r (%s): v0 could not be read and --strict still answered" % (res["code"], verdict(res)))
+
+
+@case("SR04", "--strict with --would-tag, and with --compare, refuse")
+def sr04(root):
+    r = _drift_repo(root)
+    for args in (("--strict", "--would-tag"), ("--strict", "--compare", "v1", "v2")):
+        res = run(r, *args)
+        no_traceback(res)
+        exit_in(res, (2,))
+        need(res["doc"] is None, "%s produced a report instead of a refusal" % " ".join(args))
+
+
+@case("SR05", "--at commits --strict with an unlabelled commit is incomplete")
+def sr05(root):
+    r = Repo(root)
+    r.write("src/a.py", b"A=0\n")
+    r.commit("c0")
+    r.pkg("1.0")
+    r.write("src/a.py", b"A=1\n")
+    r.commit("c1")
+    r.pkg("2.0")
+    r.write("src/a.py", b"A=2\n")
+    r.commit("c2")
+    res = run(r, "--at", "commits", "--strict")
+    no_traceback(res)
+    exit_in(res, (2,))
+    need(verdict(res) == "incomplete", "verdict %r" % verdict(res))
+
+
+@case("SR06", "--strict --tags with a branch named like an unlabelled tag is never clean")
+def sr06(root):
+    r = Repo(root)
+    r.release("v1", "1.0", {"src/a.py": b"A=1\n"})
+    r.release("v2", "1.1", {"src/a.py": b"A=2\n"})
+    r.git("rm", "-q", "package.json")
+    r.write("src/a.py", b"A=3\n")
+    r.commit("v3")
+    r.tag("v3")
+    r.git("branch", "v3", "v3")
+    r.pkg("1.2")
+    r.commit("head")
+    res = run(r, "--strict", "--tags", "v*")
+    no_traceback(res)
+    exit_in(res, (0, 1, 2))
+    need(res["code"] == 2 and verdict(res) == "incomplete",
+         "verdict %r exit %r: the unlabelled tag v3 matches v* and was not compared"
+         % (verdict(res), res["code"]))
+
+
+# --------------------------------------------------------------------------- XP: --explain
+@case("XP01", "--explain of a label that looks like an option")
+def xp01(root):
+    r = Repo(root)
+    r.release("v1", "--json", {"src/a.py": b"A=1\n"})
+    r.release("v2", "--json", {"src/a.py": b"A=2\n"})
+    res = run(r, "--explain=--json")
+    no_traceback(res)
+    exit_in(res, (1,))
+    ex = (res["doc"] or {}).get("explain") or {}
+    need(ex.get("label") == "--json" and ex.get("others", [{}])[0].get("changed") == ["src/a.py"],
+         "explain %r" % ex)
+
+
+@case("XP02", "--explain of a control-character label, and its refusal, are escaped")
+def xp02(root):
+    r = _inject_repo(root)
+    res = run(r, "--explain", INJ_LABEL, as_json=False)
+    no_traceback(res)
+    exit_in(res, (1,))
+    for raw in ("\x1b", "\x07", "‮", " "):
+        need(raw not in res["out"], "raw %r in the --explain text" % raw)
+    need(not [ln for ln in res["out"].splitlines() if ln.startswith("CLEAN")], "a forged CLEAN line")
+    ref = run(r, "--explain", INJ_LABEL + "X", as_json=False)
+    no_traceback(ref)
+    exit_in(ref, (2,))
+    for raw in ("\x1b", "\x07", "‮", " "):
+        need(raw not in ref["err"], "raw %r in the refusal" % raw)
+    need(not [ln for ln in ref["err"].splitlines() if ln.startswith("CLEAN")], "a forged CLEAN line in stderr")
+
+
+OUTSIDE = ("README.md", "docs/secret.py", "tests/hidden_test.py", "OUTSIDE.txt")
+
+
+def _outside_repo(root):
+    r = Repo(root)
+    files1 = {"src/a.py": b"A=1\n"}
+    files2 = {"src/a.py": b"A=2\n"}
+    for p in OUTSIDE:
+        files1[p] = b"one\n"
+        files2[p] = b"two\n"
+    r.release("v1", "1.0", files1)
+    r.release("v2", "1.0", files2)
+    return r
+
+
+@case("XP03", "--explain lists no path outside the closure")
+def xp03(root):
+    r = _outside_repo(root)
+    for as_json in (True, False):
+        res = run(r, "--explain", "1.0", as_json=as_json)
+        no_traceback(res)
+        exit_in(res, (1,))
+        need("src/a.py" in res["out"], "the changed path is not listed")
+        leaked = [p for p in OUTSIDE if p in res["out"]]
+        need(not leaked, "paths outside the closure listed: %r" % leaked)
+
+
+@case("XP04", "--explain over 5,000 changed files completes and caps the text")
+def xp04(root):
+    r = Repo(root)
+    fi = FastImport()
+    for n, tag in ((1, "v1"), (2, "v2")):
+        files = {"src/f%04d.py" % i: b"X=%d\n" % n for i in range(5000)}
+        files["package.json"] = _pj("1.0")
+        fi.tag(tag, fi.commit(files))
+    fi.run(r)
+    res = run(r, "--explain", "1.0", timeout=EXT_LIMIT)
+    no_traceback(res)
+    need(not res["timed_out"], "the run did not return within %.0fs" % EXT_LIMIT)
+    exit_in(res, (1,))
+    ch = ((res["doc"] or {}).get("explain") or {}).get("others", [{}])[0].get("changed", [])
+    need(len(ch) == 5000, "changed holds %d paths" % len(ch))
+    txt = run(r, "--explain", "1.0", as_json=False, timeout=EXT_LIMIT)
+    listed = [ln for ln in txt["out"].splitlines() if ln.strip().startswith("changed") and "src/f" in ln]
+    need(len(listed) <= 40 and "... and 4960 more" in txt["out"], "text listed %d paths" % len(listed))
+
+
+@case("XP05", "--explain of a label at three closures")
+def xp05(root):
+    r = Repo(root)
+    for i in (1, 2, 3):
+        r.release("v%d" % i, "1.0", {"src/a.py": b"A=%d\n" % i})
+    res = run(r, "--explain", "1.0")
+    no_traceback(res)
+    exit_in(res, (1,))
+    need(len(((res["doc"] or {}).get("explain") or {}).get("others", [])) == 2, "others is not 2 long")
+
+
+@case("XP06", "--explain '' refuses")
+def xp06(root):
+    r = _drift_repo(root)
+    res = run(r, "--explain", "")
+    no_traceback(res)
+    exit_in(res, (2,))
+    need(res["doc"] is None, "a report instead of a refusal")
+
+
+# --------------------------------------------------------------------------- CP: --compare
+@case("CP01", "--compare refs that look like options reach nothing")
+def cp01(root):
+    r = _drift_repo(root)
+    before = snapshot(r.path)
+    res = run(r, "--compare", "--help", "HEAD", as_json=False)
+    no_traceback(res)
+    exit_in(res, (2,))
+    res2 = run(r, "--compare", "--output=OUTFILE x", "HEAD", cwd=str(root))
+    no_traceback(res2)
+    exit_in(res2, (2,))
+    need(not list(root.rglob("OUTFILE*")), "a file OUTFILE was created")
+    changes = diff_snapshots(before, snapshot(r.path))
+    need(not changes, "the repository changed: " + "; ".join(changes[:3]))
+
+
+@case("CP02", "--compare of ranges refuses")
+def cp02(root):
+    r = _drift_repo(root)
+    for ref in ("v1..v2", "v1...v2"):
+        res = run(r, "--compare", ref, "v2")
+        no_traceback(res)
+        exit_in(res, (2,))
+        need(res["doc"] is None, "%s produced a report" % ref)
+
+
+@case("CP03", "--compare of objects that are not commits refuses")
+def cp03(root):
+    r = _drift_repo(root)
+    r.git("tag", "treetag", r.git("rev-parse", "HEAD^{tree}"))
+    blob = r.git("rev-parse", "HEAD:package.json")
+    for ref in ("HEAD:package.json", "HEAD^{tree}", blob, "treetag"):
+        res = run(r, "--compare", ref, "v1")
+        no_traceback(res)
+        exit_in(res, (2,))
+        need(res["doc"] is None, "a report for a non-commit ref")
+
+
+@case("CP04", "--compare of one commit named twice is identical")
+def cp04(root):
+    r = _drift_repo(root)
+    for a, b in (("v1", "v1"), ("v1", r.git("rev-parse", "v1^{commit}")), ("v1", "v1^{}")):
+        res = run(r, "--compare", a, b)
+        no_traceback(res)
+        exit_in(res, (0,))
+        need(verdict(res) == "identical", "verdict %r" % verdict(res))
+
+
+@case("CP05", "--compare of a ref holding control characters is escaped in the refusal")
+def cp05(root):
+    r = _drift_repo(root)
+    res = run(r, "--compare", "v1\x1b[2J\nIDENTICAL: forged", "v2", as_json=False)
+    no_traceback(res)
+    exit_in(res, (2,))
+    need("\x1b" not in res["err"], "raw ESC in stderr")
+    need(not [ln for ln in res["err"].splitlines() if ln.startswith("IDENTICAL")], "a forged IDENTICAL line")
+
+
+@case("CP06", "--compare is not fooled by a replace ref")
+def cp06(root):
+    r = _drift_repo(root)
+    r.git("replace", r.git("rev-parse", "v2^{commit}"), r.git("rev-parse", "v1^{commit}"))
+    res = run(r, "--compare", "v1", "v2")
+    no_traceback(res)
+    exit_in(res, (1,))
+    need(verdict(res) == "differs_under_one_label", "verdict %r" % verdict(res))
+
+
+@case("CP07", "--compare across unrelated histories")
+def cp07(root):
+    r = Repo(root)
+    r.release("v1", "1.0", {"src/a.py": b"A=1\n"})
+    r.git("checkout", "-q", "--orphan", "other")
+    r.git("rm", "-rfq", ".")
+    r.pkg("1.0")
+    r.write("src/b.py", b"B=1\n")
+    r.commit("orphan")
+    res = run(r, "--compare", "v1", "other")
+    no_traceback(res)
+    exit_in(res, (1,))
+    need(verdict(res) == "differs_under_one_label", "verdict %r" % verdict(res))
+
+
+@case("CP08", "--compare lists no path outside the closure")
+def cp08(root):
+    r = _outside_repo(root)
+    for as_json in (True, False):
+        res = run(r, "--compare", "v1", "v2", as_json=as_json)
+        no_traceback(res)
+        exit_in(res, (1,))
+        need("src/a.py" in res["out"], "the changed path is not listed")
+        leaked = [p for p in OUTSIDE if p in res["out"]]
+        need(not leaked, "paths outside the closure listed: %r" % leaked)
+
+
+@case("CP09", "--compare of labels differing by an invisible character shows the difference")
+def cp09(root):
+    r = Repo(root)
+    r.write("package.json", _pj("1.0"))
+    r.write("src/a.py", b"A=1\n")
+    r.commit("v1")
+    r.tag("v1")
+    r.write("package.json", _pj("1.0 "))
+    r.write("src/a.py", b"A=2\n")
+    r.commit("v2")
+    r.tag("v2")
+    res = run(r, "--compare", "v1", "v2")
+    no_traceback(res)
+    exit_in(res, (0,))
+    doc = res["doc"] or {}
+    need(doc.get("verdict") == "differs_under_two_labels" and doc.get("b", {}).get("label") == "1.0 ",
+         "verdict %r label b %r" % (doc.get("verdict"), doc.get("b", {}).get("label")))
+    txt = run(r, "--compare", "v1", "v2", as_json=False)
+    labels = [ln.split("label", 1)[1].strip(" ") for ln in txt["out"].splitlines() if ln.startswith("   label")]
+    need(len(labels) == 2, "two label lines expected")
+    need(not any(_invisible(x) for x in labels),
+         "a label is printed with an invisible character left raw: the two label lines render alike "
+         "under 'DIFFERS UNDER TWO LABELS'")
+
+
+# --------------------------------------------------------------------------- DG: --diagnose
+@case("DG01", "--diagnose leaks no label, repository path, closure path, home or environment")
+def dg01(root):
+    r = _sentinel_repo(root)
+    env = _sentinel_env(root)
+    txt = run(r, "--diagnose", as_json=False, env=env)
+    no_traceback(txt)
+    exit_in(txt, (1,))
+    _no_sentinels("the text diagnose block", _diag_block(txt["out"]))
+    js = run(r, "--diagnose", env=env)
+    exit_in(js, (1,))
+    _no_sentinels("the JSON diagnostics", json.dumps((js["doc"] or {}).get("diagnostics"), ensure_ascii=False))
+
+
+@case("DG02", "--diagnose with a relative repository path leaks nothing")
+def dg02(root):
+    r = _sentinel_repo(root)
+    env = _sentinel_env(root)
+    txt = run("REPOSENTINEL", "--diagnose", as_json=False, env=env, cwd=str(root))
+    no_traceback(txt)
+    exit_in(txt, (1,))
+    _no_sentinels("the text diagnose block", _diag_block(txt["out"]))
+    js = run("REPOSENTINEL", "--diagnose", env=env, cwd=str(root))
+    exit_in(js, (1,))
+    _no_sentinels("the JSON diagnostics", json.dumps((js["doc"] or {}).get("diagnostics"), ensure_ascii=False))
+
+
+@case("DG03", "--diagnose with a --closure glob that is a literal path inside the closure")
+def dg03(root):
+    r = _sentinel_repo(root)
+    env = _sentinel_env(root)
+    txt = run(r, "--diagnose", "--closure", "src/PATHSENTINEL.py", as_json=False, env=env)
+    no_traceback(txt)
+    exit_in(txt, (1,))
+    _no_sentinels("the text diagnose block", _diag_block(txt["out"]))
+    js = run(r, "--diagnose", "--closure", "src/PATHSENTINEL.py", env=env)
+    _no_sentinels("the JSON diagnostics", json.dumps((js["doc"] or {}).get("diagnostics"), ensure_ascii=False))
+
+
+@case("DG04", "--diagnose with a --tags glob carrying the version label")
+def dg04(root):
+    r = _sentinel_repo(root)
+    env = _sentinel_env(root)
+    txt = run(r, "--diagnose", "--tags", "v9.8.7-LBLSENTINEL*", as_json=False, env=env)
+    no_traceback(txt)
+    exit_in(txt, (1,))
+    _no_sentinels("the text diagnose block", _diag_block(txt["out"]))
+    js = run(r, "--diagnose", "--tags", "v9.8.7-LBLSENTINEL*", env=env)
+    _no_sentinels("the JSON diagnostics", json.dumps((js["doc"] or {}).get("diagnostics"), ensure_ascii=False))
+
+
+@case("DG05", "--diagnose with --explain, --version-file/--version-regex, --compare: booleans only")
+def dg05(root):
+    r = _sentinel_repo(root)
+    r.git("tag", "REFSENTINEL-a", "v9.8.7-LBLSENTINEL.1")
+    r.git("tag", "REFSENTINEL-b", "v9.8.7-LBLSENTINEL.2")
+    env = _sentinel_env(root)
+    runs = (("--explain", SENT_LABEL),
+            ("--version-file", "package.json", "--version-regex", '"version": "(9[^"]*LBLSENTINEL)"'),
+            ("--compare", "REFSENTINEL-a", "REFSENTINEL-b"))
+    for args in runs:
+        txt = run(r, "--diagnose", *args, as_json=False, env=env)
+        no_traceback(txt)
+        exit_in(txt, (1,))
+        blk = _diag_block(txt["out"])
+        _no_sentinels("the text diagnose block (%s)" % args[0], blk)
+        need("REFSENTINEL" not in blk, "the text diagnose block names a --compare ref")
+        js = run(r, "--diagnose", *args, env=env)
+        d = json.dumps((js["doc"] or {}).get("diagnostics"), ensure_ascii=False)
+        _no_sentinels("the JSON diagnostics (%s)" % args[0], d)
+        need("REFSENTINEL" not in d, "the JSON diagnostics name a --compare ref")
+
+
+@case("DG06", "--diagnose changes no verdict and no exit code")
+def dg06(root):
+    drift = _drift_repo(root, "drift")
+    clean = Repo(root, "clean")
+    clean.release("v1", "1.0", {"src/a.py": b"A=1\n"})
+    clean.release("v2", "2.0", {"src/a.py": b"A=2\n"})
+    wd = Repo(root, "wd")
+    wd.release("v1", "1.0", {"src/a.py": b"A=1\n"})
+    wd.write("src/a.py", b"A=2\n")
+    wd.commit("head")
+    notags = Repo(root, "notags")
+    notags.pkg("1.0")
+    notags.write("src/a.py", b"A=1\n")
+    notags.commit("c")
+    plain = root / "plain"
+    plain.mkdir()
+    probes = ((drift, ()), (clean, ()), (wd, ("--would-tag",)), (clean, ("--would-tag",)),
+              (drift, ("--compare", "v1", "v2")), (notags, ()), (plain, ()))
+    for repo, args in probes:
+        a = run(repo, *args)
+        b = run(repo, *args, "--diagnose")
+        no_traceback(b)
+        need(a["code"] == b["code"], "exit %r without --diagnose, %r with" % (a["code"], b["code"]))
+        da = dict(a["doc"] or {})
+        db = dict(b["doc"] or {})
+        db.pop("diagnostics", None)
+        need(da == db, "the report differs with --diagnose beyond the diagnostics key (%s)" % (args or ("default",))[0])
+
+
+@case("DG07", "--diagnose runs no repository-configured command and writes nothing")
+def dg07(root):
+    if WINDOWS:
+        raise NotRun("command-execution markers use a POSIX shell script")
+    r = _drift_repo(root)
+    marker = root / "MARKER_DG07"
+    val = marker_script(root, marker)
+    hooks = r.path / "myhooks"
+    hooks.mkdir()
+    for h in ("post-index-change", "reference-transaction", "post-checkout"):
+        (hooks / h).write_text("#!/bin/sh\n: > '%s'\n" % marker)
+        (hooks / h).chmod(0o755)
+    up = root / "upstream"
+    up.mkdir()
+    for k, v in (("core.fsmonitor", val), ("core.hooksPath", str(hooks)), ("filter.x.clean", val),
+                 ("core.repositoryformatversion", "1"), ("extensions.partialClone", "origin"),
+                 ("remote.origin.url", "file://" + up.as_posix()), ("remote.origin.promisor", "true"),
+                 ("remote.origin.uploadpack", val)):
+        r.git("config", "--local", k, v)
+    r.write(".gitattributes", b"src/a.py filter=x\n")
+    (r.path / "src" / "a.py").write_bytes(b"dirty\n")
+    before = snapshot(r.path)
+    for as_json in (True, False):
+        res = run(".", "--diagnose", as_json=as_json, cwd=str(r.path))
+        no_traceback(res)
+        exit_in(res, (0, 1, 2))
+    made = marker.exists()
+    changes = diff_snapshots(before, snapshot(r.path))
+    need(not made, "a command named in the repository's config ran under --diagnose (marker created)")
+    need(not changes, "the repository changed under --diagnose: " + "; ".join(changes[:3]))
+
+
+@case("DG08", "--diagnose on a folder that is not a repository")
+def dg08(root):
+    d = root / "REPOSENTINEL"
+    d.mkdir()
+    txt = run(d, "--diagnose", as_json=False)
+    no_traceback(txt)
+    exit_in(txt, (2,))
+    _no_sentinels("the text diagnose block", _diag_block(txt["out"]))
+    js = run(d, "--diagnose")
+    exit_in(js, (2,))
+    need(not js["out"].strip(), "a refusal with --json printed something on stdout")
+
+
+@case("DG09", "--diagnose --json carries exactly the documented keys and the true version")
+def dg09(root):
+    r = _drift_repo(root)
+    res = run(r, "--diagnose")
+    exit_in(res, (1,))
+    d = (res["doc"] or {}).get("diagnostics") or {}
+    want = {"detector_version", "detector_closure", "python", "platform", "git", "options", "repository"}
+    need(set(d) == want, "diagnostics keys %r" % sorted(d))
+    need(d.get("detector_version") == _detector_version(), "detector_version %r" % d.get("detector_version"))
+
+
+# --------------------------------------------------------------------------- TV: tag-derived version
+@case("TV01", "a 'pbr' substring in an unrelated dependency still tells the user --version-file")
+def tv01(root):
+    r = Repo(root)
+    r.write("pyproject.toml", b'[project]\nname = "x"\ndependencies = ["pbrt-tools>=1"]\n')
+    r.write("src/a.py", b"A=1\n")
+    r.commit("c")
+    r.tag("v1")
+    res = run(r)
+    no_traceback(res)
+    exit_in(res, (2,))
+    need("--version-file" in res["err"], "the refusal does not tell --version-file")
+
+
+@case("TV02", "a comment naming setuptools_scm is not a version derived from the tag (hardening)")
+def tv02(root):
+    r = Repo(root)
+    r.write("pyproject.toml", b'[project]\nname = "pkg"\n# we do not use setuptools_scm\n')
+    r.write("src/pkg/__init__.py", b'__version__ = "1.0"\n')
+    r.commit("c")
+    r.tag("v1")
+    res = run(r)
+    no_traceback(res)
+    exit_in(res, (2,))
+    need("derived from the tag" not in res["err"],
+         "the refusal says the version is derived from the tag; no tool is configured, the word is in a "
+         "comment, and the version is in src/pkg/__init__.py")
+
+
+@case("TV03", "a recognised version file wins over a tag-deriving tool named in pyproject")
+def tv03(root):
+    r = Repo(root)
+    r.write("pyproject.toml", b'[build-system]\nrequires = ["setuptools_scm"]\n')
+    r.release("v1", "1.0", {"src/a.py": b"A=1\n"})
+    r.release("v2", "1.0", {"src/a.py": b"A=2\n"})
+    res = run(r)
+    no_traceback(res)
+    exit_in(res, (1,))
+    need(verdict(res) == "drift", "verdict %r" % verdict(res))
+
+
+@case("TV04", "setup.py with versioneer is refused naming versioneer")
+def tv04(root):
+    r = Repo(root)
+    r.write("setup.py", b"import versioneer\nsetup(name='x', version=versioneer.get_version())\n")
+    r.write("src/a.py", b"A=1\n")
+    r.commit("c")
+    r.tag("v1")
+    res = run(r)
+    no_traceback(res)
+    exit_in(res, (2,))
+    need("versioneer" in res["err"], "the refusal does not name versioneer")
+
+
+# --------------------------------------------------------------------------- TF: tag families
+@case("TF01", "the --tags suggestion runs nothing when pasted (hardening)")
+def tf01(root):
+    if not POSIX:
+        raise NotRun("evaluating a suggested command line needs a POSIX shell")
+    r = Repo(root)
+    hostile = "x'$(>MARK)-1.0"
+    r.release(hostile, "1.0", {"src/a.py": b"A=1\n"})
+    r.release("y-1.0", "1.0", {"src/a.py": b"A=2\n"})
+    res = run(r, as_json=False)
+    no_traceback(res)
+    exit_in(res, (1,))
+    line = [ln for ln in res["out"].splitlines() if "family at a time: --tags " in ln]
+    need(line, "no --tags suggestion printed")
+    words = line[0].split("family at a time: --tags ", 1)[1]
+    if words.endswith("."):
+        words = words[:-1]
+    out, made = _shell_eval(root, words)
+    need(not made and out == "x'$(>MARK)-*",
+         "pasting the suggested --tags %s into a shell %s" % (words, "runs a command (marker created)"
+                                                             if made else "does not pass the prefix literally"))
+
+
+@case("TF02", "an empty family prefix is named and the other family suggested")
+def tf02(root):
+    r = Repo(root)
+    r.release("1.0", "1.0", {"src/a.py": b"A=1\n"})
+    r.release("py-1.0", "1.0", {"src/a.py": b"A=2\n"})
+    res = run(r)
+    no_traceback(res)
+    exit_in(res, (1,))
+    need(set(((res["doc"] or {}).get("tag_families") or {})) == {"", "py-"},
+         "tag_families %r" % (res["doc"] or {}).get("tag_families"))
+    txt = run(r, as_json=False)
+    need("(none)" in txt["out"] and "--tags 'py-*'" in txt["out"], "the hint does not name both")
+
+
+@case("TF03", "300 tag families complete")
+def tf03(root):
+    r = Repo(root)
+    fi = FastImport()
+    for i in range(300):
+        fi.tag("f%03d-1" % i, fi.commit({"package.json": _pj("1.0"), "src/a.py": b"A=%d\n" % i}))
+    fi.run(r)
+    res = run(r, timeout=EXT_LIMIT)
+    no_traceback(res)
+    need(not res["timed_out"], "the run did not return within %.0fs" % EXT_LIMIT)
+    exit_in(res, (1,))
+    need(len((res["doc"] or {}).get("tag_families") or {}) == 300, "tag_families is not 300 long")
+    txt = run(r, as_json=False, timeout=EXT_LIMIT)
+    no_traceback(txt)
+    exit_in(txt, (1,))
+
+
+@case("TF04", "a bidi override in a family prefix is escaped")
+def tf04(root):
+    r = Repo(root)
+    r.release("‮abc-1.0", "1.0", {"src/a.py": b"A=1\n"})
+    r.release("py-1.0", "1.0", {"src/a.py": b"A=2\n"})
+    res = run(r, as_json=False)
+    no_traceback(res)
+    exit_in(res, (1,))
+    need("‮" not in res["out"], "raw U+202E in the text")
+
+
+# --------------------------------------------------------------------------- MX: combinations
+@case("MX01", "--version with everything else prints the version and nothing else")
+def mx01(root):
+    r = _drift_repo(root)
+    want = "closure_drift %s\n" % _detector_version()
+    for args in (("--version", "--badge", "--diagnose", "--would-tag", "--max-commits", "0"),
+                 ("--version", "--compare", "a", "b")):
+        res = run(r, *args)
+        no_traceback(res)
+        exit_in(res, (0,))
+        need(res["out"] == want and not res["err"], "stdout %r stderr %r" % (res["out"][:80], res["err"][:80]))
+
+
+@case("MX02", "--badge in every mode is one line with the verdict")
+def mx02(root):
+    r = _drift_repo(root)
+    s = Repo(root, "strict")
+    s.release("v1", "1.0", {"src/a.py": b"A=1\n"})
+    s.git("rm", "-q", "package.json")
+    s.write("src/a.py", b"A=2\n")
+    s.commit("x")
+    s.tag("x")
+    s.release("v2", "2.0", {"src/a.py": b"A=3\n"})
+    head = r.git("rev-parse", "HEAD")[:12]
+    shead = s.git("rev-parse", "HEAD")[:12]
+    for repo, hd, args, want, code in ((r, head, ("--would-tag",), "would_drift", 1),
+                                       (r, head, ("--compare", "v1", "v2"), "differs_under_one_label", 1),
+                                       (r, head, ("--explain", "1.0"), "drift", 1),
+                                       (s, shead, ("--strict",), "incomplete", 2)):
+        res = run(repo, "--badge", *args, as_json=False)
+        no_traceback(res)
+        exit_in(res, (code,))
+        lines = res["out"].splitlines()
+        need(len(lines) == 1 and lines[0].startswith("![version labels: %s @ %s]" % (want, hd)),
+             "%s: %r" % (args[0], res["out"][:120]))
+
+
+REPORT_FIELDS = {
+    "measure": {"report_format": int, "stamp": dict, "repo": str, "version_file": str, "closure_globs": list,
+                "published_at": str, "verdict": str, "labels": int, "labels_covering_multiple_closures": int,
+                "max_closures_per_label": int, "drift": dict, "closure_ids": dict,
+                "closure_changes_between_points": int, "publication_points": int,
+                "publication_points_scanned": int, "publication_points_compared": int,
+                "points_without_label": int, "points_with_empty_closure": int, "points_not_commits": int,
+                "range_truncated": bool},
+    "would_tag": {"report_format": int, "stamp": dict, "mode": str, "repo": str, "version_file": str,
+                  "closure_globs": list, "published_at": str, "verdict": str, "label_at_head": str,
+                  "closure_at_head": str, "closure_id_at_head": str, "collides_with": list,
+                  "existing_drift_labels": int, "publication_points_scanned": int,
+                  "publication_points_compared": int, "points_without_label": int,
+                  "points_with_empty_closure": int, "points_not_commits": int, "range_truncated": bool},
+    "compare": {"report_format": int, "stamp": dict, "mode": str, "repo": str, "version_file": str,
+                "closure_globs": list, "verdict": str, "a": dict, "b": dict, "changed": list,
+                "only_in_a": list, "only_in_b": list},
+    "none": {"report_format": int, "verdict": str, "note": str},
+}
+
+
+def _fields(doc, kind):
+    missing = [k for k, t in REPORT_FIELDS[kind].items() if not isinstance(doc.get(k), t)
+               or (t is int and isinstance(doc.get(k), bool))]
+    return missing
+
+
+@case("MX03", "--json in every mode is valid and carries the fields REPORT.md lists")
+def mx03(root):
+    r = _drift_repo(root)
+    notags = Repo(root, "notags")
+    notags.pkg("1.0")
+    notags.write("src/a.py", b"A=1\n")
+    notags.commit("c")
+    probes = ((r, (), "measure"), (r, ("--explain", "1.0"), "measure"), (r, ("--would-tag",), "would_tag"),
+              (r, ("--would-tag", "--tags", "v*"), "would_tag"), (r, ("--compare", "v1", "v2"), "compare"),
+              (notags, (), "none"), (r, ("--diagnose",), "measure"))
+    for repo, args, kind in probes:
+        res = run(repo, *args)
+        no_traceback(res)
+        need(res["doc"] is not None, "%s: stdout is not JSON" % (args or ("default",))[0])
+        missing = _fields(res["doc"], kind)
+        need(not missing, "%s: fields missing or mistyped: %r" % ((args or ("default",))[0], missing))
+        if kind == "compare":
+            for side in ("a", "b"):
+                need(set(res["doc"][side]) >= {"ref", "commit", "label", "closure", "closure_id", "files"},
+                     "compare side %s lacks a documented field" % side)
+        st = res["doc"].get("stamp")
+        if st is not None:
+            need({"measured_at_head", "working_tree_dirty", "detector_closure"} <= set(st), "stamp fields")
+
+
+@case("MX04", "--diagnose --badge and --json --badge refuse with nothing on stdout")
+def mx04(root):
+    r = _drift_repo(root)
+    for args in (("--diagnose", "--badge"), ("--json", "--badge")):
+        res = run(r, *args, as_json=False)
+        no_traceback(res)
+        exit_in(res, (2,))
+        need(not res["out"].strip(), "%s printed on stdout" % " ".join(args))
+
+
+@case("MX05", "--help and -h do not end at exit 0 (literal contract)")
+def mx05(root):
+    r = _drift_repo(root)
+    for flag in ("--help", "-h"):
+        res = run(r, flag, as_json=False)
+        no_traceback(res)
+        need(res["code"] != 0, "%s ends at exit 0, which the contract reserves for four verdicts" % flag)
+
+
+# --------------------------------------------------------------------------- TR: the tree reader
+@case("TR01", "a folder of 5,000 files in the closure")
+def tr01(root):
+    r = Repo(root)
+    fi = FastImport()
+    base = {"src/big/f%04d.py" % i: b"X\n" for i in range(5000)}
+    for n, tag in ((1, "v1"), (2, "v2"), (2, "v3")):
+        files = dict(base)
+        files["src/big/f2500.py"] = b"X=%d\n" % n
+        files["package.json"] = _pj("1.0")
+        fi.tag(tag, fi.commit(files))
+    fi.run(r)
+    res = run(r, timeout=EXT_LIMIT)
+    no_traceback(res)
+    need(not res["timed_out"], "the run did not return within %.0fs" % EXT_LIMIT)
+    exit_in(res, (1,))
+    need(verdict(res) == "drift", "verdict %r" % verdict(res))
+
+
+@case("TR02", "a file 200 folders deep")
+def tr02(root):
+    r = Repo(root)
+    fi = FastImport()
+    deep = "src/" + "d/" * 200 + "x.py"
+    for n in (1, 2):
+        fi.tag("v%d" % n, fi.commit({"package.json": _pj("1.0"), deep: b"X=%d\n" % n}))
+    fi.run(r)
+    res = run(r, timeout=EXT_LIMIT)
+    no_traceback(res)
+    need(not res["timed_out"], "the run did not return within %.0fs" % EXT_LIMIT)
+    exit_in(res, (1,))
+    need(verdict(res) == "drift", "verdict %r" % verdict(res))
+
+
+@case("TR03", "a tree entry name holding a newline and a forged verdict")
+def tr03(root):
+    r = Repo(root)
+    fi = FastImport()
+    name = b"src/a\nCLEAN: forged.py"
+    for n in (1, 2):
+        fi.tag("v%d" % n, fi.commit({"package.json": _pj("1.0"), name: b"X=%d\n" % n}))
+    fi.run(r)
+    res = run(r, "--explain", "1.0", as_json=False)
+    no_traceback(res)
+    exit_in(res, (1,))
+    need(not [ln for ln in res["out"].splitlines() if ln.startswith("CLEAN")], "a forged CLEAN line")
+    need("forged.py" in res["out"], "the path is not listed")
+
+
+@case("TR04", "a tree entry name that is not UTF-8")
+def tr04(root):
+    r = Repo(root)
+    fi = FastImport()
+    name = b"src/\xff\xfe.py"
+    for n in (1, 2):
+        fi.tag("v%d" % n, fi.commit({"package.json": _pj("1.0"), name: b"X=%d\n" % n}))
+    fi.run(r)
+    res = run(r, "--explain", "1.0")
+    no_traceback(res)
+    exit_in(res, (1,))
+    need(res["doc"] is not None, "the JSON report did not parse")
+    txt = run(r, "--explain", "1.0", as_json=False)
+    no_traceback(txt)
+    exit_in(txt, (1,))
+
+
+def _literal(repo, kind, data: bytes):
+    r = subprocess.run(["git", "hash-object", "-t", kind, "--literally", "-w", "--stdin"], cwd=str(repo.path),
+                       input=data, capture_output=True, env=BASE_ENV)
+    if r.returncode != 0:
+        raise NotRun("git refused to write a literal %s object" % kind)
+    return r.stdout.decode().strip()
+
+
+def _tag_bad_tree(repo, tree_bytes, name="vbad"):
+    tree = _literal(repo, "tree", tree_bytes)
+    who = b"adv <adv@example.invalid> 1580000000 +0000"
+    commit = _literal(repo, "commit", b"tree " + tree.encode() + b"\nauthor " + who + b"\ncommitter " + who
+                      + b"\n\nbad\n")
+    repo.git("update-ref", "refs/tags/" + name, commit)
+
+
+@case("TR05", "a tagged commit whose root tree is corrupt")
+def tr05(root):
+    r = _drift_repo(root)
+    r.git("tag", "-d", "v2")
+    _tag_bad_tree(r, b"garbage-with-no-structure")
+    res = run(r)
+    no_traceback(res)
+    exit_in(res, (2,))
+    need("internal error" not in res["err"], "the catch-all answered, no cause named: " + res["err"].strip()[:160])
+
+
+@case("TR06", "a missing version-file blob at an older tag refuses")
+def tr06(root):
+    r = Repo(root)
+    r.release("v1", "1.0", {"src/a.py": b"A=1\n"})
+    r.release("v2", "1.1", {"src/a.py": b"A=2\n"})
+    _loose_object(r.path, r.git("rev-parse", "v1:package.json")).unlink()
+    res = run(r)
+    no_traceback(res)
+    exit_in(res, (2,))
+    need(res["doc"] is None or verdict(res) != "clean", "clean with an unreadable version file")
+
+
+@case("TR07", "the cat-file batch process dying mid-run is a named refusal, not a hang")
+def tr07(root):
+    if not POSIX:
+        raise NotRun("a git wrapper on PATH is a POSIX shell script here")
+    real = shutil.which("git")
+    r = _drift_repo(root)
+    fake = root / "fakebin"
+    fake.mkdir()
+    proxy = fake / "proxy.py"
+    proxy.write_text(
+        "import os, subprocess, sys\n"
+        "p = subprocess.Popen(sys.argv[1:], stdin=subprocess.PIPE, stdout=subprocess.PIPE)\n"
+        "for _ in range(2):\n"
+        "    line = sys.stdin.buffer.readline()\n"
+        "    if not line:\n"
+        "        break\n"
+        "    p.stdin.write(line); p.stdin.flush()\n"
+        "    head = p.stdout.readline()\n"
+        "    sys.stdout.buffer.write(head)\n"
+        "    parts = head.split()\n"
+        "    if len(parts) == 3:\n"
+        "        sys.stdout.buffer.write(p.stdout.read(int(parts[2]) + 1))\n"
+        "    sys.stdout.buffer.flush()\n"
+        "p.kill()\n"
+        "os._exit(0)\n")
+    (fake / "git").write_text(
+        "#!/bin/sh\n"
+        "for a in \"$@\"; do\n"
+        "  if [ \"$a\" = \"--batch\" ]; then exec '%s' '%s' '%s' \"$@\"; fi\n"
+        "done\n"
+        "exec '%s' \"$@\"\n" % (sys.executable, proxy, real, real))
+    (fake / "git").chmod(0o755)
+    env = dict(BASE_ENV, PATH=str(fake) + os.pathsep + BASE_ENV.get("PATH", ""))
+    res = run(r, env=env)
+    no_traceback(res)
+    exit_in(res, (2,))
+    need("internal error" not in res["err"], "the catch-all answered: " + res["err"].strip()[:160])
+    need(res["doc"] is None, "a report was printed although the object reader died")
+
+
+class Repo256(Repo):
+    def __init__(self, root: Path, name: str = "repo"):
+        self.path = root / name
+        self.path.mkdir(parents=True)
+        self.day = 0
+        r = self._git("init", "-q", "--object-format=sha256", check=False)
+        if r.returncode != 0:
+            raise NotRun("this git cannot create a sha256 repository")
+        self._git("symbolic-ref", "HEAD", "refs/heads/main")
+
+
+@case("TR08", "a sha256 repository: drift, compare and would-tag")
+def tr08(root):
+    r = Repo256(root)
+    r.release("v1", "1.0", {"src/a.py": b"A=1\n"})
+    r.release("v2", "1.0", {"src/a.py": b"A=2\n"})
+    for args, want in (((), "drift"), (("--compare", "v1", "v2"), "differs_under_one_label"),
+                       (("--would-tag",), "would_drift")):
+        res = run(r, *args)
+        no_traceback(res)
+        exit_in(res, (1,))
+        need(verdict(res) == want, "%s: verdict %r" % ((args or ("default",))[0], verdict(res)))
+
+
+@case("TR09", "a tagged commit whose root tree ends in a truncated entry")
+def tr09(root):
+    r = Repo(root)
+    r.release("v1", "1.0", {"src/a.py": b"A=1\n"})
+    r.release("v2", "2.0", {"src/a.py": b"A=2\n"})
+    pkg = bytes.fromhex(r.git("rev-parse", "v1:package.json"))
+    _tag_bad_tree(r, b"100644 package.json\0" + pkg + b"100644 zz.py\0" + b"\x01" * 10)
+    res = run(r)
+    no_traceback(res)
+    exit_in(res, (1, 2))
+    need(res["code"] == 2, "exit %r (%s): a corrupt tree was read as a tree" % (res["code"], verdict(res)))
+
+
+@case("TR10", "a partial clone's lazy fetch runs no command named by the repository's config")
+def tr10(root):
+    if WINDOWS:
+        raise NotRun("command-execution markers use a POSIX shell script")
+    r = Repo(root)
+    r.release("v1", "1.0", {"src/a.py": b"A=1\n"})
+    r.release("v2", "1.1", {"src/a.py": b"A=2\n"})
+    blob = r.git("rev-parse", "v1:package.json")
+    marker = root / "MARKER_TR10"
+    val = marker_script(root, marker)
+    up = root / "upstream"
+    up.mkdir()
+    for k, v in (("core.repositoryformatversion", "1"), ("extensions.partialClone", "origin"),
+                 ("remote.origin.url", "file://" + up.as_posix()), ("remote.origin.promisor", "true"),
+                 ("remote.origin.uploadpack", val)):
+        r.git("config", "--local", k, v)
+    _loose_object(r.path, blob).unlink()
+    before = snapshot(r.path)
+    res = run(r)
+    no_traceback(res)
+    exit_in(res, (0, 1, 2))
+    made = marker.exists()
+    changes = diff_snapshots(before, snapshot(r.path))
+    need(not made, "a missing object made git fetch from the promisor remote, and the uploadpack command "
+                   "named in the repository's config ran (marker created)")
+    need(not changes, "the repository changed: " + "; ".join(changes[:3]))
+
+
+# --------------------------------------------------------------------------- added after the first run
+@case("TF05", "300 tag families with letter-only prefixes complete (added after the first run)")
+def tf05(root):
+    r = Repo(root)
+    fi = FastImport()
+    letters = "abcdefghijklmnopqrstuvwxyz"
+    for i in range(300):
+        pre = "f" + letters[i // 26 // 26 % 26] + letters[i // 26 % 26] + letters[i % 26]
+        fi.tag(pre + "-1", fi.commit({"package.json": _pj("1.0"), "src/a.py": b"A=%d\n" % i}))
+    fi.run(r)
+    res = run(r, timeout=EXT_LIMIT)
+    no_traceback(res)
+    need(not res["timed_out"], "the run did not return within %.0fs" % EXT_LIMIT)
+    exit_in(res, (1,))
+    need(len((res["doc"] or {}).get("tag_families") or {}) == 300,
+         "tag_families has %d keys" % len((res["doc"] or {}).get("tag_families") or {}))
+    txt = run(r, as_json=False, timeout=EXT_LIMIT)
+    no_traceback(txt)
+    exit_in(txt, (1,))
+
+
 # --------------------------------------------------------------------------- driver
 def main():
     global DETECTOR
