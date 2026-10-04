@@ -20,6 +20,32 @@ result showing the tool is **wrong about you** counts for more than either — i
 marked as a correction, not quietly discarded. That is what the
 [false positive](../../issues/new?template=false-positive.yml) template is for.
 
+## Changing the detector
+
+A change to `closure_drift.py` is accepted with three things, in this order:
+
+1. **A line in `tests/PREREGISTRATION.md` written before the code**: what is done, and the outcome
+   required. If the expectation turns out wrong, the line stays and a dated amendment is added.
+2. **A proof in `tests/battery.py`** that is red without the change and green with it.
+3. **Nothing else red.** Run all of it:
+
+```bash
+python3 examples/demo.py              # the three answers, in a minute
+python3 tests/battery.py              # the acceptance proofs
+python3 tests/negative_controls.py    # the battery must go red on a broken detector
+python3 tests/adversarial.py          # hostile repositories and hostile input
+```
+
+Each prints one summary line and exits `0` only when nothing failed. They need CPython 3.9+ and
+git, nothing else, and build every repository they measure in a temporary folder. CI runs the same
+four on Linux, macOS and Windows.
+
+A proof the platform cannot stage must come out `not run` with the reason named — never green. An
+error must never end at exit `1`, which means drift. The report format is a contract:
+`docs/REPORT.md`.
+
+`ROADMAP.md` has what is planned and a few small tasks to start with.
+
 ## This repository and the Zenodo deposit
 
 The citable artefact is the deposit; this repository is where it is developed and where results are

@@ -76,6 +76,8 @@ jobs:
       # Three batteries, each with its own polarity and its own pre-registration
       # (tests/PREREGISTRATION.md, tests/PREREGISTRATION_ADVERSARIAL.md). Their scores are
       # printed side by side and never added together.
+      - name: Demonstration — the three answers
+        run: python examples/demo.py
       - name: Negative fixture — a label-only corpus must be flagged
         run: python tests/fixture_label_only.py
       - name: Acceptance battery — the pre-registered proofs

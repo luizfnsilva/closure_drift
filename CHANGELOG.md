@@ -80,7 +80,7 @@ is now decided by a full-length SHA-256 over `path NUL type SP id LF`, reported 
 - **One `git cat-file --batch` per run** instead of two processes per tag, each tree object read
   once. Measured on the reference repositories: `polars` 58 s → 10 s, `lodash` 44 s → 6 s.
 - **Three batteries**, in `tests/` of the source repository, each pre-registered:
-  `battery.py` (80 declared · 79 green · 0 red · 1 not run), `negative_controls.py` (15 mutants · 15 caught by the required proof · 0 not caught), `adversarial.py`
+  `battery.py` (81 declared · 80 green · 0 red · 1 not run), `negative_controls.py` (15 mutants · 15 caught by the required proof · 0 not caught), `adversarial.py`
   (85 attacks · 84 as required · 0 loose · 1 not run) — measured on macOS with CPython 3.9 and 3.14, and run on Linux, macOS and
   Windows on every push.
 - **A package** (`pipx run closure-drift`), **a GitHub Action** and **a pre-commit hook**, all

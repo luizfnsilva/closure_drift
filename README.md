@@ -31,6 +31,10 @@ python3 closure_drift.py
 
 Run it inside any git repository. It reads your tags, finds your version file, and answers.
 
+Not sure what it would tell you? `python3 examples/demo.py`, in the source repository, builds three
+tiny repositories in a temporary folder and shows the three answers — clean, drift, and *not enough
+to tell* — next to what each should be. One minute, nothing downloaded.
+
 ## Use it as a gate — before the tag, not after
 
 `--would-tag` answers one question about the commit you are on: **if I tag this now, does its
@@ -98,7 +102,7 @@ from a `clean` over all of them, and the report prints the count.
 | `--explain LABEL` | for a label in drift, list the paths that differ. Only on request: the report otherwise names no file of yours |
 | `--version-file`, `--version-regex` | where the label is, when it is not found automatically |
 | `--max-commits N` | the most recent N points (default 400) |
-| `--json` | the machine-readable report (`report_format: 2`) |
+| `--json` | the machine-readable report (`report_format: 2`); its fields and compatibility rules are a contract, in `docs/REPORT.md` of the source repository |
 | `--badge` | one line of Markdown — see below |
 
 A repository can commit its own settings in `.closure-drift.json`, so that the command with no flags
@@ -200,7 +204,7 @@ they test. Their scores are reported side by side and **never added together**.
 
 | battery | what it shows | measured on macOS, CPython 3.9 and 3.14 |
 |---|---|---|
-| `tests/battery.py` | the pre-registered acceptance proofs | 80 declared · 79 green · 0 red · 1 not run |
+| `tests/battery.py` | the pre-registered acceptance proofs | 81 declared · 80 green · 0 red · 1 not run |
 | `tests/negative_controls.py` | the battery goes red on a broken detector: each mutant must be caught by a named proof | 15 mutants · 15 caught by the required proof · 0 not caught |
 | `tests/adversarial.py` | hostile repositories and hostile input, written by a reviewer who did not write the fixes | 85 attacks · 84 as required · 0 loose · 1 not run |
 

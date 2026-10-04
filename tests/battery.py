@@ -1026,6 +1026,57 @@ def g04(root):
           "the badge does not name the verdict and the commit: %r" % lines[0][:80])
 
 
+# ---------------------------------------------------------------- K02 — the report is a contract
+
+MEASURE_FIELDS = {"report_format", "stamp", "repo", "version_file", "closure_globs", "published_at",
+                  "verdict", "labels", "labels_covering_multiple_closures", "max_closures_per_label",
+                  "drift", "closure_ids", "closure_changes_between_points", "publication_points",
+                  "publication_points_scanned", "publication_points_compared", "points_without_label",
+                  "points_with_empty_closure", "points_not_commits", "range_truncated"}
+WOULD_TAG_FIELDS = {"report_format", "stamp", "mode", "repo", "version_file", "closure_globs",
+                    "published_at", "verdict", "label_at_head", "closure_at_head", "closure_id_at_head",
+                    "collides_with", "existing_drift_labels", "publication_points_scanned",
+                    "publication_points_compared", "points_without_label", "points_with_empty_closure",
+                    "points_not_commits", "range_truncated"}
+EXIT_OF = {"clean": 0, "would_be_clean": 0, "drift": 1, "would_drift": 1, "inconclusive": 2,
+           "incomplete": 2, "no_labels": 2, "empty_closure": 2, "no_publication_points": 2,
+           "no_label_at_head": 2, "empty_closure_at_head": 2}
+
+
+@proof("K02")
+def k02(root):
+    """docs/REPORT.md: the fields each kind of report must carry, and the exit code of each verdict."""
+    drifty, cleanly = two_tags(root, "k02a"), two_tags(root, "k02b", "1", "2")
+    lone = Repo(root, "k02c")
+    lone.write("package.json", '{"version":"1"}\n')
+    lone.write("src/a.py", "x\n")
+    lone.commit()
+    runs = [(drifty, (), MEASURE_FIELDS), (cleanly, (), MEASURE_FIELDS),
+            (cleanly, ("--closure", "nothing/**"), MEASURE_FIELDS),
+            (two_tags(root, "k02d", same=True), (), MEASURE_FIELDS),
+            (half_labelled(root, "k02e"), ("--version-file", "package.json", "--strict"), MEASURE_FIELDS),
+            (drifty, ("--would-tag",), WOULD_TAG_FIELDS), (cleanly, ("--would-tag",), WOULD_TAG_FIELDS),
+            (lone, (), {"report_format", "verdict", "note"})]
+    seen = set()
+    for repo, args, fields in runs:
+        rc, doc, out, err = run(repo, *args)
+        check(doc is not None, "no report for %s: %s" % (args, err[:120]))
+        missing = fields - set(doc)
+        check(not missing, "report %s lacks %s" % (doc.get("verdict"), sorted(missing)))
+        check(doc["report_format"] == 2, "report_format = %r" % doc["report_format"])
+        check(doc["verdict"] in EXIT_OF, "verdict outside the closed set: %r" % doc["verdict"])
+        check(rc == EXIT_OF[doc["verdict"]], "verdict %s left at exit %d" % (doc["verdict"], rc))
+        if "stamp" in fields:
+            check({"measured_at_head", "working_tree_dirty", "detector_closure"} <= set(doc["stamp"]),
+                  "the stamp is incomplete")
+        seen.add(doc["verdict"])
+    want = {"drift", "clean", "empty_closure", "inconclusive", "incomplete", "would_be_clean",
+            "no_publication_points"}
+    check(want <= seen, "the proof did not reach every kind of report: missing %s" % sorted(want - seen))
+    rc, doc, out, err = run(root / "not-a-repository")
+    check(rc == 2 and not out.strip() and err.strip(), "a refusal must leave standard output empty")
+
+
 # ---------------------------------------------------------------- runner
 
 def remove(path):

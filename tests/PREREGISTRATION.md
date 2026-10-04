@@ -275,3 +275,9 @@ Exit codes with the new verdicts: `would_be_clean` 0; `would_drift` 1; `incomple
 - **F04 widened by one program.** The detector now also starts itself, to match a version
   pattern that is not one of its own under a time limit. F04 requires that the only programs
   started are `git` and the detector's own file with `--match-on-stdin`.
+- **K02 added, 2026-10-04, after the detector was frozen.** The JSON report is documented as a
+  contract in `docs/REPORT.md`; K02 checks that each kind of report carries the fields listed
+  there, that every verdict is in the closed set and leaves at its documented exit code, and that
+  a refusal leaves standard output empty. It tests the detector as it already was: no code changed
+  for it, and it could have been red.
+
