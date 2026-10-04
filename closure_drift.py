@@ -388,7 +388,7 @@ def attribute_value(text: str, name: str) -> str | None:
 def setup_info(text: str) -> dict:
     """What `setup(...)` in a setup.py says about the version — parsed, never executed. A
     setup.py that is not valid Python 3 is read from the text after `setup(`."""
-    info = {"version": None, "module": None, "name": None, "scm": False}
+    info = {"version": None, "module": None, "name": None, "scm": False, "packages": []}
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -422,6 +422,9 @@ def setup_info(text: str) -> dict:
                     info["scm"] = True
             elif kw.arg == "name":
                 info["name"] = text_value
+            elif kw.arg == "packages" and isinstance(v, (ast.List, ast.Tuple)):
+                info["packages"] = [e.value.split(".")[0] for e in v.elts
+                                    if isinstance(e, ast.Constant) and isinstance(e.value, str)]
             elif kw.arg in ("use_scm_version", "pbr") and not (isinstance(v, ast.Constant) and not v.value):
                 info["scm"] = True
         break
@@ -565,22 +568,21 @@ class Sources:
                 return got
 
         # 4. the version module of the project's own package
-        for package in self.packages(blobs, name):
+        for package in self.packages(blobs, name, setup["packages"]):
             for module in VERSION_MODULES:
                 for attr in (("__version__",) if module == "__init__.py" else VERSION_NAMES):
                     if self.read(blobs, package + "/" + module, ("attr", attr)):
                         return package + "/" + module, ("attr", attr)
         return None
 
-    def packages(self, blobs: dict, name: str | None) -> list[str]:
-        """The folders of the package this project builds: the one its name says, or the only
-        top-level package there is. Not a vendored one, not a tests folder."""
-        if name:
-            n = name.replace("-", "_").replace(".", "/")
-            named = [base + c for c in dict.fromkeys((n, n.lower())) for base in ("", "src/", "lib/")
-                     if base + c + "/__init__.py" in blobs]
-            if named:
-                return named
+    def packages(self, blobs: dict, name: str | None, listed: list[str]) -> list[str]:
+        """The folders of the package this project builds: the one its name says, the ones
+        setup.py lists, or the only top-level package there is. Not a vendored one, not tests."""
+        wanted = ([name.replace("-", "_").replace(".", "/")] if name else []) + list(listed)
+        named = [base + c for c in dict.fromkeys(w for n in wanted for w in (n, n.lower()))
+                 for base in ("", "src/", "lib/") if base + c + "/__init__.py" in blobs]
+        if named:
+            return named
         tops = set()
         for p in blobs:
             parts = p.split("/")
