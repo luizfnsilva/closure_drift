@@ -433,3 +433,23 @@ tags that 0.7.1 could not read turn out to share a label. Whatever comes out is 
 - **M18 is re-expressed.** It removed the naming of the tag-derived cause, which no longer exists
   as a refusal. It now removes the stripping of comments, and must turn TL05 red.
 
+
+### Amendment to §9, 2026-10-04 — a label must be a version, written before the change
+
+A preview of study run 2, made with the first implementation of §9 and not published as a
+result, showed labels covering dozens of tags that are not versions at all: `%(version)s` and
+`{}.{}.{}` (format templates in `setup.py`, numpy), ` (%s)` (Pillow), `.` (the separator of
+`'.'.join(...)`, tqdm), `unknown` (a fallback, setuptools), `0.6c5` (the `version=` argument of
+another call in `setup.py`, pandas), `0.0.0` (a dynamic-version placeholder, opentelemetry).
+Required instead:
+
+| id | setup | required |
+|---|---|---|
+| PL01 | a source yields `%(version)s`, `{}.{}.{}`, `%s`, `unknown`, `.` or `0.0.0` | that source is not a label source at that point; resolution goes on to the next rule; if none remains the point has no label |
+| PL02 | `__version__ = '.'.join(map(str, version_info))` in the shallowest module, and a literal version in another | the literal one is read |
+| PL03 | `setup.py` calls `use_setuptools(version="0.6c5")` and then `setup(version="1.2.3")` | the label is `1.2.3`, at two tags with two versions |
+| PL04 | `setup.py` that is not valid Python 3 (a `print` statement) with a plain `version="1.2.3"` | the label is still read |
+| PL05 | `--version-file` and `--version-regex` given | the label is whatever the pattern captures, as before; no plausibility rule is applied to an explicit source |
+
+Mutants: M25 removes the plausibility rule and must turn PL01 red; M26 reads `version=` from any
+call in `setup.py` and must turn PL03 red.
