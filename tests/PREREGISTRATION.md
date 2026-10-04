@@ -1,0 +1,170 @@
+# Pre-registration — closure_drift 0.8.0 batteries
+
+Written on 2026-10-04, **before** the detector was changed and before any case below was run.
+Each line states what is done and the outcome required. A line is never rewritten after a run:
+if an expectation turns out to be wrong, the original stays and a dated amendment is added in §6.
+
+Three batteries, each with its own polarity. Their scores are reported side by side and are
+**never added together**.
+
+- `tests/battery.py` — acceptance proofs (§1–§2): each is `green`, `red` or `not_run` (with a
+  named reason, when the platform cannot do what the proof needs).
+- `tests/negative_controls.py` — the battery is run against deliberately broken copies of the
+  detector (§3); each mutant must turn the named proofs red. A battery that stays green on a
+  broken detector proves nothing.
+- `tests/adversarial.py` — hostile inputs (§4, pre-registered separately in
+  `PREREGISTRATION_ADVERSARIAL.md` by whoever writes that campaign).
+
+The existing `tests/fixture_label_only.py` is kept unchanged and must keep passing (proof H01).
+
+## 0. What 0.7.1 does, measured on 2026-10-04, that this release changes
+
+| # | measured on 0.7.1 | required from 0.8.0 |
+|---|---|---|
+| X1 | a file whose name is not ASCII is silently left out of the closure; two tags, one label, only `src/ação.py` changed → `inconclusive`, exit 0 (the same case with `acao.py` → `drift`) | in the closure; `drift`, exit 1 |
+| X2 | `.closure-drift.json` holding `[]`, or bytes that are not UTF-8 → traceback, exit 1 (the code for drift) | named refusal, exit 2 |
+| X3 | `inconclusive` and `no_labels` end at exit 0 | exit 2; exit 0 means `clean` and nothing else |
+| X4 | tags without a version label, and tags where the closure is empty, are skipped without a word; a failing `git` call is read as empty output | counted and printed; a failing `git` call is a named refusal, exit 2 |
+| X5 | `core.fsmonitor` set in the measured repository's config is executed (the detector runs `git status`) | not executed |
+| X6 | a version label holding a line break prints a forged line in the text report | control characters are escaped in everything printed |
+| X7 | `"closure": "src/**"` (a string) is iterated character by character | named refusal, exit 2 |
+| X8 | `--max-commits` zero or negative changes the range without saying so | named refusal, exit 2 |
+| X9 | `--version-regex` without a version file is discarded in silence | named refusal, exit 2 |
+| X10 | a submodule pointer inside the closure is ignored | part of the closure |
+
+## 1. Exit codes — the closed set required from 0.8.0
+
+| code | meaning |
+|---|---|
+| `0` | verdict `clean`, and only that |
+| `1` | verdict `drift` |
+| `2` | no determination, cause named: a refusal on stderr, or one of the verdicts `inconclusive`, `no_labels`, `empty_closure`, `no_publication_points` in the report |
+
+No input may produce a traceback, and no failure may end at `1`.
+
+## 2. Acceptance proofs
+
+**A — verdicts**
+
+| id | setup | required |
+|---|---|---|
+| A01 | two tags, two labels, two closures | `clean`, exit 0 |
+| A02 | two tags, one label, two closures | `drift`, exit 1, 1 label covering 2 closures |
+| A03 | two tags, one label, the same closure | `inconclusive`, exit 2 |
+| A04 | one tag | `inconclusive`, exit 2 |
+| A05 | commits, no tags, default `--at` | `no_publication_points`, exit 2 |
+| A06 | 6 commits changing the closure, one label, `--at commits` | `drift`, exit 1, max 6 closures |
+| A07 | closure globs that match nothing at any tag | `empty_closure`, exit 2 |
+| A08 | version regex that matches at no tag | `no_labels`, exit 2 |
+| A09 | three tags: labels 1, 2, 2 with the two `2` differing in closure | `drift`; `labels` 2, `labels_covering_multiple_closures` 1 |
+
+**B — what was not compared is said**
+
+| id | setup | required |
+|---|---|---|
+| B01 | 4 tags, the first 2 without the version file | `clean`, exit 0, `points_without_label` = 2, and the text report prints that count |
+| B02 | 3 tags, the first with nothing matching the closure | `points_with_empty_closure` = 1 |
+| B03 | 5 tags, `--max-commits 3` | `publication_points_scanned` = 3, `range_truncated` = true, the text report says so |
+| B04 | a tag that points at a blob, among ordinary tags | run completes; `points_not_commits` = 1 |
+
+**C — paths**
+
+| id | setup | required |
+|---|---|---|
+| C01 | X1: only `src/ação.py` changes between two tags, one label | `drift`, exit 1 |
+| C02 | only a file with a space and a tab in its name changes | `drift` |
+| C03 | only a file with a line break in its name changes | `drift`; `not_run` where the file system refuses the name |
+| C04 | X10: only a submodule pointer under `src/` changes | `drift` |
+| C05 | ASCII-only repository | every closure equals the value computed by the 0.3.0–0.7.1 formula, written independently in the battery: SHA-256 over `path` + `blob id` in `ls-tree` order, first 16 hex |
+| C06 | only a file whose name is not valid UTF-8 changes | `drift`; `not_run` where the file system refuses the name |
+
+**D — refusals: exit 2, cause named on stderr, no traceback**
+
+| id | input |
+|---|---|
+| D01 | a directory that is not a git repository |
+| D02 | config file is `[]` |
+| D03 | config file is not UTF-8 |
+| D04 | config file is not JSON |
+| D05 | config file with an unknown key (`"closures"`) |
+| D06 | config `"closure"` is a string |
+| D07 | config `"at": "weekly"` |
+| D08 | `--version-regex '('` with a version file |
+| D09 | `--version-regex 'version'` (no group) with a version file |
+| D10 | `--version-regex` without any version file |
+| D11 | `--max-commits 0`, and `--max-commits -3` |
+| D12 | repository with no recognisable version file |
+| D13 | `git` not on `PATH` |
+| D14 | a tree object of a tagged commit deleted from the object store: the run must refuse, naming git — never complete with that tag skipped |
+| D15 | an exception raised inside the measurement (injected) → exit 2, a line naming an internal error, no traceback |
+| D16 | repository with no commits |
+
+**E — what is printed**
+
+| id | setup | required |
+|---|---|---|
+| E01 | X6: a label holding a line break, an ANSI escape and a forged `CLEAN:` line | the text report contains no control character other than its own line ends, and no line that begins with `CLEAN` or `DRIFT` other than the detector's own |
+| E02 | the same, `--json` | valid JSON; the label round-trips exactly |
+| E03 | non-ASCII label, `PYTHONIOENCODING=ascii` | completes; no traceback |
+| E04 | a refusal that quotes the offending input (D05 with a key holding an escape) | stderr holds no raw control character |
+
+**F — what it does to the machine**
+
+| id | setup | required |
+|---|---|---|
+| F01 | X5: `core.fsmonitor` set to a command that creates a marker file | marker absent after the run |
+| F02 | `filter.x.clean` set to a command creating a marker, `.gitattributes` routing a modified file through it | marker absent; `working_tree_dirty` is `null` and the report says why |
+| F03 | repository with a modified, stat-dirty tracked file | every file under the repository, `.git` included, is byte-identical before and after the run |
+| F04 | static scan of the detector | imports nothing that opens a network connection; the only program it starts is `git` |
+
+**G — stamp and determinism**
+
+| id | required |
+|---|---|
+| G01 | two runs over the same repository print identical bytes (`--json` and text) |
+| G02 | `stamp.detector_closure` is the first 16 hex of the SHA-256 of the detector file run |
+| G03 | `working_tree_dirty` false on a clean tree, true after modifying a tracked file |
+
+**H–K — the rest**
+
+| id | required |
+|---|---|
+| H01 | `tests/fixture_label_only.py`, unchanged, passes against the detector under test |
+| I01 | a command-line flag overrides the same setting in `.closure-drift.json` |
+| I02 | with no flags, the settings in `.closure-drift.json` are the ones used |
+| J01 | `pyproject.toml` with a dynamic version and `pkg/__init__.py` holding `__version__` → the label is found |
+| K01 | an annotated tag and a lightweight tag are both resolved to their commits |
+
+## 3. Negative controls — mutants of the detector
+
+Each mutant is a copy with one change. The battery must exit 1 against it, with at least the
+named proof red. A mutant whose change could not be applied counts as a **failed control**.
+
+| id | the change | must turn red |
+|---|---|---|
+| M01 | `inconclusive` ends at exit 0 again | A03 |
+| M02 | `ls-tree` without `-z` | C01 |
+| M03 | a failing `git` call returns empty output instead of refusing | D14 |
+| M04 | printed text is no longer escaped | E01 |
+| M05 | the `core.fsmonitor` override is removed | F01 |
+| M06 | submodule entries are skipped | C04 |
+| M07 | the config file is not checked for being an object | D02 |
+| M08 | points without a label are not counted | B01 |
+| M09 | `drift` ends at exit 0 | A02 |
+| M10 | the top-level guard is removed | D15 |
+
+## 4. Adversarial campaign
+
+Pre-registered and written by a reviewer who did not write the fixes, in
+`PREREGISTRATION_ADVERSARIAL.md`.
+
+## 5. Comparability with published results
+
+The eight public repositories of the README's reference tables are measured with the 0.7.1
+script and with the 0.8.0 script at the same commits. Required: every verdict field identical,
+or each difference traced to X1/X10 (a path or submodule that 0.7.1 left out) and stated in the
+README. Exit codes are expected to differ only where X3 applies.
+
+## 6. Amendments
+
+(none yet)
