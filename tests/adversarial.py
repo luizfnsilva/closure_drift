@@ -154,8 +154,9 @@ def run(repo, *args, env=None, timeout=TIME_LIMIT, as_json=True, pyexe=None, cwd
         timed_out = True
         code, out, err = None, te.stdout or b"", te.stderr or b""
     secs = time.monotonic() - t0
-    out_s = out.decode("utf-8", "replace")
-    err_s = err.decode("utf-8", "replace")
+    # Windows writes a line end as \r\n. That pair is the platform's, not the repository's; a lone \r is kept.
+    out_s = out.decode("utf-8", "replace").replace("\r\n", "\n")
+    err_s = err.decode("utf-8", "replace").replace("\r\n", "\n")
     doc = None
     if as_json and not timed_out:
         try:
@@ -2955,7 +2956,9 @@ def lrun(repo, *args, timeout=L_LIMIT, as_json=True, pyexe=None, cwd=None):
         timed_out = True
         code, out, err = None, te.stdout or b"", te.stderr or b""
     secs = time.monotonic() - t0
-    out_s, err_s = out.decode("utf-8", "replace"), err.decode("utf-8", "replace")
+    # Windows writes a line end as \r\n. That pair is the platform's, not the repository's; a lone \r is kept.
+    out_s = out.decode("utf-8", "replace").replace("\r\n", "\n")
+    err_s = err.decode("utf-8", "replace").replace("\r\n", "\n")
     doc = None
     if as_json and not timed_out and out_s.strip():
         try:

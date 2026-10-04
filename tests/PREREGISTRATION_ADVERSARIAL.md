@@ -652,3 +652,11 @@ Cases whose expectation that redesign makes obsolete, each kept in the file:
 - **LR04**: fixed in the detector — an explicit `--version-file` that holds only the version is
   read even without a pattern.
 
+### Amendment by the maintainer, 2026-10-04, after the first CI run of the full campaign on Windows
+
+MX01 and LT17 were loose on Windows and on no other platform. Both compare the detector's output
+byte for byte, and Windows writes a line end as `\r\n`: MX01 saw `closure_drift 0.9.0\r\n`, LT17
+counted the `\r` as a raw control character from the repository. Neither is repository data. The
+harness now reads `\r\n` as a line end; a `\r` on its own is still counted. No expectation changed
+and the detector was not touched (sha256 `6548f891a826034c…`).
+

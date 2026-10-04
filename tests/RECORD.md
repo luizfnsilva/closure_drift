@@ -32,10 +32,34 @@ Command-execution cases: 16 carry a positive control. Under plain git the config
 in 4 of them on this machine, and in each of those it does not run under the detector. In the other
 12 no plain git command of the kind the detector uses runs it either.
 
-## Not measured here
+## Linux, Windows and macOS — CI run 37238307939, commit `3e764e4`, same detector
 
-Linux and Windows: see the CI runs of the commit that carries this file. Network file systems,
-repositories with hundreds of thousands of files, git older than 2.24.
+| platform | CPython | battery | mutation controls | adversarial |
+|---|---|---|---|---|
+| Ubuntu | 3.9, 3.11, 3.13 | 120 declared · 120 green · 0 red · 0 not run | 26 of 26 caught | 235 · 229 as required · 0 loose · 6 not run |
+| macOS | 3.11, 3.13 | 120 · 119 green · 0 red · 1 not run | 26 of 26 caught | 235 · 229 as required · 0 loose · 6 not run |
+| Windows | 3.9, 3.13 | 120 · 115 green · 0 red · 5 not run | 26 of 26 caught | 2 loose in this run (below) |
+
+Linux is the only platform where every proof runs: C06, a file name that is not valid UTF-8,
+passes there.
+
+**Windows, battery, 5 not run**: C02, C03, X03, CMP06 (the file system refuses a tab, a line break
+or an escape in a file name) and C06 (file names are not byte strings there).
+
+**Windows, adversarial, 2 loose in this run, both the harness**: MX01 and LT17 compare output byte
+for byte, and Windows writes a line end as `\r\n`. The harness now reads that pair as a line end;
+the detector was not changed. The run of the commit that carries this file shows the campaign with
+that correction.
+
+**Command execution, measured on each platform**: with plain git the configured command runs in 4
+of the 16 cases on Linux and macOS, and in 3 or 4 on Windows (one vector fires on one of the two
+Windows jobs and not the other). In every case where it runs under plain git, it does not run under
+the detector.
+
+## Not measured
+
+Network file systems, repositories with hundreds of thousands of files, git older than 2.24.
+Nobody outside the author has run these batteries.
 
 ## Reproduce
 
