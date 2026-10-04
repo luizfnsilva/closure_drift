@@ -1,0 +1,70 @@
+name: "closure_drift: version label gate"
+description: "Fail a release when its version label already names different code. Read-only, zero dependencies."
+author: "Luiz F. Nunes da Silva"
+branding:
+  icon: "tag"
+  color: "gray-dark"
+
+inputs:
+  mode:
+    description: "'would-tag' (default): would tagging this commit reuse a label that already names other code? 'measure': measure the whole tag history."
+    required: false
+    default: "would-tag"
+  path:
+    description: "Path of the repository to measure."
+    required: false
+    default: "."
+  args:
+    description: "Extra arguments, e.g. --tags 'v*' --strict --closure 'src/**'."
+    required: false
+    default: ""
+  allow-undetermined:
+    description: "'true' lets the step pass when nothing could be determined (exit 2). Default: fail, because an absence of measurement is not a pass."
+    required: false
+    default: "false"
+
+outputs:
+  verdict:
+    description: "The verdict in the report."
+    value: ${{ steps.run.outputs.verdict }}
+  exit-code:
+    description: "0 clean, 1 drift, 2 no determination."
+    value: ${{ steps.run.outputs.code }}
+
+runs:
+  using: "composite"
+  steps:
+    - id: run
+      shell: bash
+      env:
+        CD_MODE: ${{ inputs.mode }}
+        CD_PATH: ${{ inputs.path }}
+        CD_ARGS: ${{ inputs.args }}
+        CD_ALLOW: ${{ inputs.allow-undetermined }}
+        CD_HOME: ${{ github.action_path }}
+      run: |
+        case "$CD_MODE" in
+          would-tag) mode="--would-tag" ;;
+          measure)   mode="" ;;
+          *) echo "::error::closure_drift: mode must be 'would-tag' or 'measure'"; exit 2 ;;
+        esac
+        PY=python3; command -v python3 >/dev/null 2>&1 || PY=python
+        # The tags are the publication points. A shallow checkout has none of them.
+        if [ "$(git -C "$CD_PATH" rev-parse --is-shallow-repository 2>/dev/null)" = "true" ]; then
+          echo "::error::closure_drift needs the tags: use actions/checkout with fetch-depth: 0"
+          exit 2
+        fi
+        set +e
+        # shellcheck disable=SC2086
+        "$PY" "$CD_HOME/closure_drift.py" "$CD_PATH" $mode $CD_ARGS --json > "$RUNNER_TEMP/closure-drift.json"
+        code=$?
+        "$PY" "$CD_HOME/closure_drift.py" "$CD_PATH" $mode $CD_ARGS
+        set -e
+        verdict=$("$PY" -c "import json,sys; print(json.load(open(sys.argv[1])).get('verdict','refused'))" "$RUNNER_TEMP/closure-drift.json" 2>/dev/null || echo refused)
+        echo "verdict=$verdict" >> "$GITHUB_OUTPUT"
+        echo "code=$code" >> "$GITHUB_OUTPUT"
+        if [ "$code" = "2" ] && [ "$CD_ALLOW" = "true" ]; then
+          echo "::notice::closure_drift: nothing could be determined ($verdict); allowed by allow-undetermined"
+          exit 0
+        fi
+        exit "$code"
