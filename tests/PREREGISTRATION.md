@@ -168,3 +168,96 @@ README. Exit codes are expected to differ only where X3 applies.
 ## 6. Amendments
 
 (none yet)
+
+## 7. Added 2026-10-04, before any of it was written — the features of 0.8.0
+
+Sections 0–6 above were written for a corrections-only release. The release now also carries
+seven features. This section pre-registers them; nothing above is rewritten. The detector at
+commit `35d093a` has none of them, so every proof below is red against it by construction.
+
+**R — the report says which format it is**
+
+| id | required |
+|---|---|
+| R01 | every JSON report, `no_publication_points` included, carries `"report_format": 2` |
+
+**W — `--would-tag`: would tagging HEAD reuse a label that already names other code?**
+It compares the label and closure of HEAD with the existing tag points. It answers about the
+new tag only; drift already in the history is counted, not judged.
+
+| id | setup | required |
+|---|---|---|
+| W01 | tags exist; the label at HEAD is at none of them | `would_be_clean`, exit 0 |
+| W02 | the label at HEAD is at a tag whose closure differs | `would_drift`, exit 1, the report names that tag |
+| W03 | the label at HEAD is at a tag with the same closure | `would_be_clean`, exit 0 |
+| W04 | no tags at all | `would_be_clean`, exit 0 |
+| W05 | HEAD declares no label | `no_label_at_head`, exit 2 |
+| W06 | nothing at HEAD matches the closure globs | `empty_closure_at_head`, exit 2 |
+| W07 | `--would-tag --at commits` | refusal, exit 2 |
+| W08 | history already in drift under other labels; label at HEAD is new | `would_be_clean`, exit 0, `existing_drift_labels` = 1 |
+| W09 | tracked file modified, not committed | the answer is the one for the commit; `working_tree_dirty` true; the text report says the commit was measured, not the working tree |
+
+**T — `--tags GLOB`: which tags are publication points**
+
+| id | setup | required |
+|---|---|---|
+| T01 | tags `rs-1`, `py-1`, `py-2`; `rs-1` and `py-1` share a label with different closures | default: `drift`; with `--tags 'py-*'`: `clean` |
+| T02 | `--tags 'nothing-*'` | `no_publication_points`, exit 2, the message names the glob |
+| T03 | `"tags": ["py-*"]` in the config file is honoured; `--tags` on the command line overrides it |
+| T04 | the report carries `tag_globs` and `tags_filtered_out` |
+| T05 | `--tags` with `--at commits` | refusal, exit 2 |
+
+**S — `--strict`: `clean` only when every point scanned was compared**
+
+| id | setup | required |
+|---|---|---|
+| S01 | the repository of B01 (2 of 4 tags without a label), `--strict` | `incomplete`, exit 2 |
+| S02 | every tag labelled and non-empty, `--strict` | `clean`, exit 0 |
+| S03 | drift, `--strict` | `drift`, exit 1 |
+| S04 | 5 tags, `--max-commits 3 --strict` | `incomplete`, exit 2 |
+
+**X — `--explain LABEL`: which paths differ**
+
+| id | setup | required |
+|---|---|---|
+| X01 | one label, two closures: one file changed, one added, one removed | `explain` lists exactly those three paths under `changed`, `only_in_other`, `only_in_first` |
+| X02 | `--explain` naming a label that covers one closure, or no label | refusal, exit 2 |
+| X03 | the differing path holds a line break and an escape | the text report carries no raw control character |
+| X04 | drift, without `--explain` | no path of any file inside the closure appears anywhere in the report, text or JSON |
+
+**U — the closure is identified by all of its hash, and by an unambiguous encoding**
+The 16-hex value of every earlier version stays in the report, unchanged, so published values
+remain comparable. Identity is decided by a second value: SHA-256, all 64 hex, over records
+`path NUL type SP object-id LF`.
+
+| id | setup | required |
+|---|---|---|
+| U01 | drift | `closure_ids` maps every 16-hex closure in `drift` to a 64-hex value |
+| U02 | two tags, one label: tag 1 holds `src/a` (blob X) and `src/b` (blob Y); tag 2 holds the single file `src/a<X>src/b` (blob Y). The earlier construction hashes the same bytes for both | `drift`, exit 1 |
+
+**P — reading trees faster gives the same closure**
+
+| id | setup | required |
+|---|---|---|
+| P01 | a repository with nested folders, a symbolic link, an executable file, a submodule pointer, a non-ASCII name; every commit | the entries the detector reads equal, in order, those of `git ls-tree -r -z`, parsed independently in the battery |
+| P02 | a repository created with `--object-format=sha256` | A01 and A02 hold; `not_run` where git cannot create one |
+
+**G — badge**
+
+| id | required |
+|---|---|
+| G04 | `--badge` prints exactly one line of Markdown naming the verdict and the 12-hex HEAD measured, and nothing else; exit code as for the verdict |
+
+**Mutants added**
+
+| id | the change | must turn red |
+|---|---|---|
+| M11 | `--would-tag` no longer compares closures | W02 |
+| M12 | `--tags` is accepted and ignored | T01 |
+| M13 | `--strict` is accepted and ignored | S01 |
+| M14 | identity is decided by the 16-hex value again | U02 |
+| M15 | `explain` is filled in without being asked | X04 |
+
+Exit codes with the new verdicts: `would_be_clean` 0; `would_drift` 1; `incomplete`,
+`no_label_at_head`, `empty_closure_at_head` 2. The closed set of §1 is unchanged: 0 is a pass,
+1 is drift, 2 is no determination.
