@@ -53,11 +53,14 @@ def check(cond, msg):
 class Repo:
     """A synthetic repository with deterministic dates: one day per commit or tag."""
 
-    def __init__(self, root: Path, name: str):
+    def __init__(self, root: Path, name: str, object_format: str = ""):
         self.path = root / name
         self.path.mkdir()
         self.day = 0
-        self.git("init", "-q")
+        if object_format:
+            self.git("init", "-q", "--object-format=" + object_format)
+        else:
+            self.git("init", "-q")
         self.git("symbolic-ref", "HEAD", "refs/heads/main")
 
     def env(self):
@@ -66,7 +69,8 @@ class Repo:
         return dict(ENV, GIT_AUTHOR_DATE=when, GIT_COMMITTER_DATE=when)
 
     def git(self, *args, check_rc=True):
-        r = subprocess.run(["git", *args], cwd=self.path, capture_output=True, env=self.env())
+        r = subprocess.run(["git", *args], cwd=self.path, capture_output=True, env=self.env(),
+                           stdin=subprocess.DEVNULL)
         if check_rc and r.returncode != 0:
             raise RuntimeError("git %s: %s" % (args[0], r.stderr.decode("utf-8", "replace")[:200]))
         return r.stdout.decode("utf-8", "replace").strip()
@@ -75,6 +79,9 @@ class Repo:
         target = self.path / rel if isinstance(rel, str) else Path(os.fsdecode(os.fsencode(self.path) + b"/" + rel))
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(data if isinstance(data, bytes) else data.encode("utf-8"))
+
+    def remove(self, rel):
+        (self.path / rel).unlink()
 
     def commit(self, msg="c"):
         self.git("add", "-A")
@@ -99,7 +106,7 @@ def run(repo, *args, env=None, text=False):
     cmd = [sys.executable, DETECTOR, str(repo.path if isinstance(repo, Repo) else repo)]
     if not text:
         cmd.append("--json")
-    r = subprocess.run([*cmd, *args], capture_output=True, env=env or ENV)
+    r = subprocess.run([*cmd, *args], capture_output=True, env=env or ENV, stdin=subprocess.DEVNULL)
     out = r.stdout.decode("utf-8", "replace")
     err = r.stderr.decode("utf-8", "replace")
     doc = None
@@ -578,8 +585,12 @@ def f04(root):
         elif isinstance(node, ast.Call) and getattr(node.func, "id", "") in ("__import__", "eval", "exec"):
             raise AssertionError("the detector calls %s" % node.func.id)
     check(found <= allowed, "imports outside the allowed set: %s" % sorted(found - allowed))
-    starts = [l.strip() for l in src.splitlines() if "subprocess." in l and not l.strip().startswith("#")]
-    check(len(starts) == 1 and "[*GIT," in starts[0], "a program other than git may be started: %r" % starts)
+    starts = [l.strip() for l in src.splitlines()
+              if ("subprocess.run(" in l or "subprocess.Popen(" in l) and not l.strip().startswith("#")]
+    allowed_starts = ("[*GIT,", "[sys.executable, os.path.abspath(__file__), \"--match-on-stdin\"]")
+    stray = [l for l in starts if not any(a in l for a in allowed_starts)]
+    check(len(starts) == 3 and not stray,
+          "a program other than git, or the detector itself for a pattern match, may be started: %r" % stray)
     check("os.system" not in src and "os.popen" not in src and "os.exec" not in src, "os.* process call")
 
 
@@ -666,6 +677,353 @@ def k01(root):
     r.commit()
     r.tag("v2")
     expect(r, "clean", 0, publication_points_scanned=2, labels=2)
+
+
+# ---------------------------------------------------------------- D17 — added after the adversarial campaign
+
+@proof("D17")
+def d17(root):
+    r = Repo(root, "d17")
+    for i, tag in enumerate(("v1", "v2")):
+        r.write("evil.txt", "version=" + "a" * 40 + "!\n")
+        r.write("src/a.py", "%d\n" % i)
+        r.commit(tag)
+        r.tag(tag)
+    (r.path / ".closure-drift.json").write_text(
+        json.dumps({"version_file": "evil.txt", "version_regex": "(a+)+$"}), encoding="utf-8")
+    cmd = [sys.executable, DETECTOR, str(r.path), "--json"]
+    try:
+        p = subprocess.run(cmd, capture_output=True, env=ENV, timeout=90)
+    except subprocess.TimeoutExpired:
+        raise AssertionError("the detector was still running after 90 seconds")
+    refusal(p.returncode, p.stdout.decode("utf-8", "replace"), p.stderr.decode("utf-8", "replace"),
+            "did not finish")
+
+
+# ---------------------------------------------------------------- R — report format
+
+@proof("R01")
+def r01(root):
+    doc = expect(two_tags(root, "r01a"), "drift", 1)
+    check(doc.get("report_format") == 2, "report_format = %r" % doc.get("report_format"))
+    r = Repo(root, "r01b")
+    r.write("package.json", '{"version":"1"}\n')
+    r.write("src/a.py", "x\n")
+    r.commit()
+    doc = expect(r, "no_publication_points", 2)
+    check(doc.get("report_format") == 2, "report_format missing from the refusal report")
+
+
+# ---------------------------------------------------------------- W — would-tag
+
+def head_after(root, name, tags, head_version, head_file):
+    """tags: [(tag, version, content of src/a.py)]; then one more commit, untagged."""
+    r = Repo(root, name)
+    for tag, version, content in tags:
+        r.release(tag, version, {"src/a.py": content})
+    r.write("package.json", json.dumps({"version": head_version}) + "\n")
+    r.write("src/a.py", head_file)
+    r.commit("head")
+    return r
+
+
+@proof("W01")
+def w01(root):
+    r = head_after(root, "w01", [("v1", "1", "1\n"), ("v2", "2", "2\n")], "3", "3\n")
+    expect(r, "would_be_clean", 0, "--would-tag", label_at_head="3")
+
+
+@proof("W02")
+def w02(root):
+    r = head_after(root, "w02", [("v1", "1", "1\n"), ("v2", "2", "2\n")], "2", "changed\n")
+    doc = expect(r, "would_drift", 1, "--would-tag", label_at_head="2")
+    check(len(doc["collides_with"]) == 1 and doc["collides_with"][0].startswith("v2 "),
+          "the report does not name the tag: %r" % doc["collides_with"])
+
+
+@proof("W03")
+def w03(root):
+    r = head_after(root, "w03", [("v1", "1", "1\n"), ("v2", "2", "2\n")], "2", "2\n")
+    expect(r, "would_be_clean", 0, "--would-tag")
+
+
+@proof("W04")
+def w04(root):
+    r = Repo(root, "w04")
+    r.write("package.json", '{"version":"1"}\n')
+    r.write("src/a.py", "x\n")
+    r.commit()
+    expect(r, "would_be_clean", 0, "--would-tag")
+
+
+@proof("W05")
+def w05(root):
+    r = head_after(root, "w05", [("v1", "1", "1\n")], "9", "9\n")
+    r.write("package.json", "{}\n")
+    r.commit("no label")
+    expect(r, "no_label_at_head", 2, "--would-tag", "--version-file", "package.json")
+
+
+@proof("W06")
+def w06(root):
+    r = head_after(root, "w06", [("v1", "1", "1\n")], "2", "2\n")
+    expect(r, "empty_closure_at_head", 2, "--would-tag", "--closure", "nothing/**")
+
+
+@proof("W07")
+def w07(root):
+    rc, _, out, err = run(two_tags(root, "w07"), "--would-tag", "--at", "commits")
+    refusal(rc, out, err, "--would-tag")
+
+
+@proof("W08")
+def w08(root):
+    r = head_after(root, "w08", [("v1", "1", "1\n"), ("v2", "1", "other\n")], "2", "2\n")
+    expect(r, "would_be_clean", 0, "--would-tag", existing_drift_labels=1)
+
+
+@proof("W09")
+def w09(root):
+    r = head_after(root, "w09", [("v1", "1", "1\n"), ("v2", "2", "2\n")], "2", "2\n")
+    r.write("src/a.py", "edited, not committed\n")
+    doc = expect(r, "would_be_clean", 0, "--would-tag")
+    check(doc["stamp"]["working_tree_dirty"] is True, "the modified tree is not reported")
+    _, _, out, _ = run(r, "--would-tag", text=True)
+    check("the commit is measured, not the modified working tree" in out, "the text report does not say so")
+
+
+# ---------------------------------------------------------------- T — tags
+
+def families(root, name):
+    r = Repo(root, name)
+    r.release("rs-1", "1", {"src/a.py": "rust build\n"})
+    r.release("py-1", "1", {"src/a.py": "python build\n"})
+    r.release("py-2", "2", {"src/a.py": "python build 2\n"})
+    return r
+
+
+@proof("T01")
+def t01(root):
+    r = families(root, "t01")
+    expect(r, "drift", 1)
+    expect(r, "clean", 0, "--tags", "py-*", labels=2)
+
+
+@proof("T02")
+def t02(root):
+    rc, _, out, err = run(families(root, "t02"), "--tags", "nothing-*", text=True)
+    refusal(rc, out, err, "nothing-*")
+
+
+@proof("T03")
+def t03(root):
+    r = families(root, "t03")
+    (r.path / ".closure-drift.json").write_text(json.dumps({"tags": ["py-*"]}), encoding="utf-8")
+    expect(r, "clean", 0)
+    expect(r, "drift", 1, "--tags", "*-1")
+
+
+@proof("T04")
+def t04(root):
+    expect(families(root, "t04"), "clean", 0, "--tags", "py-*", tag_globs=["py-*"], tags_filtered_out=1)
+
+
+@proof("T05")
+def t05(root):
+    rc, _, out, err = run(families(root, "t05"), "--tags", "py-*", "--at", "commits")
+    refusal(rc, out, err, "--tags")
+
+
+# ---------------------------------------------------------------- S — strict
+
+def half_labelled(root, name):
+    r = Repo(root, name)
+    r.release("v0", None, {"src/a.py": "0\n"})
+    r.release("v0b", None, {"src/a.py": "0b\n"})
+    r.release("v1", "1", {"src/a.py": "1\n"})
+    r.release("v2", "2", {"src/a.py": "2\n"})
+    return r
+
+
+@proof("S01")
+def s01(root):
+    expect(half_labelled(root, "s01"), "incomplete", 2, "--version-file", "package.json", "--strict")
+
+
+@proof("S02")
+def s02(root):
+    expect(two_tags(root, "s02", "1", "2"), "clean", 0, "--strict")
+
+
+@proof("S03")
+def s03(root):
+    expect(two_tags(root, "s03"), "drift", 1, "--strict")
+
+
+@proof("S04")
+def s04(root):
+    r = Repo(root, "s04")
+    for i in range(5):
+        r.release("v%d" % i, str(i), {"src/a.py": "%d\n" % i})
+    expect(r, "incomplete", 2, "--max-commits", "3", "--strict")
+
+
+# ---------------------------------------------------------------- X — explain
+
+def three_way(root, name, odd="src/a.py"):
+    r = Repo(root, name)
+    try:
+        r.release("v1", "1.0.0", {odd: "one\n", "src/gone.py": "g\n", "src/same.py": "s\n"})
+        r.remove("src/gone.py")
+        r.release("v2", "1.0.0", {odd: "two\n", "src/new.py": "n\n"})
+    except (OSError, RuntimeError, ValueError) as e:
+        raise NotRun("this file system or git refuses the name: %s" % type(e).__name__)
+    return r
+
+
+@proof("X01")
+def x01(root):
+    doc = expect(three_way(root, "x01"), "drift", 1, "--explain", "1.0.0")
+    other = doc["explain"]["others"][0]
+    got = (other["changed"], other["only_in_first"], other["only_in_other"])
+    check(got == (["src/a.py"], ["src/gone.py"], ["src/new.py"]), "explain lists %r" % (got,))
+
+
+@proof("X02")
+def x02(root):
+    r = three_way(root, "x02")
+    rc, _, out, err = run(r, "--explain", "9.9.9")
+    refusal(rc, out, err, "--explain")
+    rc, _, out, err = run(two_tags(root, "x02b", "1", "2"), "--explain", "1")
+    refusal(rc, out, err, "--explain")
+
+
+@proof("X03")
+def x03(root):
+    r = three_way(root, "x03", odd="src/odd\n\x1b[2Kname.py")
+    rc, _, out, err = run(r, "--explain", "1.0.0", text=True)
+    check(rc == 1, "exit %d" % rc)
+    check(not raw_controls(out + err), "raw control characters printed: %s" % raw_controls(out + err))
+
+
+@proof("X04")
+def x04(root):
+    r = three_way(root, "x04")
+    for text in (False, True):
+        _, _, out, err = run(r, text=text)
+        for path in ("src/a.py", "src/gone.py", "src/new.py", "src/same.py", "gone.py", "same.py"):
+            check(path not in out + err, "a path of the closure is in the %s report: %s"
+                  % ("text" if text else "JSON", path))
+
+
+# ---------------------------------------------------------------- U — identity of a closure
+
+@proof("U01")
+def u01(root):
+    doc = expect(two_tags(root, "u01"), "drift", 1)
+    keys = set(doc["drift"]["1.0.0"])
+    check(keys == set(doc["closure_ids"]), "closure_ids does not cover the closures in drift")
+    check(all(len(v) == 64 and int(v, 16) >= 0 for v in doc["closure_ids"].values()), "not 64 hex")
+    check(len(set(doc["closure_ids"].values())) == len(keys), "two closures share a full id")
+
+
+@proof("U02")
+def u02(root):
+    r = Repo(root, "u02")
+    r.release("v1", "1.0.0", {"src/a": "content A\n", "src/b": "content B\n"})
+    x = r.git("rev-parse", "v1:src/a")
+    r.remove("src/a")
+    r.remove("src/b")
+    try:
+        r.release("v2", "1.0.0", {"src/a%ssrc/b" % x: "content B\n"})
+    except (OSError, RuntimeError) as e:
+        raise NotRun("this file system refuses the path: %s" % type(e).__name__)
+    include = ["src/**"]
+    a, b = old_formula(r, "v1", include, []), old_formula(r, "v2", include, [])
+    check(a == b, "the two trees do not collide under the earlier construction (%s, %s): "
+          "the proof would show nothing" % (a, b))
+    expect(r, "drift", 1, "--closure", "src/**")
+
+
+# ---------------------------------------------------------------- P — reading trees
+
+def load_detector():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("detector_under_test", DETECTOR)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+@proof("P01")
+def p01(root):
+    r = Repo(root, "p01")
+    r.write("package.json", '{"version":"1"}\n')
+    r.write("a/b/c/deep.py", "d\n")
+    r.write("a/b.txt", "sibling that sorts around the folder a/b\n")
+    r.write("a/b-c.txt", "x\n")
+    r.write("z.py", "z\n")
+    try:
+        r.write("src/ação.py", "n\n")
+    except OSError:
+        pass
+    r.git("add", "-A")
+    r.git("update-index", "--add", "--cacheinfo", "160000," + "3" * 40 + ",a/sub")
+    blob = r.git("hash-object", "-w", "z.py")
+    r.git("update-index", "--add", "--cacheinfo", "120000,%s,a/link" % blob)
+    r.git("update-index", "--add", "--cacheinfo", "100755,%s,a/run.sh" % blob)
+    r.git("commit", "-q", "-m", "one")
+    r.write("a/b/c/deep.py", "changed\n")
+    r.write("new/dir/file.rs", "r\n")
+    r.git("add", "a/b/c/deep.py", "new/dir/file.rs")
+    r.git("commit", "-q", "-m", "two")
+    module = load_detector()
+    check(hasattr(module, "Objects"), "the detector has no tree reader to compare")
+    objects = module.Objects(str(r.path))
+    try:
+        for ref in ("HEAD~1", "HEAD"):
+            sha = r.git("rev-parse", ref)
+            raw = subprocess.run(["git", "ls-tree", "-r", "-z", sha], cwd=r.path, capture_output=True,
+                                 env=ENV).stdout
+            want = []
+            for record in raw.split(b"\0"):
+                if record:
+                    meta, _, path = record.partition(b"\t")
+                    want.append((path.decode("utf-8", "surrogateescape"), meta.split()[1].decode(),
+                                 meta.split()[2].decode()))
+            got = objects.entries(sha)
+            check(got == want, "entries differ from ls-tree at %s: %d against %d, first difference %r"
+                  % (ref, len(got), len(want), next((p for p in zip(got, want) if p[0] != p[1]), None)))
+            check(len(want) >= 8, "the tree is too small to show anything")
+    finally:
+        objects.close()
+
+
+@proof("P02")
+def p02(root):
+    try:
+        r = Repo(root, "p02", object_format="sha256")
+    except RuntimeError:
+        raise NotRun("this git cannot create a sha256 repository")
+    r.release("v1", "1", {"src/a.py": "1\n", "src/deep/b.py": "b\n"})
+    r.release("v2", "2", {"src/a.py": "2\n"})
+    expect(r, "clean", 0)
+    r.release("v3", "2", {"src/deep/b.py": "changed\n"})
+    expect(r, "drift", 1)
+
+
+# ---------------------------------------------------------------- G04 — badge
+
+@proof("G04")
+def g04(root):
+    r = two_tags(root, "g04")
+    rc, _, out, err = run(r, "--badge", text=True)
+    head = r.git("rev-parse", "HEAD")[:12]
+    lines = out.splitlines()
+    check(rc == 1, "exit %d, required 1" % rc)
+    check(len(lines) == 1 and not err.strip(), "more than one line was printed")
+    check(lines[0].startswith("![version labels: drift @ %s](https://img.shields.io/badge/" % head),
+          "the badge does not name the verdict and the commit: %r" % lines[0][:80])
 
 
 # ---------------------------------------------------------------- runner

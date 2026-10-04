@@ -182,3 +182,26 @@ The pre-image is `path‖oid` concatenated with **no separator**, digest **trunc
 
 ## Z. Amendments
 (none yet)
+
+### Amendment by the maintainer, 2026-10-04, after the campaign was delivered
+
+Nothing above is rewritten. Three notes on what happened next.
+
+- **AF01, EC10 and EC18 were loose against the detector the campaign was written for** (commit
+  `35d093a`): a replace ref masked drift, `GIT_DIR` in the caller's environment redirected the
+  measurement, and a version pattern written never to finish hung the run. The detector now
+  passes `--no-replace-objects`, removes the redirecting `GIT_*` variables, and matches any
+  pattern that is not one of its own in a child process under a 5-second limit.
+- **HC02's classification "not reachable with real git objects" does not hold.** The ambiguity
+  is reachable: `src/a` (blob X) with `src/b` (blob Y), against the single file
+  `src/a<X>src/b` (blob Y), hash the same bytes under the earlier construction, and both are
+  ordinary trees. `tests/battery.py` proof U02 builds exactly that with real objects, checks
+  that the two 16-hex values collide, and requires `drift`. The case here still demonstrates the
+  ambiguity of the 16-hex value, which is kept for comparability with published closures;
+  identity is decided by a second, separated, full-length hash.
+- **HC01 and HC02 call `closure_hash`**, which the rewritten detector keeps under that name.
+- **A harness correction, no expectation touched.** The campaign's own `git` helper inherited
+  standard input, and one case calls `git hash-object --stdin` through it: run from a terminal,
+  or from anything that keeps standard input open, the campaign waited there for ever. The
+  helper now passes an empty standard input. Found when a run started in the background stopped
+  at that call for eleven minutes.

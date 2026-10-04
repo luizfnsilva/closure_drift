@@ -261,3 +261,17 @@ remain comparable. Identity is decided by a second value: SHA-256, all 64 hex, o
 Exit codes with the new verdicts: `would_be_clean` 0; `would_drift` 1; `incomplete`,
 `no_label_at_head`, `empty_closure_at_head` 2. The closed set of §1 is unchanged: 0 is a pass,
 1 is drift, 2 is no determination.
+
+### Amendments to §2–§3 and §7, 2026-10-04 (after the adversarial campaign, before the features were run)
+
+- **D17 added.** The adversarial campaign found that a `version_regex` written never to finish,
+  in the measured repository's own config file, hangs the detector (its case EC18). Required: a
+  named refusal, exit 2, well inside 90 seconds.
+- **M02 and M03 re-expressed, same intent.** The detector no longer calls `ls-tree`; it reads
+  tree objects through one `git cat-file --batch`. M02 ("paths that are not plain ASCII leave
+  the closure") is now a mutant that drops non-ASCII paths; M03 ("a failing git read is taken
+  as an answer") is now a mutant that returns a made-up object where `cat-file` reported none.
+  The proofs they must turn red are unchanged (C01, D14).
+- **F04 widened by one program.** The detector now also starts itself, to match a version
+  pattern that is not one of its own under a time limit. F04 requires that the only programs
+  started are `git` and the detector's own file with `--match-on-stdin`.

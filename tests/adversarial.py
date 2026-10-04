@@ -91,7 +91,8 @@ class Repo:
         return dict(BASE_ENV, GIT_AUTHOR_DATE=when, GIT_COMMITTER_DATE=when)
 
     def _git(self, *args, check=True):
-        r = subprocess.run(["git", *args], cwd=str(self.path), capture_output=True, env=self._env())
+        r = subprocess.run(["git", *args], cwd=str(self.path), capture_output=True, env=self._env(),
+                           stdin=subprocess.DEVNULL)
         if check and r.returncode != 0:
             raise RuntimeError("git %s: %s" % (args[0], r.stderr.decode("utf-8", "replace")[:300]))
         return r

@@ -3,6 +3,110 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 0.8.0 — 2026-10-04
+
+**The detector was wrong in ways its one fixture could not see, and this release is what an audit
+of it found.** 0.7.1 was put through the procedure applied to every other instrument of this
+programme: acceptance proofs pre-registered before the code, negative controls by mutation, and an
+adversarial campaign by a reviewer who did not write the fixes. Before any fix, the acceptance
+battery was run against 0.7.1 as deposited: **30 of 51 proofs red.** The measurement script changes
+for the second time; it is sha256 `@@SHA@@`.
+
+### What 0.7.1 got wrong (each measured on 0.7.1 before it was changed)
+
+- **A file whose name is not plain ASCII was silently outside the closure.** `git ls-tree` quotes
+  such paths, the quoted form matched no glob, and the file dropped out. Two tags under one label
+  differing only in `src/ação.py` came back `inconclusive`; the same repository with `acao.py`
+  came back `drift`. This is a false negative in the one thing the tool measures.
+- **A submodule pointer inside the closure was ignored.** The commit it names decides what code is
+  there; it is now part of the closure.
+- **An undetermined result ended at exit `0`.** `inconclusive` and `no_labels` exited `0`, so
+  `closure_drift.py && release` went ahead on a repository about which nothing had been
+  established. **Exit `0` now means `clean` and nothing else**; every other non-drift outcome is
+  `2`. This is a deliberate break of the documented 0.7.1 contract, and scripts that relied on
+  `0` for "ran to completion" must read the verdict instead.
+- **What was not compared was not said.** A tag declaring no version, or with an empty closure, was
+  skipped without a word, and a failing `git` call was read as empty output — a tag git could not
+  read became a tag quietly not compared. Measured on the reference repositories: `click` is
+  `clean` over 11 of 71 tags, `requests` over 12 of 162. The verdict stands; the report now prints
+  the counts, and a failing git call is a named refusal.
+- **Errors ended at the exit code for drift.** A `.closure-drift.json` holding `[]`, or bytes that
+  are not UTF-8, raised an exception and left the process at `1`. 0.7.0 closed this door for the
+  version pattern only. Every path now goes through one guard: no input produces a traceback and
+  no failure ends at `1`.
+- **Measuring a repository could run that repository's commands, and wrote to it.** The detector
+  runs `git status`, which executes `core.fsmonitor` and the clean filter of a modified file when
+  the repository's own config names them, and which rewrites the index. `README.md` said "nothing
+  written to your repository". Both are closed: the monitor is overridden, the working-tree check
+  is skipped (and reported as not made) where the local config defines a filter, and git is run
+  without optional locks.
+- **A version label was printed raw.** A label holding a line break printed a forged `CLEAN` line
+  in the text report. Everything taken from the repository is escaped before it is printed.
+- **A config value of the wrong type was used anyway** (`"closure": "src/**"` was iterated letter
+  by letter), **`--max-commits` zero or negative changed the range in silence**, and
+  **`--version-regex` without a version file was discarded unchecked**. All three are refusals.
+- **A bare clone could not be measured**: the version file was looked for in the index.
+
+### What the adversarial campaign then found in the corrected detector
+
+Three cases were loose, recorded before any fix, and are closed in this release:
+**a replace ref** (`refs/replace/*`) made the detector read a different tree from the one a tag
+names and turned real drift into `inconclusive`; **`GIT_DIR` in the caller's environment** made it
+measure another repository than the one named and report `clean`; and **a version pattern written
+never to finish**, in the measured repository's own config, hung the run. A pattern that is not one
+of the tool's own is now matched in a child process of the detector under a time limit.
+
+### The closure has a second, unambiguous identifier
+
+The 16-hex closure joins path and object id with nothing between them, so two different lists of
+files can hash the same bytes: `src/a` (blob X) with `src/b` (blob Y), and the single file
+`src/a<X>src/b` (blob Y). Both are ordinary trees, and proof U02 builds them with real objects. The
+16-hex value is **kept, by the same formula**, so every published closure stays comparable; identity
+is now decided by a full-length SHA-256 over `path NUL type SP id LF`, reported as `closure_ids`.
+
+### Added
+
+- **`--would-tag`** — before tagging: would this commit reuse a label that already names other
+  code? Exit `1` if so. The check that stops a release tagged without a version bump.
+- **`--tags GLOB`** — which tags are publication points, for repositories that release several
+  packages from one version file under tag families. Also `"tags"` in `.closure-drift.json`.
+- **`--strict`** — `clean` only if every point scanned was compared; otherwise `incomplete`.
+- **`--explain LABEL`** — the paths that differ under a label in drift. Only on request: without
+  it the report names no file inside the closure, as before.
+- **`--badge`** — one line of Markdown naming the verdict and the commit measured.
+- **`report_format: 2`** in every JSON report, and the fields `publication_points_scanned`,
+  `publication_points_compared`, `points_without_label`, `points_with_empty_closure`,
+  `points_not_commits`, `range_truncated`, `closure_ids`.
+- **One `git cat-file --batch` per run** instead of two processes per tag, each tree object read
+  once. Measured on the reference repositories: `polars` 58 s → 10 s, `lodash` 44 s → 6 s.
+- **Three batteries**, in `tests/` of the source repository, each pre-registered:
+  `battery.py` (@@BATTERY@@), `negative_controls.py` (@@CONTROLS@@), `adversarial.py`
+  (@@ADVERSARIAL@@) — measured on macOS with CPython 3.9 and 3.14, and run on Linux, macOS and
+  Windows on every push.
+- **A package** (`pipx run closure-drift`), **a GitHub Action** and **a pre-commit hook**, all
+  running the deposited file; the package build is checked byte for byte against it before upload.
+- **A study** over the 100 most-downloaded PyPI projects, selection rule and method fixed before
+  the first measurement: `tools/study/`, summarised in `README.md`.
+
+### What this does to results already published
+
+Over the seven public repositories of the reference table, measured with 0.7.1 and with 0.8.0 at
+the same commits and the same version file, **every verdict field is identical** — verdict, labels,
+labels in drift, worst label, points, churn and the whole `drift` object. None of the seven holds a
+non-ASCII path or a submodule pointer inside its closure. A result from an earlier version on a
+repository that does hold one, or whose label was `inconclusive`, should be measured again. The
+exit code of an `inconclusive` or `no_labels` result changes from `0` to `2`.
+
+### Changed
+
+- `README.md` is rewritten to lead with the command and the gate. The argument for why the
+  question matters moved, unchanged, to `docs/WHY.md` in the source repository.
+- Limits that were true and unwritten are now written: a change of file mode alone is not seen; the
+  excluded folders (`tests/`, `docs/`, `vendor/`…) are never in the closure even when a
+  `--closure` glob matches them.
+- `SECURITY.md` lists the git commands actually run.
+- The comments of the detector are in English throughout.
+
 ## 0.7.1 — 2026-09-15
 
 **Three of the deposited files still described 0.6.0 after the 0.7.0 release, and the deposited

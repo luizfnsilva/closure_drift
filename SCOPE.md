@@ -35,6 +35,14 @@ These are not gaps waiting to be filled. They are the boundary, and the boundary
 - **It does not decide what determines your output.** The default closure globs are a guess. If
   they are wrong for your project, the number is wrong, and the tool prints what it used so you can
   see that.
+- **It does not see a change of file mode alone.** The closure is `(path, object id)`. A file made
+  executable, or replaced by a symbolic link holding the same bytes, keeps the same object id.
+- **It never looks under the excluded folders.** `test/`, `tests/`, `spec/`, `docs/`, `vendor/`,
+  `node_modules/` and `*.md` are outside every closure, even when a `--closure` glob matches them.
+  Code that determines your output and lives there can change without this tool noticing.
+- **Its closure identifiers are not a defence against someone crafting collisions.** The 16-hex
+  value is kept for comparability; identity is decided by a full SHA-256, which is as strong as
+  git's own object ids are, and no stronger.
 - **It is not a proof of anything.** `clean` means clean over the range scanned, at the points you
   told it about.
 
@@ -58,13 +66,19 @@ will not arrive as a silent extension of this one.
 
 ## Stability
 
-`closure_drift.py` was byte-identical across 0.3.0, 0.4.0, 0.5.0 and 0.6.0
-(sha256 `da5da3c0e781b67b9b3a55800d599c243edc8df649fc90b24a88e289533805c5`). **It changed in 0.7.0**
-and is now `6d8906ef374b73e6b8c58adba813c77c4ff352f5c9c280aa43ff2baa4f804451`. What changed is a
-refusal and not a measurement: two malformed patterns that used to raise an exception, and so left
-the process at the exit code for drift, now refuse by name. Every result produced by 0.3.0 through
-0.6.0 remains valid and comparable — the two were run over the same repositories and every verdict
-field is identical — and each report carries the `detector_closure` of the detector that produced
-it, which is how a reader tells them apart. The CHANGELOG says what changed and what it does to
-results already published, because a measurement whose instrument moved without saying so is the
-phenomenon this tool exists to detect.
+`closure_drift.py` was byte-identical across 0.3.0–0.6.0
+(sha256 `da5da3c0e781b67b9b3a55800d599c243edc8df649fc90b24a88e289533805c5`), changed in 0.7.0
+(`6d8906ef374b73e6b8c58adba813c77c4ff352f5c9c280aa43ff2baa4f804451`, a refusal and not a
+measurement), and **changes again in 0.8.0**: it is now
+`@@SHA@@`.
+
+0.8.0 is the first change that can alter a measurement, and it is stated here rather than left to
+be discovered. The 16-hex closure is computed by the same formula as before, and over the seven
+public repositories of the README's reference table 0.7.1 and 0.8.0 give identical verdict fields.
+Three kinds of repository can get a different answer, and in each the earlier one was wrong: a
+closure holding a path that is not plain ASCII, a closure holding a submodule pointer, and two file
+lists the earlier formula hashed to the same bytes. The exit code of an undetermined result changed
+from `0` to `2`. Each report carries the `detector_closure` of the detector that produced it, which
+is how a reader tells them apart. The CHANGELOG records each item with the measurement that showed
+it, because a measurement whose instrument moved without saying so is the phenomenon this tool
+exists to detect.

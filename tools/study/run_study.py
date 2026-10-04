@@ -46,7 +46,7 @@ def measure(work: Path, repo: str) -> dict:
         remove(clone)
     row = {"repository": repo}
     try:
-        c = subprocess.run(["git", "clone", "--bare", "--quiet", "--filter=blob:none",
+        c = subprocess.run(["git", "clone", "--bare", "--quiet",
                             "https://github.com/%s.git" % repo, str(clone)],
                            capture_output=True, env=ENV, timeout=TIMEOUT)
         if c.returncode != 0:

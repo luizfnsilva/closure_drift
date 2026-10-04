@@ -28,20 +28,28 @@ DETECTOR = HERE.parent / "closure_drift.py"
 MUTANTS = [
     ("M01", "A03", [('code = {"clean": 0, "drift": 1}.get(verdict, 2)',
                      'code = {"clean": 0, "drift": 1, "inconclusive": 0}.get(verdict, 2)')]),
-    ("M02", "C01", [('["ls-tree", "-r", "-z", sha]', '["ls-tree", "-r", sha]'),
-                    ('out.split(b"\\0")', 'out.split(b"\\n")')]),
-    ("M03", "D14", [('        if may_fail:\n            return None\n        first =',
-                     '        return b""\n        first =')]),
+    ("M02", "C01", [('if e[1] in ("blob", "commit") and self.holds(e[0])]',
+                     'if e[1] in ("blob", "commit") and self.holds(e[0]) and e[0].isascii()]')]),
+    ("M03", "D14", [('                raise Refusal(f"git cat-file could not read {want} {printable(name[:60])}: {printable(said)}")',
+                     '                return b"tree " + b"0" * 40')]),
     ("M04", "E01", [('    out = []\n    for ch in str(text):',
                      '    return str(text)\n    out = []\n    for ch in str(text):')]),
-    ("M05", "F01", [('GIT = ["git", "--no-optional-locks", "-c", "core.fsmonitor=false"]',
-                     'GIT = ["git", "--no-optional-locks"]')]),
-    ("M06", "C04", [('if kind not in ("blob", "commit"):', 'if kind != "blob":')]),
+    ("M05", "F01", [('GIT = ["git", "--no-optional-locks", "--no-replace-objects", "-c", "core.fsmonitor=false"]',
+                     'GIT = ["git", "--no-optional-locks", "--no-replace-objects"]')]),
+    ("M06", "C04", [('if e[1] in ("blob", "commit") and', 'if e[1] in ("blob",) and')]),
     ("M07", "D02", [('if not isinstance(cfg, dict):', 'if False:')]),
     ("M08", "B01", [('"points_without_label": no_label,', '"points_without_label": 0,')]),
     ("M09", "A02", [('code = {"clean": 0, "drift": 1}.get(verdict, 2)',
                      'code = {"clean": 0, "drift": 0}.get(verdict, 2)')]),
     ("M10", "D15", [('    except Exception as e:  # noqa: BLE001', '    except ZeroDivisionError as e:  # noqa: BLE001')]),
+    ("M11", "W02", [('collides = [s["where"] for f, s in by_label.get(label, {}).items() if f != full]',
+                     'collides = [][:0]')]),
+    ("M12", "T01", [('if tag_globs and not any(fnmatch.fnmatchcase(name, g) for g in tag_globs):', 'if False:')]),
+    ("M13", "S01", [('elif a.strict and (no_label or empty or truncated):', 'elif False:')]),
+    ("M14", "U02", [('        short, full, nfiles = closure.ids(entries)\n        if nfiles == 0:\n            empty += 1',
+                     '        short, full, nfiles = closure.ids(entries)\n        full = short\n        if nfiles == 0:\n            empty += 1')]),
+    ("M15", "X04", [('"closure_changes_between_points": churn,\n        }',
+                     '"closure_changes_between_points": churn,\n            "paths": [e[0] for e in closure.members(head_entries)],\n        }')]),
 ]
 
 
@@ -73,7 +81,7 @@ def main() -> int:
                 status, detail = "not_applied", "the text to change was not found exactly once"
             else:
                 target = work / "closure_drift.py"
-                target.write_text(mutated, encoding="utf-8", newline="\n")
+                target.write_bytes(mutated.encode("utf-8"))
                 doc = battery(target, work)
                 if doc is None:
                     status, detail = "no_body", "the battery wrote no result"
