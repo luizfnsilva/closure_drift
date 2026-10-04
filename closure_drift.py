@@ -36,15 +36,17 @@ Usage
   closure_drift.py --closure 'src/**/*.py'      # say what determines your output
   closure_drift.py --strict                     # clean only if every point scanned was compared
   closure_drift.py --explain 1.4.2              # which paths differ under a label in drift
+  closure_drift.py --compare v1.4.1 v1.4.2      # two references, side by side
+  closure_drift.py --diagnose                   # add what a bug report needs
   closure_drift.py --version-file pyproject.toml --version-regex '...'
   closure_drift.py --json | --badge
 
 Exit codes, closed set
-  0   clean (or, with --would-tag, would_be_clean). Nothing else ends at 0.
-  1   drift (or would_drift) — a label covers more than one closure AT A PUBLICATION POINT.
+  0   clean (or would_be_clean; with --compare: identical, differs_under_two_labels).
+  1   drift (or would_drift, differs_under_one_label) — one label, more than one closure.
   2   no determination, cause named: a refusal on stderr, or a report whose verdict is
       inconclusive, incomplete, no_labels, empty_closure, no_publication_points,
-      no_label_at_head or empty_closure_at_head.
+      no_label_at_head, empty_closure_at_head or not_comparable.
 """
 from __future__ import annotations
 
@@ -59,6 +61,7 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
+__version__ = "0.9.0"
 REPORT_FORMAT = 2
 
 # (file, regex with one capture group) — first match in the repo wins
@@ -85,6 +88,14 @@ DYNAMIC_HINTS = [
 DEFAULT_VERSION_REGEX = r'"?version"?\s*[:=]\s*["\']([^"\']+)["\']'
 BUILT_IN_PATTERNS = ({p for _, p in VERSION_SOURCES} | {p for p, _ in DYNAMIC_HINTS}
                      | {DEFAULT_VERSION_REGEX})
+
+# Build tools that take the version from the tag itself. A repository using one has no version file
+# to read — and a label that IS the tag cannot name two tags. Saying "no label found" there, as
+# 0.7.1 did, describes the tool's failure as the repository's.
+TAG_DERIVED = ("setuptools_scm", "setuptools-scm", "hatch-vcs", "hatch_vcs", "versioneer",
+               "poetry-dynamic-versioning", "dunamai", "versioningit", "pbr")
+
+DIAGNOSTICS: dict = {}     # filled only with --diagnose; added to every JSON report
 
 CLOSURE_DEFAULTS = ["src/**", "lib/**", "app/**", "*.py", "*.js", "*.ts", "*.rs", "*.go", "*.java"]
 
@@ -144,6 +155,12 @@ def git_bytes(args: list[str], repo: str, may_fail: bool = False) -> bytes | Non
 def git(args: list[str], repo: str, may_fail: bool = False) -> str:
     out = git_bytes(args, repo, may_fail)
     return "" if out is None else out.decode("utf-8", "replace")
+
+
+def emit(report: dict) -> None:
+    if DIAGNOSTICS:
+        report["diagnostics"] = DIAGNOSTICS
+    print(json.dumps(report, indent=1))
 
 
 def printable(text) -> str:
@@ -487,7 +504,20 @@ def run() -> int:
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--badge", action="store_true",
                     help="print one line of Markdown: a badge naming the verdict and the commit measured")
+    ap.add_argument("--compare", nargs=2, metavar=("A", "B"),
+                    help="compare two tags or commits: labels, closures, and the paths that differ")
+    ap.add_argument("--diagnose", action="store_true",
+                    help="add what a bug report needs: versions, options, what could not be read")
+    ap.add_argument("--version", action="store_true", help="print the version and exit")
     a = ap.parse_args()
+
+    if a.version:
+        print(f"closure_drift {__version__}")
+        return 0
+    if a.diagnose and a.badge:
+        raise Refusal("--diagnose and --badge are two outputs; pass one")
+    if a.diagnose:
+        diagnose_start(a)
 
     if a.max_commits < 1:
         raise Refusal(f"--max-commits must be 1 or more, got {a.max_commits}")
@@ -509,6 +539,8 @@ def run() -> int:
     # repository's history instead of part of someone's shell history.
     # CLI flags override the file. A broken file is an error, never silently ignored — a tool that
     # measures claims cannot guess what you meant.
+    if a.diagnose:
+        diagnose_repository(a)
     cfg = read_config(a.repo)
 
     at = a.at or cfg.get("at") or "tags"
@@ -520,6 +552,9 @@ def run() -> int:
         raise Refusal("--tags selects tags; it cannot be combined with --at commits")
     if a.would_tag and (a.strict or a.explain):
         raise Refusal("--would-tag answers about one commit; --strict and --explain do not apply to it")
+    if a.compare and (a.would_tag or a.explain or a.strict or a.tags or a.at == "commits"):
+        raise Refusal("--compare looks at exactly two references; --would-tag, --explain, --strict, "
+                      "--tags and --at commits do not apply to it")
     tag_globs = (a.tags or cfg.get("tags")) if at == "tags" else None
 
     vfile = a.version_file or cfg.get("version_file")
@@ -542,6 +577,15 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
     else:
         vsrc = detect_version_source(objects, head_entries)
         if not vsrc:
+            blobs = {path: oid for path, kind, oid in head_entries if kind == "blob"}
+            for name in ("pyproject.toml", "setup.py", "setup.cfg"):
+                found = [t for t in TAG_DERIVED if name in blobs and t in objects.text(blobs[name])]
+                if found:
+                    raise Refusal(
+                        f"the version of this project is derived from the tag at build time "
+                        f"({found[0]}, named in {name}): there is no version file to read, and a "
+                        "label that is the tag itself cannot name two tags. Nothing to measure here "
+                        "by default; pass --version-file / --version-regex if a file does declare it.")
             raise Refusal("could not find a version label. Pass --version-file / --version-regex.\n"
                           f"tried: {', '.join(p for p, _ in VERSION_SOURCES)}, "
                           "and dynamic-version fallbacks.")
@@ -560,6 +604,9 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
     include = a.closure or cfg.get("closure") or CLOSURE_DEFAULTS
     closure = Closure(include)
 
+    if a.compare:
+        return compare(a, objects, closure, vpath, vpat, include, head_sha)
+
     pts, total, not_commits, filtered = publication_points(a.repo, at, a.max_commits, tag_globs)
     if not pts and not a.would_tag:
         msg = ("no tags found — this repository publishes nothing addressable by tag. "
@@ -567,9 +614,10 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
         if tag_globs and filtered:
             msg = (f"no tag matches --tags {printable(' '.join(tag_globs))}: "
                    f"{filtered} tag(s) were left out and none remain.")
-        print(json.dumps({"report_format": REPORT_FORMAT, "verdict": "no_publication_points",
-                          "note": msg}, indent=1) if a.json else msg,
-              file=sys.stderr if not a.json else sys.stdout)
+        if a.json:
+            emit({"report_format": REPORT_FORMAT, "verdict": "no_publication_points", "note": msg})
+        else:
+            print(msg, file=sys.stderr)
         return 2
 
     plain = not (a.json or a.badge)
@@ -598,7 +646,7 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
             if full not in states:
                 taken = sum(1 for s in states.values() if s["key"].split("~")[0] == short)
                 states[full] = {"key": short if not taken else f"{short}~{taken + 1}",
-                                "where": f"{name} ({date})", "commit": sha}
+                                "where": f"{name} ({date})", "commit": sha, "name": name}
             compared += 1
         else:
             no_label += 1
@@ -609,6 +657,19 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
     drifting = {v: cs for v, cs in by_label.items() if len(cs) > 1}
     worst = max((len(cs) for cs in by_label.values()), default=0)
     truncated = total > len(pts)
+
+    # Tag families. When the tags that collide carry different prefixes (`py-1.2.0`, `rs-1.2.0`),
+    # the drift is most likely several artefacts released from one version file. That is pointed
+    # out, with the flag that measures one family; it is not assumed.
+    families: dict[str, int] = {}
+    if at == "tags":
+        for cs in drifting.values():
+            for s in cs.values():
+                m = re.match(r"^(.*?)[vV]?\d", s["name"])
+                prefix = m.group(1) if m else s["name"]
+                families[prefix] = families.get(prefix, 0) + 1
+    if len(families) < 2:
+        families = {}
 
     dirty, dirty_note = working_tree_state(a.repo)
     # The stamp of the report itself. A report that says "your label covers N states of your code"
@@ -681,9 +742,11 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
             "closure_changes_between_points": churn,
         }
         report.update(coverage)
+        if families:
+            report["tag_families"] = dict(sorted(families.items()))
         if explained:
             report["explain"] = explained
-        print(json.dumps(report, indent=1))
+        emit(report)
         return code
 
     print(f"{'label':28s} {'closures':>9s}")
@@ -720,6 +783,12 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
         print("the same address denotes more than one possible output.")
         if not explained:
             print("Run again with --explain LABEL to list the paths that differ.")
+        if families:
+            names = sorted(f for f in families if f)
+            print("\nThe tags in drift carry different prefixes: "
+                  + printable(", ".join(repr(f + "*") if f else "(none)" for f in sorted(families))) + ".")
+            print("If each prefix releases a different artefact from one version file, measure one")
+            print("family at a time" + (f": --tags {printable(repr(names[0] + '*'))}" if names else "") + ".")
     elif verdict == "empty_closure":
         print("EMPTY CLOSURE: the closure globs match no file at any publication point scanned.")
         print("Nothing was compared. Pass --closure with the files that determine your output.")
@@ -769,7 +838,7 @@ def would_tag(a, objects, closure, head_entries, vpath, vpat, seen_labels, by_la
             "collides_with": collides, "existing_drift_labels": len(drifting),
         }
         report.update(coverage)
-        print(json.dumps(report, indent=1))
+        emit(report)
         return code
 
     print(f"commit            {stamp['measured_at_head']}"
@@ -782,7 +851,8 @@ def would_tag(a, objects, closure, head_entries, vpath, vpat, seen_labels, by_la
         for where in collides[:10]:
             print(f"      {printable(where)}")
         print("\nTagging this commit would make one label name more than one closure.")
-        print("Change the version before you tag.")
+        print("Change the version before you tag. To see what differs:")
+        print(f"      --compare {printable(collides[0].split(' (')[0])} HEAD")
     elif verdict == "would_be_clean":
         print(f"WOULD BE CLEAN: no existing tag declares {printable(label)} with different code.")
     elif verdict == "no_label_at_head":
@@ -795,6 +865,121 @@ def would_tag(a, objects, closure, head_entries, vpath, vpat, seen_labels, by_la
     print_coverage(coverage, a.max_commits, None)
     print_method(stamp, dirty, None)
     return code
+
+
+def compare(a, objects, closure, vpath, vpat, include, head_sha) -> int:
+    """Two references, side by side: the label and closure of each, and the paths of the closure
+    that differ. It looks at exactly these two commits; publication points play no part."""
+    sides, seen = [], {}
+    for ref in a.compare:
+        sha = git(["rev-parse", "--verify", "--quiet", "--end-of-options", ref + "^{commit}"],
+                  a.repo, may_fail=True).strip()
+        if not sha:
+            raise Refusal(f"--compare: {printable(repr(ref))} does not name a commit in this repository")
+        entries = objects.entries(sha)
+        short, full, n = closure.ids(entries)
+        sides.append({"ref": ref, "commit": sha[:12],
+                      "label": declared_version(objects, entries, vpath, vpat, seen),
+                      "closure": short if n else None, "closure_id": full if n else None,
+                      "files": n,
+                      "members": {p: (k, o) for p, k, o in closure.members(entries)}})
+    one, two = sides
+    ma, mb = one.pop("members"), two.pop("members")
+    changed = sorted(p for p in ma if p in mb and ma[p] != mb[p])
+    only_a = sorted(p for p in ma if p not in mb)
+    only_b = sorted(p for p in mb if p not in ma)
+    if one["files"] and two["files"] and one["closure_id"] == two["closure_id"]:
+        verdict = "identical"
+    elif not (one["files"] and two["files"] and one["label"] and two["label"]):
+        verdict = "not_comparable"
+    elif one["label"] == two["label"]:
+        verdict = "differs_under_one_label"
+    else:
+        verdict = "differs_under_two_labels"
+    code = {"identical": 0, "differs_under_two_labels": 0, "differs_under_one_label": 1}.get(verdict, 2)
+
+    dirty, dirty_note = working_tree_state(a.repo)
+    stamp = {"measured_at_head": head_sha[:12], "working_tree_dirty": dirty,
+             "detector_closure": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:16]}
+    if dirty_note:
+        stamp["working_tree_dirty_note"] = dirty_note
+    if a.badge:
+        print(badge(verdict, stamp["measured_at_head"]))
+        return code
+    if a.json:
+        emit({"report_format": REPORT_FORMAT, "stamp": stamp, "mode": "compare", "repo": a.repo,
+              "version_file": vpath, "closure_globs": include, "verdict": verdict,
+              "a": one, "b": two, "changed": changed, "only_in_a": only_a, "only_in_b": only_b})
+        return code
+
+    for side, tag in ((one, "A"), (two, "B")):
+        print(f"{tag}  {printable(side['ref'])}  (commit {side['commit']})")
+        print(f"   label    {printable(side['label']) if side['label'] else '(none declared)'}")
+        print(f"   closure  {side['closure'] or '(no file matches the closure globs)'}"
+              + (f"   {side['files']} file(s)" if side["files"] else ""))
+    for title, paths in (("changed", changed), ("only in A", only_a), ("only in B", only_b)):
+        for p in paths[:60]:
+            print(f"   {title:10s} {printable(p)}")
+        if len(paths) > 60:
+            print(f"   {title:10s} ... and {len(paths) - 60} more")
+    print("\n" + "=" * 62)
+    if verdict == "identical":
+        print("IDENTICAL: the two references hold the same closure.")
+    elif verdict == "differs_under_one_label":
+        print(f"DIFFERS UNDER ONE LABEL: both declare {printable(one['label'])}, and the code differs")
+        print(f"in {len(changed) + len(only_a) + len(only_b)} path(s). If both were published, that label names two things.")
+    elif verdict == "differs_under_two_labels":
+        print(f"DIFFERS UNDER TWO LABELS: {printable(one['label'])} and {printable(two['label'])}. "
+              "The code differs and so does the label.")
+    else:
+        print("NOT COMPARABLE: a label or a closure is missing on one side (see above).")
+    print_method(stamp, dirty, dirty_note)
+    return code
+
+
+def diagnose_start(a) -> None:
+    """What a bug report needs and a user cannot be asked to look up: the versions involved and
+    the options in effect. No version label, no path of the repository, no path inside a closure."""
+    try:
+        r = subprocess.run([*GIT, "--version"], capture_output=True, env=git_env())
+        git_version = r.stdout.decode("utf-8", "replace").strip() or "unknown"
+    except OSError:
+        git_version = "git could not be run"
+    DIAGNOSTICS.update({
+        "detector_version": __version__,
+        "detector_closure": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:16],
+        "python": sys.version.split()[0],
+        "platform": sys.platform,
+        "git": git_version,
+        "options": {"at": a.at, "would_tag": a.would_tag, "strict": a.strict, "json": a.json,
+                    "max_commits": a.max_commits, "tags": a.tags, "closure": a.closure,
+                    "version_file_given": bool(a.version_file), "version_regex_given": bool(a.version_regex),
+                    "explain_given": a.explain is not None, "compare_given": bool(a.compare)},
+        "repository": None,
+    })
+    if not a.json:
+        d = DIAGNOSTICS
+        print(f"diagnostics       closure_drift {d['detector_version']} ({d['detector_closure']}), "
+              f"Python {d['python']} on {d['platform']}, {printable(d['git'])}")
+        print("  options         " + printable(", ".join(f"{k}={v}" for k, v in d["options"].items()
+                                                         if v not in (None, False))) or "(defaults)")
+
+
+def diagnose_repository(a) -> None:
+    def ask(*args):
+        out = git(list(args), a.repo, may_fail=True).strip()
+        return out or None
+    tags = git(["for-each-ref", "--format=x", "refs/tags"], a.repo, may_fail=True)
+    DIAGNOSTICS["repository"] = {
+        "bare": ask("rev-parse", "--is-bare-repository"),
+        "shallow": ask("rev-parse", "--is-shallow-repository"),
+        "object_format": ask("rev-parse", "--show-object-format"),
+        "tags": len(tags.splitlines()),
+        "commits_reachable_from_head": ask("rev-list", "--count", "HEAD"),
+        "config_file_present": (Path(a.repo) / ".closure-drift.json").exists(),
+    }
+    if not a.json:
+        print("  repository      " + ", ".join(f"{k}={v}" for k, v in DIAGNOSTICS["repository"].items()) + "\n")
 
 
 def print_coverage(c: dict, max_commits: int, total) -> None:

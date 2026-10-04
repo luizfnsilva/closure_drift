@@ -50,6 +50,14 @@ MUTANTS = [
                      '        short, full, nfiles = closure.ids(entries)\n        full = short\n        if nfiles == 0:\n            empty += 1')]),
     ("M15", "X04", [('"closure_changes_between_points": churn,\n        }',
                      '"closure_changes_between_points": churn,\n            "paths": [e[0] for e in closure.members(head_entries)],\n        }')]),
+    ("M16", "CMP01", [('    changed = sorted(p for p in ma if p in mb and ma[p] != mb[p])',
+                       '    changed = sorted(p for p in ma if False)')]),
+    ("M17", "DG01", [('        print("  repository      " + ", ".join(f"{k}={v}" for k, v in DIAGNOSTICS["repository"].items()) + "\\n")',
+                      '        print("  repository      " + str(Path(a.repo).resolve()) + "\\n")')]),
+    ("M18", "TV01", [('                found = [t for t in TAG_DERIVED if name in blobs and t in objects.text(blobs[name])]',
+                      '                found = []')]),
+    ("M19", "CMP01", [('    code = {"identical": 0, "differs_under_two_labels": 0, "differs_under_one_label": 1}.get(verdict, 2)',
+                       '    code = {"identical": 0, "differs_under_two_labels": 0, "differs_under_one_label": 0}.get(verdict, 2)')]),
 ]
 
 

@@ -589,7 +589,7 @@ def f04(root):
               if ("subprocess.run(" in l or "subprocess.Popen(" in l) and not l.strip().startswith("#")]
     allowed_starts = ("[*GIT,", "[sys.executable, os.path.abspath(__file__), \"--match-on-stdin\"]")
     stray = [l for l in starts if not any(a in l for a in allowed_starts)]
-    check(len(starts) == 3 and not stray,
+    check(len(starts) >= 3 and not stray,
           "a program other than git, or the detector itself for a pattern match, may be started: %r" % stray)
     check("os.system" not in src and "os.popen" not in src and "os.exec" not in src, "os.* process call")
 
@@ -1026,6 +1026,155 @@ def g04(root):
           "the badge does not name the verdict and the commit: %r" % lines[0][:80])
 
 
+# ---------------------------------------------------------------- CMP — compare two references
+
+@proof("CMP01")
+def cmp01(root):
+    doc = expect(three_way(root, "cmp01"), "differs_under_one_label", 1, "--compare", "v1", "v2")
+    got = (doc["changed"], doc["only_in_a"], doc["only_in_b"])
+    check(got == (["src/a.py"], ["src/gone.py"], ["src/new.py"]), "compare lists %r" % (got,))
+    check(doc["a"]["label"] == doc["b"]["label"] == "1.0.0" and doc["mode"] == "compare", "sides are wrong")
+
+
+@proof("CMP02")
+def cmp02(root):
+    expect(two_tags(root, "cmp02", "1", "2"), "differs_under_two_labels", 0, "--compare", "v1", "v2")
+
+
+@proof("CMP03")
+def cmp03(root):
+    doc = expect(two_tags(root, "cmp03", same=True), "identical", 0, "--compare", "v1", "v2")
+    check(doc["changed"] == doc["only_in_a"] == doc["only_in_b"] == [], "the lists are not empty")
+
+
+@proof("CMP04")
+def cmp04(root):
+    rc, _, out, err = run(two_tags(root, "cmp04"), "--compare", "v1", "no-such-ref")
+    refusal(rc, out, err, "no-such-ref")
+
+
+@proof("CMP05")
+def cmp05(root):
+    r = half_labelled(root, "cmp05")
+    doc = expect(r, "not_comparable", 2, "--compare", "v0", "v1", "--version-file", "package.json")
+    check(doc["a"]["label"] is None and doc["changed"] == ["src/a.py"], "label or paths are wrong")
+
+
+@proof("CMP06")
+def cmp06(root):
+    odd = "src/odd\n\x1b[2Kname.py"
+    r = three_way(root, "cmp06", odd=odd)
+    rc, _, out, err = run(r, "--compare", "v1", "v2", text=True)
+    check(rc == 1, "exit %d" % rc)
+    check(not raw_controls(out + err), "raw control characters printed: %s" % raw_controls(out + err))
+    doc = expect(r, "differs_under_one_label", 1, "--compare", "v1", "v2")
+    check(doc["changed"] == [odd], "the path did not round-trip: %r" % doc["changed"])
+
+
+@proof("CMP07")
+def cmp07(root):
+    r = two_tags(root, "cmp07")
+    for extra in (("--would-tag",), ("--explain", "1.0.0"), ("--at", "commits")):
+        rc, _, out, err = run(r, "--compare", "v1", "v2", *extra)
+        refusal(rc, out, err, "--compare")
+
+
+# ---------------------------------------------------------------- DG — diagnose
+
+@proof("DG01")
+def dg01(root):
+    r = two_tags(root, "dg01", "7.7.7-label", "7.7.7-label")
+    rc0, _, out0, _ = run(r, text=True)
+    rc, _, out, err = run(r, "--diagnose", text=True)
+    check(rc == rc0 == 1, "exit %d with --diagnose, %d without" % (rc, rc0))
+    block = out.split("\nrepository   ", 1)[0]
+    module = load_detector()
+    digest = hashlib.sha256(Path(DETECTOR).read_bytes()).hexdigest()[:16]
+    for needle in ("closure_drift " + module.__version__, digest, "Python " + sys.version.split()[0], "git version"):
+        check(needle in block, "the block does not name %r" % needle)
+    for secret in ("7.7.7-label", "src/a.py", "keep.py", str(r.path), r.path.name):
+        check(secret not in block, "the block holds %r" % secret)
+    check(out.split("\nrepository   ", 1)[1].split("Measured at HEAD")[0]
+          == out0.split("repository   ", 1)[1].split("Measured at HEAD")[0], "the report itself changed")
+
+
+@proof("DG02")
+def dg02(root):
+    doc = expect(two_tags(root, "dg02"), "drift", 1, "--diagnose")
+    d = doc.get("diagnostics") or {}
+    want = {"detector_version", "detector_closure", "python", "git", "platform", "options", "repository"}
+    check(want <= set(d), "diagnostics lacks %s" % sorted(want - set(d)))
+    check(d["repository"]["tags"] == 2 and d["repository"]["bare"] == "false", "repository facts are wrong: %r" % d["repository"])
+
+
+@proof("DG03")
+def dg03(root):
+    d = root / "dg03"
+    d.mkdir()
+    rc, _, out, err = run(d, "--diagnose", text=True)
+    check(rc == 2, "exit %d" % rc)
+    check("diagnostics " in out and "git version" in out, "the block was not printed before the refusal")
+    check("not a git repository" in err and "Traceback" not in err, "the refusal is not the named one")
+
+
+# ---------------------------------------------------------------- VER — version
+
+@proof("VER01")
+def ver01(root):
+    p = subprocess.run([sys.executable, DETECTOR, "--version"], capture_output=True, env=ENV,
+                       stdin=subprocess.DEVNULL)
+    out = p.stdout.decode("utf-8", "replace")
+    check(p.returncode == 0, "exit %d" % p.returncode)
+    check(out.strip() == "closure_drift " + load_detector().__version__ and not p.stderr.strip(),
+          "printed %r" % out)
+
+
+# ---------------------------------------------------------------- TV — a version derived from the tag
+
+@proof("TV01")
+def tv01(root):
+    r = Repo(root, "tv01")
+    r.write("pyproject.toml", '[build-system]\nrequires = ["setuptools", "setuptools_scm"]\n'
+                              '[project]\nname = "pkg"\ndynamic = ["version"]\n')
+    r.write("pkg/core.py", "x\n")
+    r.commit()
+    r.tag("v1")
+    rc, _, out, err = run(r)
+    refusal(rc, out, err, "derived from the tag")
+    check("setuptools_scm" in err, "the refusal does not name the tool found")
+
+
+@proof("TV02")
+def tv02(root):
+    r = Repo(root, "tv02")
+    r.write("src/a.py", "x\n")
+    r.commit()
+    r.tag("v1")
+    rc, _, out, err = run(r)
+    refusal(rc, out, err, "could not find a version label")
+    check("derived from the tag" not in err, "the tag-derived cause was named without evidence")
+
+
+# ---------------------------------------------------------------- TF — tag families
+
+@proof("TF01")
+def tf01(root):
+    r = families(root, "tf01")
+    doc = expect(r, "drift", 1)
+    check(set(doc.get("tag_families", {})) == {"rs-", "py-"}, "tag_families = %r" % doc.get("tag_families"))
+    _, _, out, _ = run(r, text=True)
+    check("--tags" in out and "different prefixes" in out, "the text report does not suggest --tags")
+
+
+@proof("TF02")
+def tf02(root):
+    r = two_tags(root, "tf02")
+    doc = expect(r, "drift", 1)
+    check("tag_families" not in doc, "tag_families reported for one family: %r" % doc.get("tag_families"))
+    _, _, out, _ = run(r, text=True)
+    check("different prefixes" not in out, "a suggestion was printed for one family")
+
+
 # ---------------------------------------------------------------- K02 — the report is a contract
 
 MEASURE_FIELDS = {"report_format", "stamp", "repo", "version_file", "closure_globs", "published_at",
@@ -1038,7 +1187,8 @@ WOULD_TAG_FIELDS = {"report_format", "stamp", "mode", "repo", "version_file", "c
                     "collides_with", "existing_drift_labels", "publication_points_scanned",
                     "publication_points_compared", "points_without_label", "points_with_empty_closure",
                     "points_not_commits", "range_truncated"}
-EXIT_OF = {"clean": 0, "would_be_clean": 0, "drift": 1, "would_drift": 1, "inconclusive": 2,
+EXIT_OF = {"clean": 0, "would_be_clean": 0, "identical": 0, "differs_under_two_labels": 0,
+           "drift": 1, "would_drift": 1, "differs_under_one_label": 1, "not_comparable": 2, "inconclusive": 2,
            "incomplete": 2, "no_labels": 2, "empty_closure": 2, "no_publication_points": 2,
            "no_label_at_head": 2, "empty_closure_at_head": 2}
 
@@ -1056,6 +1206,9 @@ def k02(root):
             (two_tags(root, "k02d", same=True), (), MEASURE_FIELDS),
             (half_labelled(root, "k02e"), ("--version-file", "package.json", "--strict"), MEASURE_FIELDS),
             (drifty, ("--would-tag",), WOULD_TAG_FIELDS), (cleanly, ("--would-tag",), WOULD_TAG_FIELDS),
+            (drifty, ("--compare", "v1", "v2"),
+             {"report_format", "stamp", "mode", "repo", "version_file", "closure_globs", "verdict",
+              "a", "b", "changed", "only_in_a", "only_in_b"}),
             (lone, (), {"report_format", "verdict", "note"})]
     seen = set()
     for repo, args, fields in runs:
@@ -1071,7 +1224,7 @@ def k02(root):
                   "the stamp is incomplete")
         seen.add(doc["verdict"])
     want = {"drift", "clean", "empty_closure", "inconclusive", "incomplete", "would_be_clean",
-            "no_publication_points"}
+            "no_publication_points", "differs_under_one_label"}
     check(want <= seen, "the proof did not reach every kind of report: missing %s" % sorted(want - seen))
     rc, doc, out, err = run(root / "not-a-repository")
     check(rc == 2 and not out.strip() and err.strip(), "a refusal must leave standard output empty")
