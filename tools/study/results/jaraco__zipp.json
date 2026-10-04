@@ -1,0 +1,7 @@
+{
+ "cause": "could not find a version label. Pass --version-file / --version-regex.",
+ "exit": 2,
+ "head": "8f98e1b5a6203557bf70ed3e84969543d4360c76",
+ "outcome": "refused",
+ "repository": "jaraco/zipp"
+}

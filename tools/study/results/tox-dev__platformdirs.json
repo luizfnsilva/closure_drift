@@ -1,0 +1,7 @@
+{
+ "cause": "could not find a version label. Pass --version-file / --version-regex.",
+ "exit": 2,
+ "head": "960ff632eb575deb6f0d5bf49519d5a2ee2098b6",
+ "outcome": "refused",
+ "repository": "tox-dev/platformdirs"
+}

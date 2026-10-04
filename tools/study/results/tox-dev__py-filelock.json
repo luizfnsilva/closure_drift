@@ -1,0 +1,7 @@
+{
+ "cause": "could not find a version label. Pass --version-file / --version-regex.",
+ "exit": 2,
+ "head": "1f0632b6bc047cf3481bbe740475be813013208e",
+ "outcome": "refused",
+ "repository": "tox-dev/py-filelock"
+}

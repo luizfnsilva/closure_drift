@@ -1,0 +1,7 @@
+{
+ "cause": "could not find a version label. Pass --version-file / --version-regex.",
+ "exit": 2,
+ "head": "a602f78ff670f22be90fb8aea501a6cc30e10fdd",
+ "outcome": "refused",
+ "repository": "python-attrs/attrs"
+}

@@ -1,0 +1,70 @@
+{
+ "exit": 1,
+ "head": "e3fb76df3efd712939c62540f2eec48bc676b038",
+ "outcome": "drift",
+ "report": {
+  "closure_changes_between_points": 35,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {
+   "36d7c519782fd444": "692895d0d7e50af907db53d8817519ede04c4e1fbb773837ea5a6e9937716d31",
+   "3ad8dfe9c729ec9b": "956ab84dc2be6f96833cf3c7bbe4feca85d9516248fddc8ccf11c0902ec5c9ab",
+   "4162d93ad5a18d91": "3752962245c428066213eb28a6b8f78696c0b6b27bfbb78bdd3b81899bf8b340",
+   "4d3f406d5ef47a17": "0d8719fcf9b86027aef5b319d11895ad07eb5b2c3070fce4a4a79c76fec66b5f",
+   "7001253b437a3431": "31a91e8b693b84d8d4c49928ae992638efd250639af477a648019f01f47349a5",
+   "a2c0ffea1ac5d538": "f809c77735323b8c7d2e65115dc349e55b81fbd38061d3bd5b14077e0fdd0c91",
+   "c5a8524f179c2063": "471aa6e4f0fdc596a045aab17c05539612af3e4796efc89f332ebfc9a1c0df49",
+   "d2661c7cccfda23f": "c78e89ef012d94c8cb6bee810accdc43881539509fd0ef090c1af89ea8f72cbd"
+  },
+  "drift": {
+   "0.10.0": {
+    "3ad8dfe9c729ec9b": "v0.10.1 (2023-09-04)",
+    "d2661c7cccfda23f": "v0.10.0 (2023-08-28)"
+   },
+   "0.15.2": {
+    "4162d93ad5a18d91": "v0.16.0 (2023-12-28)",
+    "4d3f406d5ef47a17": "v0.15.2 (2023-12-17)"
+   },
+   "0.16.2": {
+    "4162d93ad5a18d91": "v0.16.2 (2023-12-28)",
+    "a2c0ffea1ac5d538": "v0.17.0 (2024-01-12)"
+   },
+   "0.7.1": {
+    "36d7c519782fd444": "v0.8.1 (2023-07-05)",
+    "7001253b437a3431": "v0.7.1 (2023-03-20)",
+    "c5a8524f179c2063": "v0.8.0 (2023-07-05)"
+   }
+  },
+  "labels": 79,
+  "labels_covering_multiple_closures": 4,
+  "max_closures_per_label": 3,
+  "points_not_commits": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points": 88,
+  "publication_points_compared": 88,
+  "publication_points_scanned": 88,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "crate-py/rpds",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "1125e51615efc369",
+   "measured_at_head": "e3fb76df3efd",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "drift",
+  "version_file": "Cargo.toml"
+ },
+ "repository": "crate-py/rpds"
+}

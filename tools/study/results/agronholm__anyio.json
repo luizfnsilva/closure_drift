@@ -1,0 +1,7 @@
+{
+ "cause": "could not find a version label. Pass --version-file / --version-regex.",
+ "exit": 2,
+ "head": "0630f103556aa450cf674fe5728b9cef60e53351",
+ "outcome": "refused",
+ "repository": "agronholm/anyio"
+}

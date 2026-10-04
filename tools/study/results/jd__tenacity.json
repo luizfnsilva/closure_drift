@@ -1,0 +1,7 @@
+{
+ "cause": "could not find a version label. Pass --version-file / --version-regex.",
+ "exit": 2,
+ "head": "8be01b1daf2010566fd936a5c2214efefa43edff",
+ "outcome": "refused",
+ "repository": "jd/tenacity"
+}

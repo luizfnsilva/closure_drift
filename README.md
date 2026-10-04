@@ -124,7 +124,22 @@ silently wrong.
 
 ## What it found elsewhere
 
-@@STUDY@@
+**The 100 most-downloaded PyPI projects, measured at the tool's defaults** (rule and method fixed
+before the first measurement, no per-repository tuning, 2026-10-04):
+
+| outcome | repositories |
+|---|---|
+| `clean` | 42 |
+| `drift` | 21 |
+| no version label found by the defaults | 34 |
+| `inconclusive` / `no_labels` | 3 |
+
+Drift at **21 of the 63** where a determination was reached, and 21 of all 100. Read that number with
+its two qualifications. In 7 of the 21 the defaults read a constant string as the version — the
+real one comes from the tag — so the finding there is about the defaults, not the project. In the
+other 14 the label does move with the releases, and one to six labels name two different trees.
+The 42 `clean` verdicts cover 2943 of 4632 tags scanned; the rest declared no version at the tag. Every
+row, the selection rule and the reports are in `tools/study/` of the source repository.
 
 Earlier reference measurements, dated, on repositories chosen by the author:
 
@@ -185,9 +200,9 @@ they test. Their scores are reported side by side and **never added together**.
 
 | battery | what it shows | measured on macOS, CPython 3.9 and 3.14 |
 |---|---|---|
-| `tests/battery.py` | the pre-registered acceptance proofs | @@BATTERY@@ |
-| `tests/negative_controls.py` | the battery goes red on a broken detector: each mutant must be caught by a named proof | @@CONTROLS@@ |
-| `tests/adversarial.py` | hostile repositories and hostile input, written by a reviewer who did not write the fixes | @@ADVERSARIAL@@ |
+| `tests/battery.py` | the pre-registered acceptance proofs | 80 declared · 79 green · 0 red · 1 not run |
+| `tests/negative_controls.py` | the battery goes red on a broken detector: each mutant must be caught by a named proof | 15 mutants · 15 caught by the required proof · 0 not caught |
+| `tests/adversarial.py` | hostile repositories and hostile input, written by a reviewer who did not write the fixes | 85 attacks · 84 as required · 0 loose · 1 not run |
 
 The same three run on every push on Linux, macOS and Windows; a proof the platform cannot stage
 comes out `not run` with the reason named, never green. Run against the previous release (0.7.1), the
@@ -221,7 +236,7 @@ for it.
 "stamp": {
   "measured_at_head": "1ea5e43618b4",
   "working_tree_dirty": false,
-  "detector_closure": "@@SHA16@@"
+  "detector_closure": "1125e51615efc369"
 }
 ```
 
@@ -236,7 +251,7 @@ configuration.
 ## Version
 
 **0.8.0** — see `CITATION.cff` and `CHANGELOG.md`. The measurement script is sha256
-`@@SHA@@`, against
+`1125e51615efc3698f09e7bce92bc8647eb468db5471ca79b8ee202cef684cda`, against
 `6d8906ef374b73e6b8c58adba813c77c4ff352f5c9c280aa43ff2baa4f804451` for 0.7.0–0.7.1 and
 `da5da3c0e781b67b9b3a55800d599c243edc8df649fc90b24a88e289533805c5` for 0.3.0–0.6.0.
 

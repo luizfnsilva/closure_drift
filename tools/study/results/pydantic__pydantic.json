@@ -1,0 +1,7 @@
+{
+ "cause": "could not find a version label. Pass --version-file / --version-regex.",
+ "exit": 2,
+ "head": "e87e11b7a74068c2d8107e48ffed6102744abef8",
+ "outcome": "refused",
+ "repository": "pydantic/pydantic"
+}

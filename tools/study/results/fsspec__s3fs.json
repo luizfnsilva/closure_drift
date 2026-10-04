@@ -1,0 +1,7 @@
+{
+ "cause": "could not find a version label. Pass --version-file / --version-regex.",
+ "exit": 2,
+ "head": "17a38ae9dc6ff4df64a338d69e26712c152a36ff",
+ "outcome": "refused",
+ "repository": "fsspec/s3fs"
+}

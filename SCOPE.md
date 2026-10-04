@@ -70,7 +70,7 @@ will not arrive as a silent extension of this one.
 (sha256 `da5da3c0e781b67b9b3a55800d599c243edc8df649fc90b24a88e289533805c5`), changed in 0.7.0
 (`6d8906ef374b73e6b8c58adba813c77c4ff352f5c9c280aa43ff2baa4f804451`, a refusal and not a
 measurement), and **changes again in 0.8.0**: it is now
-`@@SHA@@`.
+`1125e51615efc3698f09e7bce92bc8647eb468db5471ca79b8ee202cef684cda`.
 
 0.8.0 is the first change that can alter a measurement, and it is stated here rather than left to
 be discovered. The 16-hex closure is computed by the same formula as before, and over the seven

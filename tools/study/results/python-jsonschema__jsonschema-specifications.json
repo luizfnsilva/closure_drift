@@ -1,0 +1,7 @@
+{
+ "cause": "could not find a version label. Pass --version-file / --version-regex.",
+ "exit": 2,
+ "head": "7319b3c02fee786ba30dd008646f1f60597736b6",
+ "outcome": "refused",
+ "repository": "python-jsonschema/jsonschema-specifications"
+}

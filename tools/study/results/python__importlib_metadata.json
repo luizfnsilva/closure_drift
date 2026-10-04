@@ -1,0 +1,7 @@
+{
+ "cause": "could not find a version label. Pass --version-file / --version-regex.",
+ "exit": 2,
+ "head": "c5acd62aee92667de3d245a786cce14718cfe786",
+ "outcome": "refused",
+ "repository": "python/importlib_metadata"
+}

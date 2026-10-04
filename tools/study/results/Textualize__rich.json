@@ -1,0 +1,81 @@
+{
+ "exit": 1,
+ "head": "9d8f9a372cc5916fd4781fec207ced7ddac2f08f",
+ "outcome": "drift",
+ "report": {
+  "closure_changes_between_points": 171,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {
+   "02ed56f9fc19c01f": "c1e787a8262aff6861d9546e35f8c7f52b5e3d1d81c36d8f61a2b560f05a8c67",
+   "2671a7ca8175db8b": "8393e1805e5e30a1d9d395a0e1918af973a7e558ebb83d685533d3525f229057",
+   "39cbdefb4fc991f6": "a905d3cda9990ec2a5b29c84527ca7e2adca043e963fc80189a41c54a67782a5",
+   "483eee8225278ef2": "6bcc3692e5c4c3854f3f6cd65c47e818a4f1a4b7b5072310cbe241c54e8f8f4c",
+   "5dcc78b6decbe263": "f8f7e4d31519bbaba9b5d091af386375f56dcb171aa9e5a1197b77d0f3141b15",
+   "99b92e357d1a2ab8": "b20ea0ac843a67f732521b683df01a680245f44b4c8c9b9a3aa6009871da4e85",
+   "9a8e4d797b741cb6": "0fcf798fd73796ecdd594679ae082205e6ba941a839e9ff44fd52aa3d001bef0",
+   "9d20c79269ff03bb": "cea7fb3fd7bdd7c01f6b51b1667224446701444a9ca7814bca60c06cd3f7b685",
+   "a4795d770f7a8daf": "a3c53c1c8f3d0f7ac985595ca9264a007ae71e4229d50bdbabd656939d5b1d82",
+   "baf400d37cc53174": "28e116b20bfb81e4ddb84eb987782633095870594385e588145f0688ff9702f5",
+   "d2d7fe6b136a046b": "9f758d9e7c5484754c9f838aa939c7199cb65de0929b3b6d1c5afe62d2905a11",
+   "e4bd03deed28f5e3": "475ba0f2d209bd695a5082fe94e7ba2ae569a5a1a11a73044874928cb08c8ac9"
+  },
+  "drift": {
+   "0.8.8": {
+    "39cbdefb4fc991f6": "v0.8.9 (2020-04-12)",
+    "a4795d770f7a8daf": "v0.8.8 (2020-03-31)"
+   },
+   "10.15.0": {
+    "2671a7ca8175db8b": "v10.15.0 (2021-11-28)",
+    "9a8e4d797b741cb6": "tags/v10.15.1 (2021-11-29)"
+   },
+   "10.5.0": {
+    "5dcc78b6decbe263": "v10.6.0 (2021-07-12)",
+    "baf400d37cc53174": "v10.5.0 (2021-07-05)"
+   },
+   "12.5.0": {
+    "02ed56f9fc19c01f": "v12.5.1 (2022-07-11)",
+    "e4bd03deed28f5e3": "v12.5.0 (2022-07-11)"
+   },
+   "6.1.0": {
+    "99b92e357d1a2ab8": "v6.1.0 (2020-09-07)",
+    "9d20c79269ff03bb": "v6.1.1 (2020-09-07)"
+   },
+   "9.0.0": {
+    "483eee8225278ef2": "v9.0.1 (2020-10-19)",
+    "d2d7fe6b136a046b": "v9.0.0 (2020-10-18)"
+   }
+  },
+  "labels": 168,
+  "labels_covering_multiple_closures": 6,
+  "max_closures_per_label": 2,
+  "points_not_commits": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points": 178,
+  "publication_points_compared": 178,
+  "publication_points_scanned": 178,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "Textualize/rich",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "1125e51615efc369",
+   "measured_at_head": "9d8f9a372cc5",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "drift",
+  "version_file": "pyproject.toml"
+ },
+ "repository": "Textualize/rich"
+}

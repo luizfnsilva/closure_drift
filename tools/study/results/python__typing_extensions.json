@@ -1,0 +1,43 @@
+{
+ "exit": 0,
+ "head": "3ae9b7553a5c560dc09b484078d98ece2985eecd",
+ "outcome": "clean",
+ "report": {
+  "closure_changes_between_points": 49,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {},
+  "drift": {},
+  "labels": 41,
+  "labels_covering_multiple_closures": 0,
+  "max_closures_per_label": 1,
+  "points_not_commits": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 17,
+  "publication_points": 58,
+  "publication_points_compared": 41,
+  "publication_points_scanned": 58,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "python/typing_extensions",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "1125e51615efc369",
+   "measured_at_head": "3ae9b7553a5c",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "clean",
+  "version_file": "pyproject.toml"
+ },
+ "repository": "python/typing_extensions"
+}

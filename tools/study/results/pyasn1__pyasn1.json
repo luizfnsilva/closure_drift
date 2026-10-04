@@ -1,0 +1,43 @@
+{
+ "exit": 0,
+ "head": "8003397013f6c0e0eabbd2605770477acbc2dc44",
+ "outcome": "clean",
+ "report": {
+  "closure_changes_between_points": 24,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {},
+  "drift": {},
+  "labels": 25,
+  "labels_covering_multiple_closures": 0,
+  "max_closures_per_label": 1,
+  "points_not_commits": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points": 25,
+  "publication_points_compared": 25,
+  "publication_points_scanned": 25,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "pyasn1/pyasn1",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "1125e51615efc369",
+   "measured_at_head": "8003397013f6",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "clean",
+  "version_file": "pyasn1/__init__.py"
+ },
+ "repository": "pyasn1/pyasn1"
+}

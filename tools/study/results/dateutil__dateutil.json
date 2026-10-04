@@ -1,0 +1,7 @@
+{
+ "cause": "could not find a version label. Pass --version-file / --version-regex.",
+ "exit": 2,
+ "head": "2642afacc33fb839c404b75b230fff58b79793f2",
+ "outcome": "refused",
+ "repository": "dateutil/dateutil"
+}

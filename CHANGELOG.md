@@ -10,7 +10,7 @@ of it found.** 0.7.1 was put through the procedure applied to every other instru
 programme: acceptance proofs pre-registered before the code, negative controls by mutation, and an
 adversarial campaign by a reviewer who did not write the fixes. Before any fix, the acceptance
 battery was run against 0.7.1 as deposited: **30 of 51 proofs red.** The measurement script changes
-for the second time; it is sha256 `@@SHA@@`.
+for the second time; it is sha256 `1125e51615efc3698f09e7bce92bc8647eb468db5471ca79b8ee202cef684cda`.
 
 ### What 0.7.1 got wrong (each measured on 0.7.1 before it was changed)
 
@@ -80,8 +80,8 @@ is now decided by a full-length SHA-256 over `path NUL type SP id LF`, reported 
 - **One `git cat-file --batch` per run** instead of two processes per tag, each tree object read
   once. Measured on the reference repositories: `polars` 58 s → 10 s, `lodash` 44 s → 6 s.
 - **Three batteries**, in `tests/` of the source repository, each pre-registered:
-  `battery.py` (@@BATTERY@@), `negative_controls.py` (@@CONTROLS@@), `adversarial.py`
-  (@@ADVERSARIAL@@) — measured on macOS with CPython 3.9 and 3.14, and run on Linux, macOS and
+  `battery.py` (80 declared · 79 green · 0 red · 1 not run), `negative_controls.py` (15 mutants · 15 caught by the required proof · 0 not caught), `adversarial.py`
+  (85 attacks · 84 as required · 0 loose · 1 not run) — measured on macOS with CPython 3.9 and 3.14, and run on Linux, macOS and
   Windows on every push.
 - **A package** (`pipx run closure-drift`), **a GitHub Action** and **a pre-commit hook**, all
   running the deposited file; the package build is checked byte for byte against it before upload.

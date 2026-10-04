@@ -1,0 +1,7 @@
+{
+ "cause": "could not find a version label. Pass --version-file / --version-regex.",
+ "exit": 2,
+ "head": "d6b0a6203a24057c57a425834ea41acee0a7ea70",
+ "outcome": "refused",
+ "repository": "python-websockets/websockets"
+}

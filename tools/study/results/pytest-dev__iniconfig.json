@@ -1,0 +1,7 @@
+{
+ "cause": "could not find a version label. Pass --version-file / --version-regex.",
+ "exit": 2,
+ "head": "00e7d87c7353b1ffecc4cd55f19acfffedd5233e",
+ "outcome": "refused",
+ "repository": "pytest-dev/iniconfig"
+}
