@@ -431,6 +431,21 @@ def setup_info(text: str) -> dict:
     return info
 
 
+def imported_from(text: str, attr: str) -> str | None:
+    """The sibling module a package's __init__ imports `attr` from: `from .mod import attr`."""
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            tree = ast.parse(text)
+    except (SyntaxError, ValueError, RecursionError, MemoryError, OverflowError):
+        return None
+    for node in tree.body:
+        if (isinstance(node, ast.ImportFrom) and node.level == 1 and node.module
+                and any((a.asname or a.name) == attr for a in node.names)):
+            return node.module.replace(".", "/")
+    return None
+
+
 def depth_first(paths) -> list[str]:
     return sorted(paths, key=lambda p: (p.count("/"), p))
 
@@ -595,7 +610,7 @@ class Sources:
         return sorted(tops) if len(tops) == 1 else []
 
     def attribute(self, blobs: dict, module: list[str], attr: str, anywhere: bool = False):
-        """`pkg.attr`: in the module itself, or in a sibling module of that package."""
+        """`pkg.attr`: in the module itself, or in the sibling module its __init__ imports it from."""
         tail = "/".join(module)
         files = [p for base in ("", "src/", "lib/") for p in (base + tail + ".py", base + tail + "/__init__.py")
                  if p in blobs]
@@ -606,9 +621,8 @@ class Sources:
             if self.read(blobs, path, ("attr", attr)):
                 return path, ("attr", attr)
             if path.endswith("/__init__.py"):
-                folder = path[:-len("__init__.py")]
-                for sibling in sorted(p for p in blobs if p.startswith(folder) and p.endswith(".py")
-                                      and "/" not in p[len(folder):]):
+                module = imported_from(self.text(blobs, path), attr)
+                for sibling in ((path[:-len("__init__.py")] + module + ".py",) if module else ()):
                     if self.read(blobs, sibling, ("attr", attr)):
                         return sibling, ("attr", attr)
         return None
