@@ -424,3 +424,12 @@ labels read; VP08 additionally changes the vendored constant and requires that n
 point compares more points. On the seven reference repositories the verdicts may change where
 tags that 0.7.1 could not read turn out to share a label. Whatever comes out is reported; with
 `--version-file` fixed to what 0.7.1 read, the counts must still equal 0.7.1's.
+
+### Amendments to §8, made with §9
+
+- **TV01 is superseded by TL01.** §8 required a refusal naming the tag-derived tool; §9 makes that
+  project measurable, with the tag as the label. TV01 now requires the report to say the label
+  came from the tag.
+- **M18 is re-expressed.** It removed the naming of the tag-derived cause, which no longer exists
+  as a refusal. It now removes the stripping of comments, and must turn TL05 red.
+

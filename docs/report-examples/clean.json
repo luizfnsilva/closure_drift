@@ -3,7 +3,7 @@
  "stamp": {
   "measured_at_head": "33cfa8743c4e",
   "working_tree_dirty": false,
-  "detector_closure": "83e3fea978e0f24f"
+  "detector_closure": "4633bd5abd0f34c4"
  },
  "repo": ".",
  "version_file": "VERSION",
@@ -27,6 +27,9 @@
  "drift": {},
  "closure_ids": {},
  "closure_changes_between_points": 1,
+ "label_sources": {
+  "VERSION": 2
+ },
  "publication_points_scanned": 2,
  "publication_points_compared": 2,
  "points_without_label": 0,

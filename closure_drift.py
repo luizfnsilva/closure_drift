@@ -1,52 +1,19 @@
 #!/usr/bin/env python3
 """closure_drift — does your version label name exactly one version of your code?
 
-When you publish an artefact and address it by (input, version), that address is sound only if the
-version identifies exactly one state of the producing code. Nothing enforces it: the label is a
-string a human edits. When two code states share a label, one address denotes two outputs, and the
-system cannot notice — the label is the only thing it recorded.
+Read-only, no dependencies. At each publication point (a tag, by default) it reads the declared
+version and hashes the files that determine your output; a version that covers two different
+hashes is drift.
 
-This tool measures that on any git repository, read-only, with no dependencies.
-
-WHERE THIS TOOL CHANGED ITS MIND (v2, and it matters)
-
-v1 compared the label against the closure at EVERY COMMIT, and reported drift whenever a commit
-changed the closure without changing the label. Run against four widely used public repositories,
-it reported drift on all of them — because between two releases the version label does not move
-while the code does. That is not drift. That is how releases work. A detector that fires on every
-repository in the world is worth exactly what a test that never fails is worth, which is the very
-failure this tool exists to expose.
-
-The phenomenon is real only where an ARTEFACT WAS PUBLISHED under the label. So v2 asks where your
-publication points are:
-
-  --at tags      (default) each tag is a publication. Drift = two publications, same label,
-                 different closure. This is the case for libraries, packages, most software.
-  --at commits   every commit publishes (continuous publication: a site, a feed, a daily edition).
-                 Then every commit is a publication point and v1's question was the right one.
-
-Between publication points the closure moves freely and that is reported as development churn —
-counted, never alarmed.
-
-Usage
-  closure_drift.py                              # auto-detect, drift at tags
+  closure_drift.py                              # drift at tags
   closure_drift.py --would-tag                  # before you tag: would this commit reuse a label?
   closure_drift.py --tags 'v*'                  # only these tags are publication points
-  closure_drift.py --at commits                 # continuously published output
-  closure_drift.py --closure 'src/**/*.py'      # say what determines your output
-  closure_drift.py --strict                     # clean only if every point scanned was compared
-  closure_drift.py --explain 1.4.2              # which paths differ under a label in drift
-  closure_drift.py --compare v1.4.1 v1.4.2      # two references, side by side
-  closure_drift.py --diagnose                   # add what a bug report needs
-  closure_drift.py --version-file pyproject.toml --version-regex '...'
-  closure_drift.py --json | --badge
+  closure_drift.py --at commits                 # you publish at every commit
+  closure_drift.py --closure 'src/**/*.py'      # what determines your output
+  closure_drift.py --strict | --explain LABEL | --compare A B | --diagnose | --json | --badge
 
-Exit codes, closed set
-  0   clean (or would_be_clean; with --compare: identical, differs_under_two_labels).
-  1   drift (or would_drift, differs_under_one_label) — one label, more than one closure.
-  2   no determination, cause named: a refusal on stderr, or a report whose verdict is
-      inconclusive, incomplete, no_labels, empty_closure, no_publication_points,
-      no_label_at_head, empty_closure_at_head or not_comparable.
+Exit codes: 0 clean · 1 drift · 2 no determination (cause named). Nothing else ends at 0, no
+input produces a traceback, and no failure ends at 1.
 """
 from __future__ import annotations
 
@@ -71,29 +38,26 @@ VERSION_SOURCES = [
     ("package.json",   r'"version"\s*:\s*"([^"]+)"'),
     ("pyproject.toml", r'^\s*version\s*=\s*["\']([^"\']+)["\']'),
     ("Cargo.toml",     r'^\s*version\s*=\s*["\']([^"\']+)["\']'),
-    ("setup.py",       r'version\s*=\s*["\']([^"\']+)["\']'),
+    ("setup.py",       r'(?<![\w.])version\s*=\s*["\']([^"\']+)["\']'),
+    ("setup.py",       r'^(?:VERSION|version|__version__)\s*=\s*["\']([^"\']+)["\']'),
     ("composer.json",  r'"version"\s*:\s*"([^"]+)"'),
     ("build.gradle",   r'^\s*version\s*=?\s*["\']([^"\']+)["\']'),
     ("VERSION",        r'^\s*(\S+)\s*$'),
     ("version.txt",    r'^\s*(\S+)\s*$'),
 ]
 
-# Where the version hides when pyproject.toml declares `dynamic = ["version"]` — which today is the
-# NORM in Python, not the exception. v1 answered "inconclusive" on those repositories, that is: it
-# failed on the majority case and called its own failure a result.
-DYNAMIC_HINTS = [
-    (r'^\s*__version__\s*=\s*["\']([^"\']+)["\']', ["src/*/__version__.py", "*/__version__.py",
-                                                    "src/*/_version.py", "*/_version.py",
-                                                    "src/*/version.py", "*/version.py",
-                                                    "src/*/__init__.py", "*/__init__.py"]),
-]
+# A version kept in a module rather than in the build file.
+VERSION_ATTR = r'^\s*(?:__version__|VERSION|version)\s*(?::[^=\n]*)?=\s*["\']([^"\']+)["\']'
+DUNDER_ATTR = r'^\s*__version__\s*(?::[^=\n]*)?=\s*["\']([^"\']+)["\']'
+ONE_TOKEN = r'^\s*(\S+)\s*$'
+VERSION_MODULES = ("__version__.py", "_version.py", "version.py", "__about__.py", "__init__.py")
+BUILD_FILES = ("pyproject.toml", "setup.cfg", "setup.py")
+TAG_SOURCE = "(the tag)"      # the label is the tag name: the version is derived from it at build time
 DEFAULT_VERSION_REGEX = r'"?version"?\s*[:=]\s*["\']([^"\']+)["\']'
-BUILT_IN_PATTERNS = ({p for _, p in VERSION_SOURCES} | {p for p, _ in DYNAMIC_HINTS}
-                     | {DEFAULT_VERSION_REGEX})
+BUILT_IN_PATTERNS = ({p for _, p in VERSION_SOURCES}
+                     | {DEFAULT_VERSION_REGEX, VERSION_ATTR, DUNDER_ATTR, ONE_TOKEN})
 
-# Build tools that take the version from the tag itself. A repository using one has no version file
-# to read — and a label that IS the tag cannot name two tags. Saying "no label found" there, as
-# 0.7.1 did, describes the tool's failure as the repository's.
+# Build tools that take the version from the tag itself.
 TAG_DERIVED = ("setuptools_scm", "setuptools-scm", "hatch-vcs", "hatch_vcs", "versioneer",
                "poetry-dynamic-versioning", "dunamai", "versioningit", "pbr")
 
@@ -105,8 +69,7 @@ CLOSURE_DEFAULTS = ["src/**", "lib/**", "app/**", "*.py", "*.js", "*.ts", "*.rs"
 CLOSURE_EXCLUDE = ["**/test/**", "**/tests/**", "**/*_test.*", "**/*.test.*", "**/spec/**",
                    "**/docs/**", "**/*.md", "**/node_modules/**", "**/vendor/**", "**/.git/**"]
 
-# Seconds one version pattern may spend on one version file. A pattern can come from the measured
-# repository's own `.closure-drift.json`, and a pattern can be written to never finish.
+# Seconds a user-supplied version pattern may spend on one file.
 REGEX_BUDGET = 5
 
 
@@ -114,21 +77,12 @@ class Refusal(Exception):
     """A named reason why no measurement was produced. Always exit 2, never a traceback."""
 
 
-# Every git call goes through GIT and git_env(). Fixed for all of them:
-#   - `core.fsmonitor=false`: a repository's own config can name a command there, and `git status`
-#     runs it. Measuring a repository must not execute what that repository says to execute.
-#   - `--no-optional-locks`: `git status` otherwise refreshes the index, which is a write to the
-#     repository this tool promises never to write to.
-#   - `--no-replace-objects`: a ref under refs/replace/ makes git hand back a different object than
-#     the one named. Measured: one replace ref turned a real `drift` into `inconclusive`.
-#   - `GIT_NO_LAZY_FETCH`: in a partial clone, reading an object that is not there makes git fetch
-#     it — which opens a connection and runs the `uploadpack` command named in the repository's
-#     own config. A missing object is a refusal here, never a fetch.
+# Every git call uses these. They stop git from running commands named in the measured
+# repository's config (fsmonitor, lazy fetch), from writing to it (optional locks), and from
+# reading a different object than the one named (replace refs).
 GIT = ["git", "--no-optional-locks", "--no-replace-objects", "-c", "core.fsmonitor=false"]
 
-# Variables that make git read a repository other than the one named on the command line. With
-# GIT_DIR set in the caller's shell, `git -C <path>` measures GIT_DIR and the report still prints
-# <path>: a `clean` about the wrong repository. They are removed, not obeyed.
+# Variables that would make git read another repository than the one named. Removed, not obeyed.
 REDIRECTING = ("GIT_DIR", "GIT_WORK_TREE", "GIT_OBJECT_DIRECTORY", "GIT_ALTERNATE_OBJECT_DIRECTORIES",
                "GIT_INDEX_FILE", "GIT_COMMON_DIR", "GIT_NAMESPACE", "GIT_GRAFT_FILE",
                "GIT_SHALLOW_FILE", "GIT_REPLACE_REF_BASE", "GIT_CONFIG")
@@ -142,10 +96,7 @@ def git_env() -> dict:
 
 
 def git_bytes(args: list[str], repo: str, may_fail: bool = False) -> bytes | None:
-    """Output of a git command. A failure is a Refusal naming the command — unless the caller
-    says failure is an answer (may_fail), in which case it is None. It is never empty output:
-    0.7.1 read a failed call as "nothing there", and a tag git could not read became a tag that
-    was quietly not compared."""
+    """Output of a git command. A failure is a Refusal, or None when may_fail — never empty output."""
     try:
         r = subprocess.run([*GIT, "-C", repo, *args], capture_output=True, env=git_env())
     except OSError as e:
@@ -170,9 +121,7 @@ def emit(report: dict) -> None:
 
 
 def printable(text) -> str:
-    """Text safe to print: control characters, bidirectional overrides and undecodable bytes are
-    written as escapes. A version label is a string someone else chose; printed raw, a label
-    holding a line break can draw a second verdict line under the real one."""
+    """Text safe to print: control, format and invisible characters are written as escapes."""
     out = []
     for ch in str(text):
         o = ord(ch)
@@ -186,17 +135,14 @@ def printable(text) -> str:
 
 
 def matches(path: str, globs: list[str]) -> bool:
-    """A leading `**/` matches zero or more folders. Up to 0.7.1 it needed at least one, so the
-    exclusion `**/tests/**` left a `tests/` folder at the root of the repository INSIDE the
-    closure, and `**/*.md` left a root `README.md` in."""
+    """`*` crosses folders; a leading `**/` matches zero or more of them."""
     return any(fnmatch.fnmatch(path, g) or fnmatch.fnmatch(path, g.replace("**/", "*/"))
                or (g.startswith("**/") and fnmatch.fnmatch(path, g[3:]))
                or (g.endswith("/**") and path.startswith(g[:-3] + "/")) for g in globs)
 
 
 def check_globs(globs: list[str], what: str) -> None:
-    """A glob that cannot be compiled is refused by name, before anything is read. On some Python
-    versions a range such as `[z-a]` only fails when it is first matched."""
+    """Refuse, by name, a glob that cannot be compiled."""
     for g in globs:
         for form in (g, g.replace("**/", "*/")):
             try:
@@ -228,18 +174,8 @@ def local_config(repo: str) -> list[tuple[str, str]] | None:
 
 
 class Objects:
-    """One `git cat-file --batch` for the whole run, and a memory of every tree already read.
-
-    Up to 0.7.1 each publication point cost one `ls-tree -r` and one `show`: two processes per
-    tag, and every path of every tag matched against every glob again. Between two tags most
-    folders do not change, and git already says so — an unchanged folder is the same tree object.
-    Each tree object is read once; so is each version file.
-
-    Reading the objects directly also means no path is ever quoted: `ls-tree` without `-z` quotes
-    and octal-escapes any path that is not plain ASCII, the quoted form matches no glob, and the
-    file silently leaves the closure. Measured on 0.7.1: two tags under one label differing only
-    in `src/ação.py` came back `inconclusive`.
-    """
+    """One `git cat-file --batch` for the whole run. Each tree object and each version file is
+    read once; paths come from the objects themselves, so none is ever quoted."""
 
     def __init__(self, repo: str):
         self.repo = repo
@@ -302,8 +238,6 @@ class Objects:
                 kind = "tree" if mode in (b"40000", b"040000") else "commit" if mode == b"160000" else "blob"
                 out.append((name, kind, oid))
         except ValueError:
-            # A tree that does not parse is not a tree with fewer files in it. Read leniently, a
-            # truncated entry changed the closure and came out as `drift`.
             raise Refusal(f"git returned a malformed tree object {tree_oid[:12]}: no measurement was produced")
         self.trees[tree_oid] = out
         return out
@@ -349,17 +283,10 @@ class Closure:
         return [e for e in entries if e[1] in ("blob", "commit") and self.holds(e[0])]
 
     def ids(self, entries: list[tuple[str, str, str]]) -> tuple[str, str, int]:
-        """(short id, full id, number of files).
-
-        The short id is SHA-256 over path + object id, first 16 hex: the value every version since
-        0.3.0 has printed, kept so that published closures stay comparable. It joins path and
-        object id with nothing between them, so two different lists of files can hash the same
-        bytes — `src/a` (blob X) + `src/b` (blob Y) and the single file `src/a<X>src/b` (blob Y).
-        Identity is therefore decided by the full id: all 64 hex over `path NUL type SP id LF`.
-
-        A submodule pointer (type `commit`) is part of the closure when its path matches: the
-        commit it names decides what code is there. Up to 0.7.1 it was skipped.
-        """
+        """(short id, full id, number of files). The short id is the 16-hex value of every version
+        since 0.3.0, kept for comparability; it joins path and object id with nothing between
+        them, so identity is decided by the full id, over `path NUL type SP id LF`. Submodule
+        pointers are part of the closure."""
         short, full, n = hashlib.sha256(), hashlib.sha256(), 0
         for path, kind, oid in self.members(entries):
             raw = path.encode("utf-8", "surrogateescape")
@@ -378,12 +305,8 @@ def closure_hash(entries: list[tuple[str, str, str]], include: list[str]) -> tup
 
 
 def bounded_search(pattern: str, text: str) -> str | None:
-    """The label a pattern captures in a text, or None — within REGEX_BUDGET seconds.
-
-    A built-in pattern is matched here. Any other pattern is matched in a child process of this
-    same file, because a pattern can be written so that matching never ends, and Python offers no
-    way to interrupt a match from inside the process. The child receives the pattern and the text
-    on standard input and nothing else."""
+    """The label a pattern captures, or None. A pattern that is not built in is matched in a child
+    process of this file under a time limit: it could be written never to finish."""
     if pattern in BUILT_IN_PATTERNS:
         m = re.search(pattern, text, re.MULTILINE)
         return m.group(1) if m else None
@@ -407,21 +330,124 @@ def match_on_stdin() -> int:
     return 0
 
 
-def detect_version_source(objects: Objects, head: list[tuple[str, str, str]]) -> tuple[str, str] | None:
-    blobs = {path: oid for path, kind, oid in head if kind == "blob"}
-    for path, pattern in VERSION_SOURCES:
-        if path not in blobs:
-            continue
-        txt = objects.text(blobs[path])
-        if re.search(pattern, txt, re.MULTILINE):
-            return path, pattern
-        # the file declares a dynamic version: the label exists, it is just not here
-        if "dynamic" in txt and "version" in txt:
-            for pat, globs in DYNAMIC_HINTS:
-                for cand in sorted(f for f in blobs if matches(f, globs)):
-                    if re.search(pat, objects.text(blobs[cand]), re.MULTILINE):
-                        return cand, pat
-    return None
+def attr_pattern(name: str) -> str:
+    """The pattern for `<name> = "..."`. Built from an escaped name, so it is safe to match in-process."""
+    pattern = r'^\s*' + re.escape(name) + r'\s*(?::[^=\n]*)?=\s*["\']([^"\']+)["\']'
+    BUILT_IN_PATTERNS.add(pattern)
+    return pattern
+
+
+def uncommented(text: str) -> str:
+    return "\n".join(line.split("#", 1)[0] for line in text.splitlines())
+
+
+def module_files(dotted: list[str], blobs: dict) -> list[str]:
+    """Where a dotted module name can live: at the root, under src/ or lib/, as a file or a package."""
+    tail = "/".join(dotted)
+    return [p for base in ("", "src/", "lib/") for p in (base + tail + ".py", base + tail + "/__init__.py")
+            if p in blobs]
+
+
+def depth_first(paths) -> list[str]:
+    return sorted(paths, key=lambda p: (p.count("/"), p))
+
+
+class Sources:
+    """Where the version label is, at one commit. Resolved at every publication point: a project
+    moves its version from setup.py to a module to pyproject.toml over the years, and a source
+    chosen once at HEAD reads nothing at the older tags.
+
+    In order: a pointer the build files declare; a version written in a known file; a tool that
+    derives the version from the tag (then the label IS the tag); a module named in setup.py; the
+    shallowest version module in the tree."""
+
+    def __init__(self, objects: Objects):
+        self.objects = objects
+        self.cache: dict = {}
+
+    def find(self, entries) -> tuple[str, str] | None:
+        blobs = {path: oid for path, kind, oid in entries if kind == "blob"}
+        key = tuple(blobs.get(n) for n in BUILD_FILES + tuple(f for f, _ in VERSION_SOURCES))
+        hit = self.cache.get(key)
+        if hit is not None and (hit[0] == TAG_SOURCE or self.reads(blobs, *hit)):
+            return hit
+        found, cacheable = self.resolve(blobs)
+        if found is not None and cacheable:
+            self.cache[key] = found
+        return found
+
+    def reads(self, blobs: dict, path: str, pattern: str) -> bool:
+        return path in blobs and re.search(pattern, self.objects.text(blobs[path]), re.MULTILINE) is not None
+
+    def resolve(self, blobs: dict):
+        text = {n: uncommented(self.objects.text(blobs[n])) if n in blobs else "" for n in BUILD_FILES}
+        pp, cfg, setup = text["pyproject.toml"], text["setup.cfg"], text["setup.py"]
+
+        # 1. a pointer the build files declare
+        m = re.search(r'^\[tool\.hatch\.version\][^\[]*?^\s*path\s*=\s*["\']([^"\']+)["\']', pp, re.M | re.S)
+        if m and self.reads(blobs, m.group(1), VERSION_ATTR):
+            return (m.group(1), VERSION_ATTR), True
+        m = (re.search(r'^\s*version\s*=\s*\{\s*file\s*=\s*\[?\s*["\']([^"\']+)["\']', pp, re.M)
+             or re.search(r'^\s*version\s*=\s*file:\s*(\S+)', cfg, re.M))
+        if m and self.reads(blobs, m.group(1), ONE_TOKEN):
+            return (m.group(1), ONE_TOKEN), True
+        m = (re.search(r'^\s*version\s*=\s*\{\s*attr\s*=\s*["\']([\w.]+)["\']', pp, re.M)
+             or re.search(r'^\s*version\s*=\s*attr:\s*([\w.]+)', cfg, re.M))
+        if m and "." in m.group(1):
+            got = self.attribute(blobs, m.group(1).split(".")[:-1], m.group(1).split(".")[-1])
+            if got:
+                return got, True
+        if "flit_core" in pp or "flit.buildapi" in pp:
+            m = re.search(r'^\s*name\s*=\s*["\']([^"\']+)["\']', pp, re.M)
+            if m:
+                got = self.attribute(blobs, [m.group(1).replace("-", "_")], "__version__")
+                if got:
+                    return got, True
+
+        # 2. a version written in a known file
+        for path, pattern in VERSION_SOURCES:
+            if self.reads(blobs, path, pattern):
+                return (path, pattern), True
+
+        # 3. the version is derived from the tag at build time: the label is the tag
+        if any(tool in body for body in text.values() for tool in TAG_DERIVED):
+            return (TAG_SOURCE, ""), True
+
+        # 4. setup.py names a module: version=pkg.__version__
+        m = re.search(r'(?<![\w.])version\s*=\s*([A-Za-z_]\w*)\.([A-Za-z_]\w*)\s*[,)\n]', setup)
+        if m:
+            name, attr = m.group(1), m.group(2)
+            anywhere = depth_first(p for p in blobs if p in (name + ".py", name + "/__init__.py")
+                                   or p.endswith(("/" + name + ".py", "/" + name + "/__init__.py")))
+            for path in anywhere:
+                if self.reads(blobs, path, attr_pattern(attr)):
+                    return (path, attr_pattern(attr)), True
+
+        # 5. the shallowest version module, when this is a Python project at all
+        if any(n in blobs for n in BUILD_FILES):
+            for path in depth_first(p for p in blobs if p.count("/") <= 2
+                                    and p.rsplit("/", 1)[-1] in VERSION_MODULES
+                                    and not matches(p, CLOSURE_EXCLUDE)):
+                pattern = DUNDER_ATTR if path.endswith("__init__.py") else VERSION_ATTR
+                if self.reads(blobs, path, pattern):
+                    return (path, pattern), False
+        return None, False
+
+    def attribute(self, blobs: dict, module: list[str], attr: str) -> tuple[str, str] | None:
+        """`pkg.__version__`: in the module itself, or in a version module of that package."""
+        for path in module_files(module, blobs):
+            if self.reads(blobs, path, attr_pattern(attr)):
+                return path, attr_pattern(attr)
+            folder = path.rsplit("/", 1)[0] + "/" if path.endswith("__init__.py") else None
+            for name in VERSION_MODULES[:-1]:
+                if folder and self.reads(blobs, folder + name, VERSION_ATTR):
+                    return folder + name, VERSION_ATTR
+        return None
+
+
+def tag_label(name: str) -> str:
+    """The version a tag-derived build gives a tag: the name, without a leading `v`."""
+    return name[1:] if re.match(r"^[vV]\d", name) else name
 
 
 def publication_points(repo: str, at: str, limit: int, tag_globs: list[str] | None):
@@ -438,15 +464,12 @@ def publication_points(repo: str, at: str, limit: int, tag_globs: list[str] | No
         if l.count("\t") < 2:
             continue
         sha, date, name = l.split("\t", 2)
-        # `%(refname:short)` turns the tag `v1` into `tags/v1` when a branch `v1` exists, and a
-        # `--tags 'v*'` then silently leaves that tag out. The full name, with its prefix removed.
+        # the full ref name: `refname:short` becomes `tags/v1` when a branch `v1` exists
         name = name[len("refs/tags/"):] if name.startswith("refs/tags/") else name
         if tag_globs and not any(fnmatch.fnmatchcase(name, g) for g in tag_globs):
             filtered += 1
             continue
-        # An annotated tag points at a tag object; resolve it to the commit. A tag may also point
-        # at a blob or a tree (a public key, for instance): that is not a publication of code, and
-        # it is counted instead of bringing the measurement down.
+        # resolve annotated tags; a tag that points at a blob or a tree is counted, not scanned
         c = git(["rev-parse", "--verify", "--quiet", sha + "^{commit}"], repo, may_fail=True).strip()
         if not c:
             not_commits += 1
@@ -458,20 +481,41 @@ def publication_points(repo: str, at: str, limit: int, tag_globs: list[str] | No
 def declared_version(objects: Objects, entries, path: str, pattern: str, seen: dict) -> str | None:
     for p, kind, oid in entries:
         if p == path and kind == "blob":
-            if oid not in seen:
-                seen[oid] = bounded_search(pattern, objects.text(oid))
-            return seen[oid]
+            if (oid, pattern) not in seen:
+                seen[(oid, pattern)] = bounded_search(pattern, objects.text(oid))
+            return seen[(oid, pattern)]
     return None
+
+
+class Labels:
+    """The label at a publication point, and where it was read from."""
+
+    def __init__(self, objects: Objects, fixed: tuple[str, str] | None):
+        self.objects, self.fixed = objects, fixed
+        self.sources, self.seen = Sources(objects), {}
+        self.counts: dict[str, int] = {}
+
+    def source(self, entries) -> tuple[str, str] | None:
+        return self.fixed or self.sources.find(entries)
+
+    def at(self, entries, tag: str | None, count: bool = True) -> str | None:
+        src = self.source(entries)
+        if src is None:
+            return None
+        if src[0] == TAG_SOURCE:
+            label = tag_label(tag) if tag else None
+        else:
+            label = declared_version(self.objects, entries, src[0], src[1], self.seen)
+        if label and count:
+            self.counts[src[0]] = self.counts.get(src[0], 0) + 1
+        return label
 
 
 CONFIG_KEYS = {"at": str, "version_file": str, "version_regex": str, "closure": list, "tags": list}
 
 
 def read_config(repo: str) -> dict:
-    """`.closure-drift.json`, checked. A broken file is a refusal, never silently ignored — and
-    "broken" includes a file that parses and is not what it should be: a key this tool does not
-    know is more likely a misspelt key than a comment, and ignoring it measures something other
-    than what the repository declared."""
+    """`.closure-drift.json`, checked. A broken file, a wrong type or an unknown key is a refusal."""
     cfg_path = Path(repo) / ".closure-drift.json"
     if not cfg_path.exists():
         return {}
@@ -494,10 +538,8 @@ def read_config(repo: str) -> dict:
 
 
 def working_tree_state(repo: str) -> tuple[bool | None, str | None]:
-    """(dirty, why it was not checked). `git status` runs the clean filter of any modified file
-    that `.gitattributes` routes through one, and a filter is a command named in the repository's
-    own config. Where the local config defines one, the check is not made and the report says so:
-    an unknown is honest, running someone else's command to find out is not."""
+    """(dirty, why it was not checked). `git status` would run a clean filter named in the
+    repository's config; where one is defined the check is not made, and the report says so."""
     local = local_config(repo)
     if local is None:
         return None, "not checked: the local git config could not be read"
@@ -583,26 +625,16 @@ def run() -> int:
     if not head_sha:
         raise Refusal(f"this repository has no commits: {printable(a.repo)}")
 
-    # A repository may carry its own measurement settings in `.closure-drift.json` at the root:
-    #   {"at": "commits", "version_file": "...", "version_regex": "...", "closure": ["glob", ...],
-    #    "tags": ["glob", ...]}
-    # This exists because the honest configuration for a continuously-publishing system is four
-    # long flags, and a measurement that takes four flags does not get run — not in CI, and not
-    # when someone says "show me" with thirty seconds and no notes. Committing the configuration
-    # next to the code also makes the measurement itself reviewable: the flags become part of the
-    # repository's history instead of part of someone's shell history.
-    # CLI flags override the file. A broken file is an error, never silently ignored — a tool that
-    # measures claims cannot guess what you meant.
     if a.diagnose:
         diagnose_repository(a)
-    # A partial clone fetches what it lacks. GIT_NO_LAZY_FETCH stops that from git 2.45; on an
-    # older git nothing does, so a partial clone is refused there rather than measured.
+    # A partial clone fetches what it lacks; on a git that cannot disable that, it is refused.
     partial = [k for k, _v in (local_config(a.repo) or [])
                if k == "extensions.partialclone" or re.match(r"^remote\..*\.(promisor|partialclonefilter)$", k)]
     if partial and git_version() < (2, 45):
         raise Refusal("this is a partial clone, and this git is older than 2.45: reading an object "
                       "that is not here would fetch it, running the remote's configured commands. "
                       "Use git 2.45 or newer, or a full clone.")
+    # settings committed in the repository; command-line flags override them
     cfg = read_config(a.repo)
 
     at = a.at or cfg.get("at") or "tags"
@@ -636,33 +668,22 @@ def run() -> int:
 
 def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vregex, cfg) -> int:
     head_entries = objects.entries(head_sha)
+    labels = Labels(objects, (vfile, vregex or DEFAULT_VERSION_REGEX) if vfile else None)
     if vfile:
-        vsrc = (vfile, vregex or DEFAULT_VERSION_REGEX)
+        vsrc = labels.fixed
     else:
-        vsrc = detect_version_source(objects, head_entries)
+        vsrc = labels.source(head_entries)
         if not vsrc:
-            blobs = {path: oid for path, kind, oid in head_entries if kind == "blob"}
-            for name in ("pyproject.toml", "setup.py", "setup.cfg"):
-                live = "\n".join(line.split("#", 1)[0] for line in objects.text(blobs[name]).splitlines()) \
-                    if name in blobs else ""
-                found = [t for t in TAG_DERIVED if t in live]
-                if found:
-                    raise Refusal(
-                        f"no version file was found, and {name} names {found[0]}: the version of "
-                        "this project appears to be derived from the tag at build time. A label "
-                        "that is the tag itself cannot name two tags, so there is nothing to "
-                        "measure here by default; pass --version-file / --version-regex if a file "
-                        "does declare the version.")
             raise Refusal("could not find a version label. Pass --version-file / --version-regex.\n"
                           f"tried: {', '.join(p for p, _ in VERSION_SOURCES)}, "
                           "and dynamic-version fallbacks.")
     vpath, vpat = vsrc
-    # 2026-09-15 — a malformed pattern, or one without a capture group, used to raise:
-    # `re.error` / `IndexError` left the instrument with exit 1, which is the code for
-    # `drift`. An error that cannot be told apart from a finding is worse than no finding.
-    # Both are now refusals with the refusal code, named, before any repository is read.
+    if vpath == TAG_SOURCE and at == "commits":
+        raise Refusal("the version of this project is derived from the tag at build time, and "
+                      "--at commits has no tag to read it from. Pass --version-file if a file declares it.")
+    # a malformed pattern, or one without a capture group, is refused before anything is read
     try:
-        _probe = re.compile(vpat)
+        _probe = re.compile(vpat or "()")
     except (re.error, RecursionError, OverflowError) as e:
         raise Refusal(f"invalid --version-regex {vpat!r}: {e}")
     if _probe.groups < 1:
@@ -672,10 +693,9 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
     closure = Closure(include)
 
     if a.compare:
-        return compare(a, objects, closure, vpath, vpat, include, head_sha)
+        return compare(a, objects, closure, labels, vpath, include, head_sha)
 
-    # --would-tag answers "does ANY existing tag declare this label with other code": it looks at
-    # every tag, not at the most recent --max-commits. A collision with an old tag is a collision.
+    # --would-tag looks at every tag: a collision with an old tag is a collision
     limit = a.max_commits if not a.would_tag else 10 ** 9
     pts, total, not_commits, filtered = publication_points(a.repo, at, limit, tag_globs)
     if not pts and (not a.would_tag or (tag_globs and filtered)):
@@ -701,7 +721,6 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
 
     # label -> full closure id -> {key (the 16-hex id), where it was first seen, commit}
     by_label: dict[str, dict[str, dict]] = defaultdict(dict)
-    seen_labels: dict = {}
     churn, compared, no_label, empty = 0, 0, 0, 0
     empty_labelled: dict[str, list[str]] = defaultdict(list)   # label -> tags whose closure is empty
     prev = None
@@ -711,11 +730,11 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
         if nfiles == 0:
             empty += 1
             if a.would_tag:
-                v = declared_version(objects, entries, vpath, vpat, seen_labels)
+                v = labels.at(entries, name if at == "tags" else None, count=False)
                 if v:
                     empty_labelled[v].append(f"{name} ({date})")
             continue
-        v = declared_version(objects, entries, vpath, vpat, seen_labels)
+        v = labels.at(entries, name if at == "tags" else None)
         if v:
             states = by_label[v]
             if full not in states:
@@ -733,9 +752,7 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
     worst = max((len(cs) for cs in by_label.values()), default=0)
     truncated = total > len(pts)
 
-    # Tag families. When the tags that collide carry different prefixes (`py-1.2.0`, `rs-1.2.0`),
-    # the drift is most likely several artefacts released from one version file. That is pointed
-    # out, with the flag that measures one family; it is not assumed.
+    # tag families: colliding tags with different prefixes (`py-1.2.0`, `rs-1.2.0`) are pointed out
     families: dict[str, int] = {}
     if at == "tags":
         for cs in drifting.values():
@@ -747,10 +764,7 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
         families = {}
 
     dirty, dirty_note = working_tree_state(a.repo)
-    # The stamp of the report itself. A report that says "your label covers N states of your code"
-    # and does not say under which HEAD, nor with which version of the detector, it was measured
-    # is itself an ambiguously addressed artefact — the defect this program exists to find. It goes
-    # in the JSON because the JSON is what becomes the record.
+    # the report says which HEAD and which detector produced it
     stamp = {
         "measured_at_head": head_sha[:12],
         "working_tree_dirty": dirty,
@@ -771,7 +785,7 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
         coverage["tags_filtered_out"] = filtered
 
     if a.would_tag:
-        return would_tag(a, objects, closure, head_entries, vpath, vpat, seen_labels, by_label,
+        return would_tag(a, closure, head_entries, labels, vpath, by_label,
                          drifting, stamp, coverage, at, include, dirty, dirty_note, empty_labelled)
 
     if drifting:
@@ -786,9 +800,7 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
         verdict = "incomplete"
     else:
         verdict = "clean"
-    # 0 is `clean` and nothing else. Up to 0.7.1 `inconclusive` and `no_labels` also ended at 0,
-    # so `closure_drift.py && release` went ahead on a repository about which nothing had been
-    # established. An absence of measurement is not a pass.
+    # 0 is `clean` and nothing else: an absence of measurement is not a pass
     code = {"clean": 0, "drift": 1}.get(verdict, 2)
 
     explained = None
@@ -815,6 +827,7 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
             "drift": {v: {s["key"]: s["where"] for s in cs.values()} for v, cs in drifting.items()},
             "closure_ids": {s["key"]: full for cs in drifting.values() for full, s in cs.items()},
             "closure_changes_between_points": churn,
+            "label_sources": dict(sorted(labels.counts.items())),
         }
         report.update(coverage)
         if families:
@@ -885,12 +898,12 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
     return code
 
 
-def would_tag(a, objects, closure, head_entries, vpath, vpat, seen_labels, by_label, drifting,
+def would_tag(a, closure, head_entries, labels, vpath, by_label, drifting,
               stamp, coverage, at, include, dirty, dirty_note, empty_labelled) -> int:
     """Before tagging: the label and closure of HEAD against the tags that exist. The answer is
     about the tag you are about to create; drift already in the history is counted, not judged."""
     short, full, nfiles = closure.ids(head_entries)
-    label = declared_version(objects, head_entries, vpath, vpat, seen_labels) if nfiles else None
+    label = labels.at(head_entries, None, count=False) if nfiles else None
     collides = []
     if nfiles == 0:
         verdict = "empty_closure_at_head"
@@ -931,6 +944,9 @@ def would_tag(a, objects, closure, head_entries, vpath, vpat, seen_labels, by_la
         print(f"      --compare {shlex.quote(printable(collides[0].rsplit(' (', 1)[0]))} HEAD")
     elif verdict == "would_be_clean":
         print(f"WOULD BE CLEAN: no existing tag declares {printable(label)} with different code.")
+    elif verdict == "no_label_at_head" and vpath == TAG_SOURCE:
+        print("NO LABEL AT HEAD: this project derives its version from the tag, so the label will be")
+        print("the tag you create. There is no version file to check before tagging.")
     elif verdict == "no_label_at_head":
         print(f"NO LABEL AT HEAD: {printable(vpath)} declares no version at this commit.")
     else:
@@ -943,10 +959,10 @@ def would_tag(a, objects, closure, head_entries, vpath, vpat, seen_labels, by_la
     return code
 
 
-def compare(a, objects, closure, vpath, vpat, include, head_sha) -> int:
+def compare(a, objects, closure, labels, vpath, include, head_sha) -> int:
     """Two references, side by side: the label and closure of each, and the paths of the closure
     that differ. It looks at exactly these two commits; publication points play no part."""
-    sides, seen = [], {}
+    sides = []
     for ref in a.compare:
         sha = git(["rev-parse", "--verify", "--quiet", "--end-of-options", ref + "^{commit}"],
                   a.repo, may_fail=True).strip()
@@ -955,7 +971,9 @@ def compare(a, objects, closure, vpath, vpat, include, head_sha) -> int:
         entries = objects.entries(sha)
         short, full, n = closure.ids(entries)
         sides.append({"ref": ref, "commit": sha[:12],
-                      "label": declared_version(objects, entries, vpath, vpat, seen),
+                      "label": labels.at(entries, ref if git_bytes(
+                          ["rev-parse", "--verify", "--quiet", "--end-of-options", "refs/tags/" + ref],
+                          a.repo, may_fail=True) else None, count=False),
                       "closure": short if n else None, "closure_id": full if n else None,
                       "files": n,
                       "members": {p: (k, o) for p, k, o in closure.members(entries)}})
@@ -1060,8 +1078,7 @@ def diagnose_repository(a) -> None:
 
 
 def print_coverage(c: dict, max_commits: int, total) -> None:
-    # What was NOT compared, said every time. A `clean` over half the tags is a different claim
-    # from a `clean` over all of them, and 0.7.1 printed the same line for both.
+    # what was not compared, said every time
     print(f"\nPublication points: {c['publication_points_scanned']} scanned, "
           f"{c['publication_points_compared']} compared.")
     if c["points_without_label"]:

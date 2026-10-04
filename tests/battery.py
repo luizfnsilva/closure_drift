@@ -1135,15 +1135,15 @@ def ver01(root):
 
 @proof("TV01")
 def tv01(root):
+    """Superseded by §9 (TL01): a tag-derived project is no longer refused; its label is the tag."""
     r = Repo(root, "tv01")
     r.write("pyproject.toml", '[build-system]\nrequires = ["setuptools", "setuptools_scm"]\n'
                               '[project]\nname = "pkg"\ndynamic = ["version"]\n')
     r.write("pkg/core.py", "x\n")
     r.commit()
     r.tag("v1")
-    rc, _, out, err = run(r)
-    refusal(rc, out, err, "derived from the tag")
-    check("setuptools_scm" in err, "the refusal does not name the tool found")
+    doc = expect(r, "inconclusive", 2, "--closure", "pkg/**")
+    check(doc["label_sources"] == {"(the tag)": 1}, "label_sources = %r" % doc["label_sources"])
 
 
 @proof("TV02")
@@ -1197,9 +1197,194 @@ def ex02(root):
     expect(r, "inconclusive", 2, "--closure", "src/**", "--closure", "pkg/**")
 
 
+# ---------------------------------------------------------------- PT — the source is resolved at each point
+
+def moving_source(root, name, labels=("1.0", "1.1", "1.2")):
+    r = Repo(root, name)
+    r.write("setup.py", 'from setuptools import setup\nsetup(name="pkg", version="%s")\n' % labels[0])
+    r.write("pkg/core.py", "one\n")
+    r.commit("t1"); r.tag("t1")
+    r.write("setup.py", 'from setuptools import setup\nimport pkg\nsetup(name="pkg", version=pkg.__version__)\n')
+    r.write("pkg/__init__.py", '__version__ = "%s"\n' % labels[1])
+    r.write("pkg/core.py", "two\n")
+    r.commit("t2"); r.tag("t2")
+    r.remove("setup.py")
+    r.write("pkg/__init__.py", "")
+    r.write("pyproject.toml", '[project]\nname = "pkg"\nversion = "%s"\n' % labels[2])
+    r.write("pkg/core.py", "three\n")
+    r.commit("t3"); r.tag("t3")
+    return r
+
+
+@proof("PT01")
+def pt01(root):
+    doc = expect(moving_source(root, "pt01"), "clean", 0, "--closure", "pkg/core.py",
+                 publication_points_compared=3, labels=3)
+    check(set(doc["label_sources"]) == {"setup.py", "pkg/__init__.py", "pyproject.toml"},
+          "label_sources = %r" % doc["label_sources"])
+
+
+@proof("PT02")
+def pt02(root):
+    expect(moving_source(root, "pt02", ("1.0", "1.1", "1.0")), "drift", 1, "--closure", "pkg/core.py")
+
+
+@proof("PT03")
+def pt03(root):
+    doc = expect(moving_source(root, "pt03"), "inconclusive", 2, "--closure", "pkg/core.py",
+                 "--version-file", "pyproject.toml", publication_points_compared=1)
+    check(doc["label_sources"] == {"pyproject.toml": 1}, "label_sources = %r" % doc["label_sources"])
+
+
+# ---------------------------------------------------------------- TL — the label is the tag
+
+def scm_repo(root, name, tags, comment_only=False):
+    r = Repo(root, name)
+    for i, tag in enumerate(tags):
+        r.write("pyproject.toml", ('[build-system]\nrequires = ["setuptools"%s]\n[project]\nname = "pkg"\n'
+                                   'dynamic = ["version"]\n%s')
+                % ("" if comment_only else ', "setuptools_scm"',
+                   "# we do not use setuptools_scm\n" if comment_only else ""))
+        r.write("pkg/__init__.py", '__version__ = "unknown"\n')
+        r.write("pkg/core.py", "state %d\n" % i)
+        r.commit(tag); r.tag(tag)
+    return r
+
+
+@proof("TL01")
+def tl01(root):
+    doc = expect(scm_repo(root, "tl01", ["v1.0", "v1.1"]), "clean", 0, "--closure", "pkg/core.py", labels=2)
+    check(doc["label_sources"] == {"(the tag)": 2}, "label_sources = %r" % doc["label_sources"])
+    cmp_doc = expect(scm_repo(root, "tl01b", ["v1.0", "v1.1"]), "differs_under_two_labels", 0,
+                     "--closure", "pkg/core.py", "--compare", "v1.0", "v1.1")
+    check((cmp_doc["a"]["label"], cmp_doc["b"]["label"]) == ("1.0", "1.1"), "labels are not the tags without v")
+
+
+@proof("TL02")
+def tl02(root):
+    doc = expect(scm_repo(root, "tl02", ["v1.0", "v1.1", "1.0"]), "drift", 1, "--closure", "pkg/core.py")
+    check(list(doc["drift"]) == ["1.0"], "the label in drift is %r" % list(doc["drift"]))
+
+
+@proof("TL03")
+def tl03(root):
+    rc, _, out, err = run(scm_repo(root, "tl03", ["v1.0", "v1.1"]), "--at", "commits")
+    refusal(rc, out, err, "derived from the tag")
+
+
+@proof("TL04")
+def tl04(root):
+    r = scm_repo(root, "tl04", ["v1.0", "v1.1"])
+    expect(r, "no_label_at_head", 2, "--would-tag", "--closure", "pkg/core.py")
+    _, _, out, _ = run(r, "--would-tag", "--closure", "pkg/core.py", text=True)
+    check("the label will be" in out, "the text does not say the version will be the tag")
+
+
+@proof("TL05")
+def tl05(root):
+    doc = expect(scm_repo(root, "tl05", ["v1.0", "v1.1"], comment_only=True), "drift", 1,
+                 "--closure", "pkg/core.py")
+    check(doc["label_sources"] == {"pkg/__init__.py": 2}, "label_sources = %r" % doc["label_sources"])
+
+
+# ---------------------------------------------------------------- VP — declared pointers
+
+def pointer_repo(root, name, files_for):
+    """files_for(version) -> {path: text}; two tags, two versions, two closures."""
+    r = Repo(root, name)
+    for tag, version in (("t1", "2.0.0"), ("t2", "2.1.0")):
+        for path, body in files_for(version).items():
+            r.write(path, body)
+        r.write("pkg/core.py", "code for %s\n" % version)
+        r.commit(tag); r.tag(tag)
+    return r
+
+
+def pointer_proof(root, name, files_for, source):
+    doc = expect(pointer_repo(root, name, files_for), "clean", 0, "--closure", "pkg/core.py", labels=2)
+    check(doc["label_sources"] == {source: 2}, "label read from %r, required %r" % (doc["label_sources"], source))
+    return doc
+
+
+@proof("VP01")
+def vp01(root):
+    pointer_proof(root, "vp01", lambda v: {
+        "pyproject.toml": '[build-system]\nrequires = ["hatchling"]\n[project]\nname = "pkg"\ndynamic = ["version"]\n'
+                          '[tool.hatch.version]\npath = "pkg/_meta.py"\n',
+        "pkg/_meta.py": 'VERSION = "%s"\n' % v}, "pkg/_meta.py")
+
+
+@proof("VP02")
+def vp02(root):
+    pointer_proof(root, "vp02", lambda v: {
+        "pyproject.toml": '[project]\nname = "pkg"\ndynamic = ["version"]\n[tool.setuptools.dynamic]\n'
+                          'version = {attr = "pkg.__version__"}\n',
+        "src/pkg/__init__.py": '__version__ = "%s"\n' % v, "pkg/core.py": ""}, "src/pkg/__init__.py")
+
+
+@proof("VP03")
+def vp03(root):
+    pointer_proof(root, "vp03", lambda v: {
+        "setup.cfg": "[metadata]\nname = pkg\nversion = attr: pkg.__version__\n",
+        "pkg/__init__.py": '__version__ = "%s"\n' % v}, "pkg/__init__.py")
+
+
+@proof("VP04")
+def vp04(root):
+    pointer_proof(root, "vp04a", lambda v: {
+        "pyproject.toml": '[project]\nname = "pkg"\ndynamic = ["version"]\n[tool.setuptools.dynamic]\n'
+                          'version = {file = "REL.txt"}\n', "REL.txt": v + "\n"}, "REL.txt")
+    pointer_proof(root, "vp04b", lambda v: {
+        "setup.cfg": "[metadata]\nname = pkg\nversion = file: REL.txt\n", "REL.txt": v + "\n"}, "REL.txt")
+
+
+@proof("VP05")
+def vp05(root):
+    pointer_proof(root, "vp05", lambda v: {
+        "pyproject.toml": '[build-system]\nrequires = ["flit_core"]\nbuild-backend = "flit_core.buildapi"\n'
+                          '[project]\nname = "my-mod"\ndynamic = ["version"]\n',
+        "my_mod.py": '"""doc"""\n__version__ = "%s"\n' % v}, "my_mod.py")
+
+
+@proof("VP06")
+def vp06(root):
+    pointer_proof(root, "vp06", lambda v: {
+        "setup.py": "import relinfo\nfrom setuptools import setup\nsetup(name='pkg', version=relinfo.RELEASE)\n",
+        "tools/build/relinfo.py": 'RELEASE = "%s"\n' % v}, "tools/build/relinfo.py")
+
+
+@proof("VP07")
+def vp07(root):
+    pointer_proof(root, "vp07", lambda v: {
+        "setup.py": "from setuptools import setup\nVERSION = '%s'\nsetup(name='pkg', version=VERSION)\n" % v},
+        "setup.py")
+
+
+@proof("VP08")
+def vp08(root):
+    r = Repo(root, "vp08")
+    for tag, version, vendored in (("t1", "2.0.0", "0.1"), ("t2", "2.1.0", "0.2")):
+        r.write("setup.py", "from setuptools import setup\nsetup(name='pkg')\n")
+        r.write("pkg/_version.py", '__version__ = "%s"\n' % version)
+        r.write("pkg/io/extern/clip/__init__.py", '__version__ = "%s"\n' % vendored)
+        r.write("pkg/core.py", "code for %s\n" % version)
+        r.commit(tag); r.tag(tag)
+    doc = expect(r, "clean", 0, "--closure", "pkg/core.py", labels=2)
+    check(doc["label_sources"] == {"pkg/_version.py": 2}, "label read from %r" % doc["label_sources"])
+
+
+@proof("VP09")
+def vp09(root):
+    r = Repo(root, "vp09")
+    r.write("main.c", "int main(){}\n")
+    r.commit(); r.tag("v1")
+    rc, _, out, err = run(r, "--closure", "*.c")
+    refusal(rc, out, err, "could not find a version label")
+
+
 # ---------------------------------------------------------------- K02 — the report is a contract
 
-MEASURE_FIELDS = {"report_format", "stamp", "repo", "version_file", "closure_globs", "published_at",
+MEASURE_FIELDS = {"label_sources", "report_format", "stamp", "repo", "version_file", "closure_globs", "published_at",
                   "verdict", "labels", "labels_covering_multiple_closures", "max_closures_per_label",
                   "drift", "closure_ids", "closure_changes_between_points", "publication_points",
                   "publication_points_scanned", "publication_points_compared", "points_without_label",
