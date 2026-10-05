@@ -39,15 +39,16 @@ met.
 ## Verifying what you run
 
 The citable artefact is the Zenodo deposit; every version has its own DOI. The measurement script
-has had three states, and the checksum to expect depends on which deposit you pinned:
+has had four states, and the checksum to expect depends on which deposit you pinned:
 
 ```
 sha256  da5da3c0e781b67b9b3a55800d599c243edc8df649fc90b24a88e289533805c5  closure_drift.py  (0.3.0 - 0.6.0)
 sha256  6d8906ef374b73e6b8c58adba813c77c4ff352f5c9c280aa43ff2baa4f804451  closure_drift.py  (0.7.0 - 0.7.1)
-sha256  1125e51615efc3698f09e7bce92bc8647eb468db5471ca79b8ee202cef684cda  closure_drift.py  (0.9.0)
+sha256  6548f891a826034c35ef83b276578c79564b57f892a54422af5c1be44591137c  closure_drift.py  (0.9.0)
+sha256  89b5349928eba22b0394d01940ed3d4aa989d6820f48fdddf189ad521689c51c  closure_drift.py  (0.9.1)
 ```
 
-Do not take those three lines from this page as the authority: this page is inside the package it
+Do not take those four lines from this page as the authority: this page is inside the package it
 describes, and a package does not establish its own provenance. The checksums to check against are
 the ones in the `DEPOSIT.sha256` of the DOI you pinned, and the record itself:
 
@@ -62,5 +63,5 @@ in `CHANGELOG.md`, recorded because it is the subject matter.
 ## Supported versions
 
 The latest deposit is the supported one. Results from 0.7.1 and earlier on a repository whose
-closure holds a non-ASCII path or a submodule pointer should be measured again with 0.9.0. Version 0.1 is superseded: it measured at every commit
+closure holds a non-ASCII path or a submodule pointer should be measured again, and so should anything measured on Windows with 0.9.0 or earlier. Version 0.1 is superseded: it measured at every commit
 unconditionally and overstates drift for any repository that publishes at tags.

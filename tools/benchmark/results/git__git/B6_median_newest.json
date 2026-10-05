@@ -1,0 +1,72 @@
+{
+ "report_format": 2,
+ "stamp": {
+  "measured_at_head": "8103b446517e",
+  "working_tree_dirty": null,
+  "detector_closure": "6548f891a826034c",
+  "working_tree_dirty_note": "not checked: this repository has no working tree"
+ },
+ "mode": "compare",
+ "repo": "/home/runner/work/_temp/git__git.git",
+ "version_file": "Cargo.toml",
+ "closure_globs": [
+  "src/**",
+  "lib/**",
+  "app/**",
+  "*.py",
+  "*.js",
+  "*.ts",
+  "*.rs",
+  "*.go",
+  "*.java"
+ ],
+ "verdict": "not_comparable",
+ "a": {
+  "ref": "v2.0.0-rc0",
+  "commit": "cc291953df19",
+  "label": null,
+  "label_source": null,
+  "closure": "50ec115f36a8f497",
+  "closure_id": "c5db5c4d9c738ee2b170d5be077b60a8a4976bafc9928432aa0f790d7d08bc13",
+  "files": 16
+ },
+ "b": {
+  "ref": "v2.56.0",
+  "commit": "a018953688f1",
+  "label": "0.1.0",
+  "label_source": "Cargo.toml",
+  "closure": "8e703a24f9382930",
+  "closure_id": "b0755aaf67dda14b4fc2689597062dda54f970b5689571565e353fd42bdadde8",
+  "files": 23
+ },
+ "changed": [
+  "git-p4.py",
+  "gitweb/static/js/blame_incremental.js",
+  "gitweb/static/js/lib/common-lib.js"
+ ],
+ "only_in_a": [
+  "contrib/hg-to-git/hg-to-git.py",
+  "contrib/hooks/multimail/git_multimail.py",
+  "contrib/persistent-https/client.go",
+  "contrib/persistent-https/main.go",
+  "contrib/persistent-https/proxy.go",
+  "contrib/persistent-https/socket.go",
+  "contrib/svn-fe/svnrdump_sim.py"
+ ],
+ "only_in_b": [
+  "build.rs",
+  "contrib/libgit-rs/build.rs",
+  "contrib/libgit-rs/src/config.rs",
+  "contrib/libgit-rs/src/lib.rs",
+  "contrib/libgit-sys/build.rs",
+  "contrib/libgit-sys/src/lib.rs",
+  "src/cargo-meson.sh",
+  "src/csum_file.rs",
+  "src/hash.rs",
+  "src/lib.rs",
+  "src/loose.rs",
+  "src/meson.build",
+  "src/varint.rs",
+  "t/unit-tests/clar/generate.py"
+ ]
+}

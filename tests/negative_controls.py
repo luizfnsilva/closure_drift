@@ -58,7 +58,7 @@ MUTANTS = [
                       '                or "setuptools_scm" in self.text(blobs, "pyproject.toml")')]),
     ("M19", "CMP01", [('    code = {"identical": 0, "differs_under_two_labels": 0, "differs_under_one_label": 1}.get(verdict, 2)',
                        '    code = {"identical": 0, "differs_under_two_labels": 0, "differs_under_one_label": 0}.get(verdict, 2)')]),
-    ("M20", "EX01", [('               or (g.startswith("**/") and fnmatch.fnmatch(path, g[3:]))\n', '')]),
+    ("M20", "EX01", [('               or (g.startswith("**/") and fnmatch.fnmatchcase(path, g[3:]))\n', '')]),
     ("M21", "PT01", [('            src = self.sources.find(blobs)',
                       '            src = self.__dict__.setdefault("_once", self.sources.find(blobs))')]),
     ("M22", "TL01", [('            return TAG_SOURCE, None', '            pass')]),

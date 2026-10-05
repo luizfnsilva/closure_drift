@@ -1,0 +1,38 @@
+{
+ "report_format": 2,
+ "stamp": {
+  "measured_at_head": "67f0943b394d",
+  "working_tree_dirty": null,
+  "detector_closure": "6548f891a826034c",
+  "working_tree_dirty_note": "not checked: this repository has no working tree"
+ },
+ "mode": "would_tag",
+ "repo": "/home/runner/work/_temp/torvalds__linux.git",
+ "version_file": null,
+ "closure_globs": [
+  "src/**",
+  "lib/**",
+  "app/**",
+  "*.py",
+  "*.js",
+  "*.ts",
+  "*.rs",
+  "*.go",
+  "*.java"
+ ],
+ "published_at": "tags",
+ "verdict": "no_label_at_head",
+ "label_at_head": null,
+ "label_source": null,
+ "closure_at_head": "79bcff155376cd8e",
+ "closure_id_at_head": "fc65252bc9cfcbcb0f34b0a651ac52200f3f547a34a686d8bd2af0789ca7a36c",
+ "collides_with": [],
+ "existing_drift_labels": 0,
+ "publication_points_scanned": 947,
+ "publication_points_compared": 0,
+ "points_without_label": 947,
+ "points_with_empty_closure": 0,
+ "points_not_commits": 2,
+ "range_truncated": false,
+ "points_with_conflicting_sources": 0
+}

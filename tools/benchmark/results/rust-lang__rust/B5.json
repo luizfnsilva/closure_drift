@@ -1,0 +1,70 @@
+{
+ "report_format": 2,
+ "stamp": {
+  "measured_at_head": "602727f26878",
+  "working_tree_dirty": null,
+  "detector_closure": "6548f891a826034c",
+  "working_tree_dirty_note": "not checked: this repository has no working tree"
+ },
+ "repo": "/home/runner/work/_temp/rust-lang__rust.git",
+ "version_file": null,
+ "closure_globs": [
+  "src/**",
+  "lib/**",
+  "app/**",
+  "*.py",
+  "*.js",
+  "*.ts",
+  "*.rs",
+  "*.go",
+  "*.java"
+ ],
+ "published_at": "commits",
+ "publication_points": 400,
+ "labels": 2,
+ "labels_covering_multiple_closures": 2,
+ "max_closures_per_label": 10,
+ "verdict": "drift",
+ "drift": {
+  "0.1.100": {
+   "89dcbe4391f1fd6e": "add an msrv tip regarding const contexts, duplicate stabilitiy dates and how to test (2026-09-25)",
+   "c0792eb2c0d571f0": "make `swap_ptr_to_ref` msrv capable and add a note why the snipped might be UB (2026-09-24)",
+   "f2238e48465910d2": "docs: improve MSRV dev docs (#17780) (2026-09-30)",
+   "dcb3b7ed2befb90c": "feat: new lint unnecessary_as_slice. (2026-05-02)",
+   "961e5d2b2976f678": "chore: make lintcheck extraction paralell (#17814) (2026-09-30)",
+   "cd9f59e8dcaa3606": "New lint: `unnecessary_as_slice` (#16953) (2026-09-30)",
+   "3654b88e46fb7283": "`items_after_test_module`: don't let derive expansions hide trailing items (2026-09-29)",
+   "0e9278958202cac0": "improve `items_after_test_module`: don't let derive expansions hide trailing items (#17816) (2026-09-30)",
+   "804f34417af19200": "Changelog for Clippy 1.99 \ud83c\udf42 (#17802) (2026-10-01)",
+   "6de23e00f334a3c6": "Merge remote-tracking branch 'upstream/master' into rustup (2026-10-01)"
+  },
+  "0.1.101": {
+   "6de23e00f334a3c6": "Bump Clippy version -> 0.1.101 (2026-10-01)",
+   "90fc0fa6f704253f": "Rustup (#17826) (2026-10-01)"
+  }
+ },
+ "closure_ids": {
+  "89dcbe4391f1fd6e": "c5af0a1e6b127f958aaac0f914c6b5c15f3c809c9871e04db702dfdde609bafd",
+  "c0792eb2c0d571f0": "d15714036bbbd4a85b97c8b506b73d8686db993ab24b93bbc8db3504daaad3c1",
+  "f2238e48465910d2": "5308ec14510832fa0943bbc6592dd7467c98e4a93375cfeff171b390b4609dc5",
+  "dcb3b7ed2befb90c": "a1a6658dfba7de2ac7baf094c998ad916862e950fb2a3f5a5981eff7ff084fd7",
+  "961e5d2b2976f678": "7d7b212936f984474be2c33459e2b6f7765249bb6d6925d04172347ae4f12310",
+  "cd9f59e8dcaa3606": "c97bfe8a43e26e862d23faaa44f14f6d7f0400713ec8f37ce4e3399d688c6c87",
+  "3654b88e46fb7283": "9b116b32dad14f98803d2e60262cde84899a9b7b376a15fa1c066d63be29e01f",
+  "0e9278958202cac0": "a161dce7d8034c8421105d43ec09d127cc2141856419218e15e6b1620da17c11",
+  "804f34417af19200": "b33516ffeec333b5ab9147e5d1085ceedff548059be4499b31d02683d8cbf998",
+  "6de23e00f334a3c6": "c5d2a24f25f5aaab4bd638e45e24145a45731b9153a02e30fbb7c1ecb0b59c1f",
+  "90fc0fa6f704253f": "b8f585bec4c3961386bc7164c68c5c31fe3b209a6d68f70d499bc8b14abbfbd7"
+ },
+ "closure_changes_between_points": 336,
+ "label_sources": {
+  "Cargo.toml": 14
+ },
+ "publication_points_scanned": 400,
+ "publication_points_compared": 14,
+ "points_without_label": 386,
+ "points_with_empty_closure": 0,
+ "points_not_commits": 0,
+ "range_truncated": true,
+ "points_with_conflicting_sources": 0
+}

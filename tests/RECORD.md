@@ -1,4 +1,41 @@
+# Record of the battery runs — closure_drift 0.9.1
+
+Detector 0.9.1: `closure_drift.py`, sha256 `89b5349928eba22b0394d01940ed3d4aa989d6820f48fdddf189ad521689c51c`.
+It differs from 0.9.0 in `__version__` and in three calls of `matches` (`fnmatch.fnmatch` →
+`fnmatch.fnmatchcase`), which are the same function on Linux and macOS.
+
+## 0.9.1 — macOS 26.7 (Apple silicon), git 2.54.0, CPython 3.14.7 — 2026-10-05
+
+| suite | result |
+|---|---|
+| `tests/battery.py` | 120 declared · 119 green · 0 red · 1 not run (also under CPython 3.9.6) |
+| `tests/negative_controls.py` | 26 mutants · 26 caught · 0 not caught · positive control holds |
+| `tests/adversarial.py` | 235 attacks · 229 as required · 0 loose · 6 not run |
+| `tests/properties.py` | 17 properties · 17 green · 0 red · 0 not run; 10 controls · 10 caught |
+
+Mutant M20 was anchored on a line the fix changed; it no longer applied and the controls reported
+it as not caught, as they must. It was re-anchored to the new text and nothing else was touched.
+
+0.9.0 against 0.9.1, same machine: the JSON report is identical apart from `detector_closure` for
+the 60 generated repositories of the property suite and, at the default range, at every tag and
+with `--would-tag`, for `click`, `requests`, `packaging`, `httpx`, `impress.js` and `lodash`.
+
+## 0.9.1 — Linux, macOS, Windows — CI run 37372951536 (`a4cfd8c`)
+
+| platform | CPython | battery | mutation controls | adversarial | properties |
+|---|---|---|---|---|---|
+| Ubuntu | 3.9, 3.11, 3.13 | 120 declared · 120 green · 0 red · 0 not run | 26 of 26 caught | 235 · 229 as required · 0 loose · 6 not run | 17 of 17 green · 10 of 10 controls |
+| macOS | 3.11, 3.13 | 120 · 119 green · 0 red · 1 not run | 26 of 26 caught | 235 · 229 as required · 0 loose · 6 not run | 17 of 17 green · 10 of 10 controls |
+| Windows | 3.9, 3.13 | 120 · 115 green · 0 red · 5 not run | 26 of 26 caught | 235 · 209 as required · 0 loose · 26 not run | 17 of 17 green · 10 of 10 controls |
+
+What does not run on each platform is the same as for 0.9.0, below. Two jobs of this run were
+cancelled by the runner before they started and were run again; they are the rows above.
+
+Properties and the oracle have their own record: `tests/PROPERTIES_RECORD.md`.
+
 # Record of the battery runs — closure_drift 0.9.0
+
+Kept as written for 0.9.0.
 
 What was run, where, and what did not run. Engineering evidence about the behaviour tested; it is
 not a validation of the study in `tools/study/`, which stands on its own protocol.
@@ -65,5 +102,5 @@ Nobody outside the author has run these batteries.
 ## Reproduce
 
 ```bash
-python3 tests/battery.py && python3 tests/negative_controls.py && python3 tests/adversarial.py
+./reproduce.sh
 ```

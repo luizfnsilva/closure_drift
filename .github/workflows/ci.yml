@@ -45,6 +45,8 @@ jobs:
         run: python3 tools/make_report_examples.py --check
       - name: The demonstrations in docs/ are what the detector prints
         run: python3 tools/make_demos.py --check
+      - name: The benchmark table is what its generator writes from the results
+        run: python3 tools/benchmark/make_report.py --check
 
   record:
     # Against the published record, which is outside this package. Scheduled and manual only: a pull
@@ -90,6 +92,12 @@ jobs:
         run: python tests/negative_controls.py
       - name: Adversarial campaign — hostile repositories and hostile input
         run: python tests/adversarial.py
+      - name: Independent oracle — its own check
+        run: python tests/oracle.py --self-test
+      - name: Properties — generated repositories, against the oracle
+        run: python tests/properties.py
+      - name: Controls — each broken detector must turn its property red
+        run: python tests/properties.py --controls
 
   self:
     name: measure this repository with itself

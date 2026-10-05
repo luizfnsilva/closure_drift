@@ -32,7 +32,7 @@ import warnings
 from collections import defaultdict
 from pathlib import Path
 
-__version__ = "0.9.0"
+__version__ = "0.9.1"
 REPORT_FORMAT = 2
 
 # Where a version can be declared. Python build files are read first; a repository that has
@@ -130,8 +130,8 @@ def printable(text) -> str:
 
 def matches(path: str, globs: list[str]) -> bool:
     """`*` crosses folders; a leading `**/` matches zero or more of them."""
-    return any(fnmatch.fnmatch(path, g) or fnmatch.fnmatch(path, g.replace("**/", "*/"))
-               or (g.startswith("**/") and fnmatch.fnmatch(path, g[3:]))
+    return any(fnmatch.fnmatchcase(path, g) or fnmatch.fnmatchcase(path, g.replace("**/", "*/"))
+               or (g.startswith("**/") and fnmatch.fnmatchcase(path, g[3:]))
                or (g.endswith("/**") and path.startswith(g[:-3] + "/")) for g in globs)
 
 

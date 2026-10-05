@@ -1,0 +1,38 @@
+{
+ "report_format": 2,
+ "stamp": {
+  "measured_at_head": "019e869ad3a3",
+  "working_tree_dirty": null,
+  "detector_closure": "6548f891a826034c",
+  "working_tree_dirty_note": "not checked: this repository has no working tree"
+ },
+ "mode": "would_tag",
+ "repo": "/home/runner/work/_temp/nodejs__node.git",
+ "version_file": null,
+ "closure_globs": [
+  "src/**",
+  "lib/**",
+  "app/**",
+  "*.py",
+  "*.js",
+  "*.ts",
+  "*.rs",
+  "*.go",
+  "*.java"
+ ],
+ "published_at": "tags",
+ "verdict": "no_label_at_head",
+ "label_at_head": null,
+ "label_source": null,
+ "closure_at_head": "eff2fc3c95180327",
+ "closure_id_at_head": "46ed54e408e881f9aaf5d12506ff881151b28a765697ecd7827cdf465001a0c3",
+ "collides_with": [],
+ "existing_drift_labels": 0,
+ "publication_points_scanned": 962,
+ "publication_points_compared": 0,
+ "points_without_label": 961,
+ "points_with_empty_closure": 1,
+ "points_not_commits": 0,
+ "range_truncated": false,
+ "points_with_conflicting_sources": 0
+}
