@@ -1,0 +1,75 @@
+{
+ "exit": 1,
+ "head": "0e8cb0596ba6572c66e5d153a1d7c901b381e15e",
+ "outcome": "drift",
+ "report": {
+  "closure_changes_between_points": 72,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {
+   "0188aa8be9e5f2ed": "54126e32dd31aff462ab49646b9b4f81dca1b4dacd8ab5894e45b2ab1aa235fa",
+   "055a1b6762ce46d3": "9575ab1697713cac759f97200a44c661aa9d292cdc3b1ea64aa929954869ea11",
+   "1c0200351167ebab": "a338470d2a349bd04bf7f0d5b332702c3d09f4b0d11976e56a932f7e65d387fd",
+   "5b01a79919020c0b": "abe3f2e73c840148191783afd2125e7c5389755c462526f0854c4249c495e919",
+   "6a87b75ff16d5260": "5cc1199201ce35d6fa345060bdc1efff261281a6694a0c433d54960c35d6cb08",
+   "b521816f6fbbe81a": "eac51c31f817a10b7d97a024fa60eb9a631340a1f5dba1766068b834892fc519",
+   "bd6f4e96db3c9b7e": "92d60a7539e82b8023f900991a750dc4e817aa4f4d88492afb6d4030f1805aab",
+   "d63485fbe076e9b6": "da9a290228de7ccadf172a2fa2a9fbfd21458b1c23115f8dcc9f28611970408e",
+   "ec9d353de9702e33": "ceca9f2c943cffa65bbeb5360a1a098ea155438fa213e3df82c89298454fe0f4",
+   "f1ac752a6906cbef": "045d22bfa1babdc6ef6681b7683eaf19e6c19a9bd315041ec55fe42d322baf83"
+  },
+  "drift": {
+   "2024.11.6": {
+    "6a87b75ff16d5260": "2025.2.10 (2025-02-10)",
+    "bd6f4e96db3c9b7e": "2024.11.7 (2024-11-07)"
+   },
+   "2025.9.18": {
+    "d63485fbe076e9b6": "2025.9.18 (2025-09-18)",
+    "ec9d353de9702e33": "2025.10.20 (2025-10-20)"
+   },
+   "2026.2.28": {
+    "1c0200351167ebab": "2026.2.28 (2026-02-28)",
+    "f1ac752a6906cbef": "2026.3.27 (2026-03-27)"
+   },
+   "2026.9.10": {
+    "0188aa8be9e5f2ed": "2026.9.10 (2026-09-09)",
+    "b521816f6fbbe81a": "2026.9.19 (2026-09-19)"
+   },
+   "2026.9.3": {
+    "055a1b6762ce46d3": "2026.9.9 (2026-09-09)",
+    "5b01a79919020c0b": "2026.9.3 (2026-09-01)"
+   }
+  },
+  "labels": 38,
+  "labels_covering_multiple_closures": 5,
+  "max_closures_per_label": 2,
+  "points_not_commits": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 38,
+  "publication_points": 88,
+  "publication_points_compared": 50,
+  "publication_points_scanned": 88,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "mrabarnett/mrab-regex",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "6df9787eb57df52b",
+   "measured_at_head": "0e8cb0596ba6",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "drift",
+  "version_file": "pyproject.toml"
+ },
+ "repository": "mrabarnett/mrab-regex"
+}

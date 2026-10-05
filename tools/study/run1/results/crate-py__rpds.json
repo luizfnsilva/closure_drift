@@ -1,0 +1,68 @@
+{
+ "exit": 1,
+ "head": "e3fb76df3efd712939c62540f2eec48bc676b038",
+ "outcome": "drift",
+ "report": {
+  "closure_changes_between_points": 33,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {
+   "00c3fefc10f4e7ac": "ae44d6bf43c1e8a24d0eefae00755cd2e65b17fe7564d933fea4b72e66a72f3b",
+   "1e2f2e0f7b7c533d": "869e30180fa7831f5da675cbabfc9127fe51c366b182d6428df6739e8bad7fc2",
+   "37e5f504cf795f23": "f76117b32cb50e93c950c48cf2fc1fc76027d91144acd77db6be3fac58a9456a",
+   "7b73d9c21908963a": "40ff96959f407a9a718e542d2228e28c4661a7d66a074e4f6db93461b87b067d",
+   "a9e30bd5390c03e5": "860d735024b195c1b9c8857514ed4fc23727d89fd743276db5ee42a28151f47f",
+   "da92b2af654e66a6": "ed229aa896f4d132be6b1c8c92f90cb093b14a7f9f46b8a08dc0c6d316fc1896",
+   "fe549fe9e22aefc1": "4835dcd08940deadff0a44f484d18529145a6185dffe4680b498d60af5fe97c5"
+  },
+  "drift": {
+   "0.10.0": {
+    "a9e30bd5390c03e5": "v0.10.1 (2023-09-04)",
+    "da92b2af654e66a6": "v0.10.0 (2023-08-28)"
+   },
+   "0.15.2": {
+    "1e2f2e0f7b7c533d": "v0.16.0 (2023-12-28)",
+    "fe549fe9e22aefc1": "v0.15.2 (2023-12-17)"
+   },
+   "0.16.2": {
+    "1e2f2e0f7b7c533d": "v0.16.2 (2023-12-28)",
+    "7b73d9c21908963a": "v0.17.0 (2024-01-12)"
+   },
+   "0.7.1": {
+    "00c3fefc10f4e7ac": "v0.8.0 (2023-07-05)",
+    "37e5f504cf795f23": "v0.7.1 (2023-03-20)"
+   }
+  },
+  "labels": 79,
+  "labels_covering_multiple_closures": 4,
+  "max_closures_per_label": 2,
+  "points_not_commits": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points": 88,
+  "publication_points_compared": 88,
+  "publication_points_scanned": 88,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "crate-py/rpds",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "6df9787eb57df52b",
+   "measured_at_head": "e3fb76df3efd",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "drift",
+  "version_file": "Cargo.toml"
+ },
+ "repository": "crate-py/rpds"
+}

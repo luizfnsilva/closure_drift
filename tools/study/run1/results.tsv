@@ -1,0 +1,102 @@
+# detector sha256 6df9787eb57df52b42e05c1eaab6c9ea21583ddcd3a78e73c2908760ac463aab
+# rank	project	repository	outcome	exit	scanned	compared	labels	labels_in_drift	worst	cause
+1	boto3	boto/boto3	clean	0	400	400	400	0	1	
+2	packaging	pypa/packaging	clean	0	53	14	14	0	1	
+3	typing-extensions	python/typing_extensions	clean	0	58	41	41	0	1	
+4	idna	kjd/idna	refused	2						could not find a version label. Pass --version-file / --version-regex.
+5	urllib3	urllib3/urllib3	refused	2						no version file was found, and pyproject.toml names setuptools-scm: the version of this project appears to be derived fr
+6	certifi	certifi/python-certifi	refused	2						could not find a version label. Pass --version-file / --version-regex.
+7	requests	psf/requests	clean	0	162	12	12	0	1	
+8	charset-normalizer	jawah/charset_normalizer	clean	0	64	12	12	0	1	
+9	cryptography	pyca/cryptography	clean	0	161	48	48	0	1	
+10	setuptools	pypa/setuptools	clean	0	400	72	70	0	1	
+11	cffi	python-cffi/cffi	clean	0	33	4	4	0	1	
+12	pygments	pygments/pygments	drift	1	70	70	69	1	2	
+13	pyyaml	yaml/pyyaml	refused	2						could not find a version label. Pass --version-file / --version-regex.
+14	python-dateutil	dateutil/dateutil	refused	2						no version file was found, and pyproject.toml names setuptools_scm: the version of this project appears to be derived fr
+15	six	benjaminp/six	refused	2						could not find a version label. Pass --version-file / --version-regex.
+17	botocore	boto/botocore	clean	0	400	400	400	0	1	
+18	pydantic	pydantic/pydantic	refused	2						could not find a version label. Pass --version-file / --version-regex.
+19	pycparser	eliben/pycparser	inconclusive	2	25	1	1	0	1	
+20	click	pallets/click	clean	0	71	11	11	0	1	
+22	anyio	agronholm/anyio	refused	2						no version file was found, and pyproject.toml names setuptools_scm: the version of this project appears to be derived fr
+23	numpy	numpy/numpy	clean	0	280	53	53	0	1	
+24	pytest	pytest-dev/pytest	drift	1	224	137	1	1	122	
+25	iniconfig	pytest-dev/iniconfig	refused	2						no version file was found, and pyproject.toml names setuptools_scm: the version of this project appears to be derived fr
+26	annotated-types	annotated-types/annotated-types	clean	0	8	8	8	0	1	
+27	h11	python-hyper/h11	refused	2						could not find a version label. Pass --version-file / --version-regex.
+28	typing-inspection	pydantic/typing-inspection	clean	0	9	9	9	0	1	
+29	attrs	python-attrs/attrs	refused	2						no version file was found, and pyproject.toml names hatch-vcs: the version of this project appears to be derived from th
+30	s3transfer	boto/s3transfer	clean	0	63	63	63	0	1	
+31	aiobotocore	aio-libs/aiobotocore	drift	1	142	142	140	1	3	
+33	httpx	encode/httpx	clean	0	88	69	69	0	1	
+34	markupsafe	pallets/markupsafe	clean	0	39	5	5	0	1	
+35	httpcore	encode/httpcore	drift	1	55	55	54	1	2	
+36	python-dotenv	theskumar/python-dotenv	clean	0	53	28	28	0	1	
+37	pyjwt	jpadilla/pyjwt	clean	0	52	48	48	0	1	
+38	platformdirs	tox-dev/platformdirs	refused	2						no version file was found, and pyproject.toml names hatch-vcs: the version of this project appears to be derived from th
+39	fsspec	fsspec/filesystem_spec	drift	1	103	2	1	1	2	
+40	pandas	pandas-dev/pandas	drift	1	194	117	3	3	52	
+41	jinja2	pallets/jinja	no_labels	2	55	0	0	0	0	
+42	jmespath	jmespath/jmespath.py	clean	0	27	27	27	0	1	
+43	pathspec	cpburnz/python-pathspec	clean	0	18	7	7	0	1	
+44	filelock	tox-dev/py-filelock	refused	2						no version file was found, and pyproject.toml names hatch-vcs: the version of this project appears to be derived from th
+45	starlette	Kludex/starlette	drift	1	199	199	197	1	2	
+46	uvicorn	Kludex/uvicorn	clean	0	204	204	203	0	1	
+47	multidict	aio-libs/multidict	clean	0	175	175	173	0	1	
+48	jsonschema	python-jsonschema/jsonschema	refused	2						no version file was found, and pyproject.toml names hatch-vcs: the version of this project appears to be derived from th
+49	rpds-py	crate-py/rpds	drift	1	88	88	79	4	2	
+50	yarl	aio-libs/yarl	drift	1	155	155	153	1	2	
+51	aiohttp	aio-libs/aiohttp	drift	1	330	318	311	4	2	
+52	rich	Textualize/rich	drift	1	178	178	168	6	2	
+53	tomlkit	python-poetry/tomlkit	clean	0	55	55	55	0	1	
+54	markdown-it-py	executablebooks/markdown-it-py	drift	1	49	49	44	1	3	
+55	propcache	aio-libs/propcache	clean	0	14	12	12	0	1	
+56	referencing	python-jsonschema/referencing	refused	2						no version file was found, and pyproject.toml names hatch-vcs: the version of this project appears to be derived from th
+57	jsonschema-specifications	python-jsonschema/jsonschema-specifications	refused	2						no version file was found, and pyproject.toml names hatch-vcs: the version of this project appears to be derived from th
+58	mdurl	executablebooks/mdurl	clean	0	4	4	4	0	1	
+59	pillow	python-pillow/Pillow	clean	0	99	47	47	0	1	
+60	opentelemetry-api	open-telemetry/opentelemetry-python	drift	1	88	23	1	1	23	
+61	frozenlist	aio-libs/frozenlist	clean	0	27	27	27	0	1	
+62	tqdm	tqdm/tqdm	drift	1	175	48	1	1	45	
+63	pip	pypa/pip	clean	0	165	95	95	0	1	
+64	googleapis-common-protos	googleapis/google-cloud-python	refused	2						could not find a version label. Pass --version-file / --version-regex.
+65	pyasn1	pyasn1/pyasn1	clean	0	25	25	25	0	1	
+66	aiosignal	aio-libs/aiosignal	clean	0	14	14	14	0	1	
+67	aiohappyeyeballs	aio-libs/aiohappyeyeballs	clean	0	47	47	47	0	1	
+68	websockets	python-websockets/websockets	refused	2						could not find a version label. Pass --version-file / --version-regex.
+69	annotated-doc	fastapi/annotated-doc	clean	0	4	2	2	0	1	
+70	wrapt	GrahamDumpleton/wrapt	refused	2						could not find a version label. Pass --version-file / --version-regex.
+71	pytz	stub42/pytz	refused	2						could not find a version label. Pass --version-file / --version-regex.
+72	sniffio	python-trio/sniffio	clean	0	5	5	5	0	1	
+73	tzdata	python/tzdata	clean	0	53	53	46	0	1	
+74	fastapi	fastapi/fastapi	clean	0	308	308	308	0	1	
+76	zipp	jaraco/zipp	refused	2						no version file was found, and pyproject.toml names setuptools_scm: the version of this project appears to be derived fr
+77	greenlet	python-greenlet/greenlet	clean	0	68	45	45	0	1	
+78	importlib-metadata	python/importlib_metadata	refused	2						no version file was found, and pyproject.toml names setuptools_scm: the version of this project appears to be derived fr
+79	pydantic-settings	pydantic/pydantic-settings	refused	2						could not find a version label. Pass --version-file / --version-regex.
+80	wheel	pypa/wheel	clean	0	72	30	30	0	1	
+81	tenacity	jd/tenacity	refused	2						no version file was found, and pyproject.toml names hatch-vcs: the version of this project appears to be derived from th
+82	trove-classifiers	pypa/trove-classifiers	refused	2						could not find a version label. Pass --version-file / --version-regex.
+83	python-multipart	Kludex/python-multipart	clean	0	30	20	20	0	1	
+84	pyasn1-modules	pyasn1/pyasn1-modules	drift	1	20	20	19	1	2	
+86	pyarrow	apache/arrow	refused	2						could not find a version label. Pass --version-file / --version-regex.
+87	sqlalchemy	sqlalchemy/sqlalchemy	drift	1	343	314	290	1	25	
+88	hatchling	pypa/hatch	refused	2						no version file was found, and pyproject.toml names hatch-vcs: the version of this project appears to be derived from th
+89	grpcio	grpc/grpc	drift	1	400	289	1	1	288	
+90	pyparsing	pyparsing/pyparsing	refused	2						could not find a version label. Pass --version-file / --version-regex.
+91	lxml	lxml/lxml	refused	2						could not find a version label. Pass --version-file / --version-regex.
+92	jiter	pydantic/jiter	drift	1	34	4	1	1	4	
+93	regex	mrabarnett/mrab-regex	drift	1	88	50	38	5	2	
+94	watchfiles	samuelcolvin/watchfiles	drift	1	44	30	11	2	10	
+95	s3fs	fsspec/s3fs	refused	2						no version file was found, and setup.py names versioneer: the version of this project appears to be derived from the tag
+96	ruff	astral-sh/ruff	drift	1	400	247	246	1	2	
+97	scipy	scipy/scipy	clean	0	188	30	30	0	1	
+98	soupsieve	facelessuser/soupsieve	refused	2						could not find a version label. Pass --version-file / --version-regex.
+100	openai	openai/openai-python	clean	0	400	372	372	0	1	
+103	psutil	giampaolo/psutil	clean	0	204	10	5	0	1	
+104	coverage	coveragepy/coveragepy	refused	2						could not find a version label. Pass --version-file / --version-regex.
+107	tomli	hukkin/tomli	clean	0	32	32	32	0	1	
+108	distro	python-distro/distro	refused	2						could not find a version label. Pass --version-file / --version-regex.
+110	shellingham	sarugaku/shellingham	refused	2						could not find a version label. Pass --version-file / --version-regex.
+111	mypy-extensions	python/mypy_extensions	inconclusive	2	7	1	1	0	1	

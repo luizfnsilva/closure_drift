@@ -2,15 +2,28 @@
 
 ## What this tool does to your machine
 
-It runs `git log`, `git show` and `git ls-files` against a repository you point it at, hashes the
-bytes it reads, and prints a report. It has **no dependencies**, makes **no network requests**, and
-**never writes to the repository it measures**. It is a single file you can read in one sitting, and
-reading it before running it is encouraged.
+It starts `git` (`--version`, `rev-parse`, `for-each-ref`, `rev-list`, `log`, `cat-file`,
+`config --local --list`, `status`) and, for a version pattern that is not built in, itself — to match
+that pattern under a time limit. Nothing else. No dependencies, no network, and it never writes to
+the repository it measures.
 
-The JSON report contains counts, version labels, closure hashes, the tool's own stamp, and two
-paths: the repository path exactly as you passed it on the command line, and the path of your version
-file. It does **not** contain file contents, and it does not list the files inside your closure. Look
-at it before you send it anywhere.
+A repository's own git configuration can name commands. These are blocked, and each is a case in
+`tests/adversarial.py` with a positive control (plain git does run the command on the same
+repository):
+
+- `core.fsmonitor`
+- clean / smudge / process filters (the working-tree check is skipped and reported as `null`)
+- `refs/replace/*`
+- the lazy fetch of a partial clone (refused on git older than 2.45, which cannot disable it)
+- `GIT_DIR`, `GIT_WORK_TREE` and similar variables in your environment
+
+Hooks, pagers, editors, `textconv`, `core.sshCommand` and aliases are not reached by the commands
+above. This is what was tested, not a proof about every git version. For a repository received as
+an archive from someone you do not trust, `git clone` it first and measure the clone.
+
+The JSON report holds counts, labels, hashes, the repository path as you typed it and the path of
+the version file. No file contents, and no path inside the closure unless you pass `--explain` or
+`--compare`.
 
 ## Reporting a vulnerability
 
@@ -26,14 +39,15 @@ met.
 ## Verifying what you run
 
 The citable artefact is the Zenodo deposit; every version has its own DOI. The measurement script
-has had two states, and the checksum to expect depends on which deposit you pinned:
+has had three states, and the checksum to expect depends on which deposit you pinned:
 
 ```
 sha256  da5da3c0e781b67b9b3a55800d599c243edc8df649fc90b24a88e289533805c5  closure_drift.py  (0.3.0 - 0.6.0)
-sha256  6d8906ef374b73e6b8c58adba813c77c4ff352f5c9c280aa43ff2baa4f804451  closure_drift.py  (0.7.0 onward)
+sha256  6d8906ef374b73e6b8c58adba813c77c4ff352f5c9c280aa43ff2baa4f804451  closure_drift.py  (0.7.0 - 0.7.1)
+sha256  1125e51615efc3698f09e7bce92bc8647eb468db5471ca79b8ee202cef684cda  closure_drift.py  (0.9.0)
 ```
 
-Do not take those two lines from this page as the authority: this page is inside the package it
+Do not take those three lines from this page as the authority: this page is inside the package it
 describes, and a package does not establish its own provenance. The checksums to check against are
 the ones in the `DEPOSIT.sha256` of the DOI you pinned, and the record itself:
 
@@ -47,5 +61,6 @@ in `CHANGELOG.md`, recorded because it is the subject matter.
 
 ## Supported versions
 
-The latest deposit is the supported one. Version 0.1 is superseded: it measured at every commit
+The latest deposit is the supported one. Results from 0.7.1 and earlier on a repository whose
+closure holds a non-ASCII path or a submodule pointer should be measured again with 0.9.0. Version 0.1 is superseded: it measured at every commit
 unconditionally and overstates drift for any repository that publishes at tags.

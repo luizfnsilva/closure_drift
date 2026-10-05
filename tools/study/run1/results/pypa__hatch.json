@@ -1,0 +1,7 @@
+{
+ "cause": "no version file was found, and pyproject.toml names hatch-vcs: the version of this project appears to be derived from th",
+ "exit": 2,
+ "head": "7c26ebeaf8b83f5f0374a2545bb15e36c87db0d0",
+ "outcome": "refused",
+ "repository": "pypa/hatch"
+}

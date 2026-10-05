@@ -1,0 +1,7 @@
+{
+ "cause": "could not find a version label. Pass --version-file / --version-regex.",
+ "exit": 2,
+ "head": "9b96af76254c33b9c3e0ceb390bbaeab2e33bbea",
+ "outcome": "refused",
+ "repository": "googleapis/google-cloud-python"
+}

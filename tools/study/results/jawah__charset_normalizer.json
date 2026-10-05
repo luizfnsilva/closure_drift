@@ -1,0 +1,49 @@
+{
+ "exit": 0,
+ "head": "951942be2ff3acd8edcaaa6df68f8b6ed97263e2",
+ "outcome": "clean",
+ "report": {
+  "closure_changes_between_points": 63,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {},
+  "drift": {},
+  "label_sources": {
+   "charset_normalizer/version.py": 31,
+   "setup.py": 12,
+   "src/charset_normalizer/version.py": 12
+  },
+  "labels": 55,
+  "labels_covering_multiple_closures": 0,
+  "max_closures_per_label": 1,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 9,
+  "publication_points": 64,
+  "publication_points_compared": 55,
+  "publication_points_scanned": 64,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "jawah/charset_normalizer",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "6548f891a826034c",
+   "measured_at_head": "951942be2ff3",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "clean",
+  "version_file": "src/charset_normalizer/version.py"
+ },
+ "repository": "jawah/charset_normalizer"
+}

@@ -1,0 +1,43 @@
+{
+ "exit": 2,
+ "head": "1d7d54c1793ab897681ccfdc19fdbfa62e8a2b82",
+ "outcome": "inconclusive",
+ "report": {
+  "closure_changes_between_points": 24,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {},
+  "drift": {},
+  "labels": 1,
+  "labels_covering_multiple_closures": 0,
+  "max_closures_per_label": 1,
+  "points_not_commits": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 24,
+  "publication_points": 25,
+  "publication_points_compared": 1,
+  "publication_points_scanned": 25,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "eliben/pycparser",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "6df9787eb57df52b",
+   "measured_at_head": "1d7d54c1793a",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "inconclusive",
+  "version_file": "pyproject.toml"
+ },
+ "repository": "eliben/pycparser"
+}

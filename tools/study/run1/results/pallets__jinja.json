@@ -1,0 +1,43 @@
+{
+ "exit": 2,
+ "head": "5ef70112a1ff19c05324ff889dd30405b1002044",
+ "outcome": "no_labels",
+ "report": {
+  "closure_changes_between_points": 54,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {},
+  "drift": {},
+  "labels": 0,
+  "labels_covering_multiple_closures": 0,
+  "max_closures_per_label": 0,
+  "points_not_commits": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 55,
+  "publication_points": 55,
+  "publication_points_compared": 0,
+  "publication_points_scanned": 55,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "pallets/jinja",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "6df9787eb57df52b",
+   "measured_at_head": "5ef70112a1ff",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "no_labels",
+  "version_file": "pyproject.toml"
+ },
+ "repository": "pallets/jinja"
+}

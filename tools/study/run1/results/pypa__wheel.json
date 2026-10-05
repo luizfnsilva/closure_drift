@@ -1,0 +1,43 @@
+{
+ "exit": 0,
+ "head": "4ae6d07d38611cb0619864621c06fc032622eaef",
+ "outcome": "clean",
+ "report": {
+  "closure_changes_between_points": 71,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {},
+  "drift": {},
+  "labels": 30,
+  "labels_covering_multiple_closures": 0,
+  "max_closures_per_label": 1,
+  "points_not_commits": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 42,
+  "publication_points": 72,
+  "publication_points_compared": 30,
+  "publication_points_scanned": 72,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "pypa/wheel",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "6df9787eb57df52b",
+   "measured_at_head": "4ae6d07d3861",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "clean",
+  "version_file": "src/wheel/__init__.py"
+ },
+ "repository": "pypa/wheel"
+}

@@ -41,6 +41,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verify the nine deposited files against DEPOSIT.sha256
         run: python3 tools/verify_deposit.py
+      - name: The report examples in docs/ are what the detector prints
+        run: python3 tools/make_report_examples.py --check
 
   record:
     # Against the published record, which is outside this package. Scheduled and manual only: a pull
@@ -55,24 +57,37 @@ jobs:
         run: python3 tools/verify_deposit.py --from-zenodo
 
   test:
-    name: fixture · py${{ matrix.python }} · ${{ matrix.os }}
+    name: batteries · py${{ matrix.python }} · ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {os: ubuntu-latest, python: '3.9'}
-          - {os: ubuntu-latest, python: '3.11'}
-          - {os: ubuntu-latest, python: '3.13'}
-          - {os: macos-latest,  python: '3.11'}
-          - {os: macos-latest,  python: '3.13'}
+          - {os: ubuntu-latest,  python: '3.9'}
+          - {os: ubuntu-latest,  python: '3.11'}
+          - {os: ubuntu-latest,  python: '3.13'}
+          - {os: macos-latest,   python: '3.11'}
+          - {os: macos-latest,   python: '3.13'}
+          - {os: windows-latest, python: '3.9'}
+          - {os: windows-latest, python: '3.13'}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
+      # Three batteries, each with its own polarity and its own pre-registration
+      # (tests/PREREGISTRATION.md, tests/PREREGISTRATION_ADVERSARIAL.md). Their scores are
+      # printed side by side and never added together.
+      - name: Demonstration — the three answers
+        run: python examples/demo.py
       - name: Negative fixture — a label-only corpus must be flagged
-        run: python3 tests/fixture_label_only.py
+        run: python tests/fixture_label_only.py
+      - name: Acceptance battery — the pre-registered proofs
+        run: python tests/battery.py
+      - name: Negative controls — the battery must go red on a broken detector
+        run: python tests/negative_controls.py
+      - name: Adversarial campaign — hostile repositories and hostile input
+        run: python tests/adversarial.py
 
   self:
     name: measure this repository with itself

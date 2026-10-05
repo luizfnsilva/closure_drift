@@ -1,0 +1,8 @@
+- id: closure-drift-would-tag
+  name: "closure_drift: would tagging this commit reuse a version label?"
+  description: "Refuses the push when the declared version already names different code at an existing tag."
+  entry: closure-drift --would-tag
+  language: python
+  pass_filenames: false
+  always_run: true
+  stages: [pre-push]

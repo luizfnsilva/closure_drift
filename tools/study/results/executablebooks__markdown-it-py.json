@@ -1,0 +1,57 @@
+{
+ "exit": 1,
+ "head": "6f586542653a56d2ee8549a0dccfaa6ba5ebe14a",
+ "outcome": "drift",
+ "report": {
+  "closure_changes_between_points": 45,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {
+   "b61ff7fef8ca9edb": "b325d09b00af269fb3684bd1221287d562096b7f98997efd51417fced1897e6b",
+   "b8c68995754136ed": "56e9348b27d438408ff38b117c5087f551b78ec56863314a2f2752b20a930622",
+   "cfaaacf967ed0525": "06131f5047c1df1164d5d24fcd6d3e4bd013b14e391648427ba3c4b6f95f3620"
+  },
+  "drift": {
+   "0.1.1": {
+    "b61ff7fef8ca9edb": "v0.1.0 (2020-03-25)",
+    "b8c68995754136ed": "v0.1.1a (2020-03-25)",
+    "cfaaacf967ed0525": "v0.1.1d (2020-03-25)"
+   }
+  },
+  "label_sources": {
+   "markdown_it/__init__.py": 49
+  },
+  "labels": 44,
+  "labels_covering_multiple_closures": 1,
+  "max_closures_per_label": 3,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points": 49,
+  "publication_points_compared": 49,
+  "publication_points_scanned": 49,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "executablebooks/markdown-it-py",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "6548f891a826034c",
+   "measured_at_head": "6f586542653a",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "drift",
+  "version_file": "markdown_it/__init__.py"
+ },
+ "repository": "executablebooks/markdown-it-py"
+}

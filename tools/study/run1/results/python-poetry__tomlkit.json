@@ -1,0 +1,43 @@
+{
+ "exit": 0,
+ "head": "0518af253901e57872c03835db6fe9bacab40ee7",
+ "outcome": "clean",
+ "report": {
+  "closure_changes_between_points": 54,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {},
+  "drift": {},
+  "labels": 55,
+  "labels_covering_multiple_closures": 0,
+  "max_closures_per_label": 1,
+  "points_not_commits": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points": 55,
+  "publication_points_compared": 55,
+  "publication_points_scanned": 55,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "python-poetry/tomlkit",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "6df9787eb57df52b",
+   "measured_at_head": "0518af253901",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "clean",
+  "version_file": "pyproject.toml"
+ },
+ "repository": "python-poetry/tomlkit"
+}

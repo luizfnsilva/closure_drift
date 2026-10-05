@@ -1,0 +1,48 @@
+{
+ "exit": 0,
+ "head": "2642afacc33fb839c404b75b230fff58b79793f2",
+ "outcome": "clean",
+ "report": {
+  "closure_changes_between_points": 18,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {},
+  "drift": {},
+  "label_sources": {
+   "(the tag)": 11,
+   "dateutil/__init__.py": 10
+  },
+  "labels": 21,
+  "labels_covering_multiple_closures": 0,
+  "max_closures_per_label": 1,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 1,
+  "publication_points": 22,
+  "publication_points_compared": 21,
+  "publication_points_scanned": 22,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "dateutil/dateutil",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "6548f891a826034c",
+   "measured_at_head": "2642afacc33f",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "clean",
+  "version_file": "(the tag)"
+ },
+ "repository": "dateutil/dateutil"
+}

@@ -1,0 +1,48 @@
+{
+ "exit": 0,
+ "head": "7b819f97971b9dce5b3b9a1048749af6d86b1440",
+ "outcome": "clean",
+ "report": {
+  "closure_changes_between_points": 167,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {},
+  "drift": {},
+  "label_sources": {
+   "(the tag)": 131,
+   "pandas/version.py": 3
+  },
+  "labels": 133,
+  "labels_covering_multiple_closures": 0,
+  "max_closures_per_label": 1,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 60,
+  "publication_points": 194,
+  "publication_points_compared": 134,
+  "publication_points_scanned": 194,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "pandas-dev/pandas",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "6548f891a826034c",
+   "measured_at_head": "7b819f97971b",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "clean",
+  "version_file": "(the tag)"
+ },
+ "repository": "pandas-dev/pandas"
+}

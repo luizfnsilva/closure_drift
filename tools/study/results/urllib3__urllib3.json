@@ -1,0 +1,51 @@
+{
+ "exit": 0,
+ "head": "a164d79c8cf760f222daa2dc7f67d0e1ca7fb17c",
+ "outcome": "clean",
+ "report": {
+  "closure_changes_between_points": 108,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {},
+  "drift": {},
+  "label_sources": {
+   "(the tag)": 10,
+   "setup.py": 4,
+   "src/urllib3/__init__.py": 14,
+   "src/urllib3/_version.py": 40,
+   "urllib3/__init__.py": 41
+  },
+  "labels": 108,
+  "labels_covering_multiple_closures": 0,
+  "max_closures_per_label": 1,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points": 109,
+  "publication_points_compared": 109,
+  "publication_points_scanned": 109,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "urllib3/urllib3",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "6548f891a826034c",
+   "measured_at_head": "a164d79c8cf7",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "clean",
+  "version_file": "(the tag)"
+ },
+ "repository": "urllib3/urllib3"
+}

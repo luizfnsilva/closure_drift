@@ -1,0 +1,7 @@
+{
+ "cause": "no version file was found, and pyproject.toml names hatch-vcs: the version of this project appears to be derived from th",
+ "exit": 2,
+ "head": "51cd75e399c760e5aa3adce600dcce1385756ab0",
+ "outcome": "refused",
+ "repository": "python-jsonschema/jsonschema"
+}

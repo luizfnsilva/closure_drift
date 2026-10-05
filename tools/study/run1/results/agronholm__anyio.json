@@ -1,0 +1,7 @@
+{
+ "cause": "no version file was found, and pyproject.toml names setuptools_scm: the version of this project appears to be derived fr",
+ "exit": 2,
+ "head": "0630f103556aa450cf674fe5728b9cef60e53351",
+ "outcome": "refused",
+ "repository": "agronholm/anyio"
+}

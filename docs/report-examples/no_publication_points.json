@@ -1,0 +1,5 @@
+{
+ "report_format": 2,
+ "verdict": "no_publication_points",
+ "note": "no tags found \u2014 this repository publishes nothing addressable by tag. If it publishes continuously, rerun with --at commits."
+}

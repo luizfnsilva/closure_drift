@@ -1,0 +1,43 @@
+{
+ "exit": 0,
+ "head": "4e612f9e44ecfad130d0b2a27a2dce0740599b4b",
+ "outcome": "clean",
+ "report": {
+  "closure_changes_between_points": 378,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {},
+  "drift": {},
+  "labels": 70,
+  "labels_covering_multiple_closures": 0,
+  "max_closures_per_label": 1,
+  "points_not_commits": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 328,
+  "publication_points": 400,
+  "publication_points_compared": 72,
+  "publication_points_scanned": 400,
+  "published_at": "tags",
+  "range_truncated": true,
+  "repo": "pypa/setuptools",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "6df9787eb57df52b",
+   "measured_at_head": "4e612f9e44ec",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "clean",
+  "version_file": "pyproject.toml"
+ },
+ "repository": "pypa/setuptools"
+}

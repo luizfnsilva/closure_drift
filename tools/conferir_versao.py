@@ -45,6 +45,7 @@ def main():
         "VERSION": ler("VERSION", r"(\d+\.\d+\.\d+)"),
         "CITATION.cff": ler("CITATION.cff", r"(?m)^version:\s*(\S+)\s*$"),
         "CHANGELOG.md (first entry)": ler("CHANGELOG.md", primeiro_cabecalho=True),
+        "closure_drift.py __version__": ler("closure_drift.py", r'(?m)^__version__\s*=\s*"([^"]+)"'),
     }
     if a.tag:
         fontes["tag"] = a.tag[1:] if a.tag.startswith("v") else a.tag

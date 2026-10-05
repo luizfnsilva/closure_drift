@@ -3,6 +3,64 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 0.9.0 — 2026-10-04
+
+0.7.1 was audited: acceptance proofs written before the code, mutation controls, and two adversarial
+passes by a reviewer who did not write the fixes. Against 0.7.1 as deposited, 30 of 51 proofs were
+red. The script changes; it is sha256 `6548f891a826034c35ef83b276578c79564b57f892a54422af5c1be44591137c`.
+
+There is no 0.8.0: it was this release's working name and was never tagged or deposited.
+
+### Fixed
+
+- **Files with non-ASCII names were silently outside the closure.** Two tags differing only in
+  `src/ação.py` came back `inconclusive`.
+- **Submodule pointers were ignored.**
+- **`tests/`, `docs/` and `*.md` at the repository root were inside the closure**; the exclusions
+  only worked one level down.
+- **Undetermined results exited 0.** Exit 0 now means `clean` only; `inconclusive` and `no_labels`
+  exit 2. Scripts that relied on 0 must read the verdict.
+- **Tags that could not be compared were skipped in silence**, and a failing git call was read as
+  empty output. The report now counts them; a failing call is a refusal.
+- **Errors could exit 1**, the code for drift (broken config, malformed tree object).
+- **Measuring a repository could run its commands and rewrote its index**: `core.fsmonitor`, clean
+  filters, the lazy fetch of a partial clone. All blocked.
+- **`git replace` refs and `GIT_DIR` in the environment** could make it measure the wrong tree or
+  the wrong repository.
+- **A version pattern that never finishes** hung the run. It is matched under a time limit.
+- **Labels and paths were printed raw**; a label with a line break could forge a verdict line.
+- **Two different file lists could produce the same closure id.** Identity is now decided by a
+  second, full-length hash (`closure_ids`); the 16-hex value is kept unchanged.
+- **The version was read from one file chosen at HEAD.** Older tags that kept it elsewhere were not
+  compared: `click` 11 of 71 tags, `requests` 12 of 162. The label is now found at each tag where
+  the project keeps it (`docs/LABELS.md`); where the version is derived from the tag, the label is
+  the tag. Read that way, `click` and `requests` each have three labels naming two trees.
+- Bare clones can be measured. `--max-commits` below 1, a config value of the wrong type, an unknown
+  config key and `--version-regex` without a version file are refusals.
+
+### Added
+
+- `--would-tag`: before tagging, would this commit reuse a label that names other code?
+- `--tags GLOB`, `--strict`, `--explain LABEL`, `--compare A B`, `--diagnose`, `--badge`,
+  `--version`.
+- A hint when the tags in drift belong to different families, and a count of tags where two files
+  declare different versions (never reported as `clean`).
+- `report_format: 2`, documented in `docs/REPORT.md`, with counts of what was not compared.
+- About 5× faster on large repositories (`polars`: 58 s → 10 s).
+- Package, GitHub Action, pre-commit hook, `examples/demo.py`, `docs/CI.md`, `ROADMAP.md`.
+- Three batteries in `tests/`: 120 declared · 119 green · 0 red · 1 not run · 26 mutants · 26 caught · 0 not caught · 235 attacks · 229 as required · 0 loose · 6 not run (macOS; also run on
+  Linux and Windows in CI).
+- A study of the 100 most-downloaded PyPI projects, in two runs, both kept: `tools/study/STUDY.md`.
+  Run 2: 63 clean, 29 drift, 8 undecided; one line per collision in `collisions.tsv`.
+
+### Comparability with earlier results
+
+0.9.0 compares more tags than 0.7.1, so a `clean` from 0.7.1 can be `drift` now: of the seven
+reference repositories, two changed (`click`, `requests`) and five kept their verdict and counts.
+With `--version-file`, one file is read at every tag, as before. Measure again whatever you
+measured with an earlier version. The 16-hex closure values also change where `tests/`, `docs/` or
+`*.md` sit at the repository root, or the closure holds a non-ASCII path or a submodule.
+
 ## 0.7.1 — 2026-09-15
 
 **Three of the deposited files still described 0.6.0 after the 0.7.0 release, and the deposited

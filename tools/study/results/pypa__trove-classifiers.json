@@ -1,0 +1,7 @@
+{
+ "cause": "could not find a version label. Pass --version-file / --version-regex.",
+ "exit": 2,
+ "head": "bc832553ebe6114e7682f09bc59bda6552da37cd",
+ "outcome": "refused",
+ "repository": "pypa/trove-classifiers"
+}

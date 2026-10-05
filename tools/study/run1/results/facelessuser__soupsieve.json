@@ -1,0 +1,7 @@
+{
+ "cause": "could not find a version label. Pass --version-file / --version-regex.",
+ "exit": 2,
+ "head": "2e464750bfd739816b8f135a482754743d205fa0",
+ "outcome": "refused",
+ "repository": "facelessuser/soupsieve"
+}

@@ -1,0 +1,28 @@
+name: Propose a feature
+description: Something closure_drift should do and does not
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Read `SCOPE.md` first: this tool answers one question and will not grow past it.
+        `ROADMAP.md` lists what is already planned.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What were you trying to find out about your repository?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would the command and its answer look like?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: How would we know it works — and how would we know it is wrong?
+      description: A case that must pass, and a case that must be refused or reported as not determined.
+    validations:
+      required: true

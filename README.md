@@ -1,321 +1,165 @@
 # closure_drift
 
-**Does your version label name exactly one version of your code?**
-
-`lodash` publishes 78 labels across 400 tags; 69 of them cover more than one code state. `polars`:
-51 labels, 40 in drift, one of them covering 16. Neither project is badly run — both are in drift
-by a property of their release scheme, and neither could have noticed from what they recorded.
-
-That is the failure this tool measures. When you publish something and address it by
-`(input, version)`, that address is sound only if the version identifies exactly one state of the
-producing code. Nothing enforces it — the label is a string a human edits. When two code states
-share a label, one address denotes two outputs, and **the system cannot notice, because the label is
-the only thing it recorded.**
-
-One command tells you whether it is happening to you. Read-only, zero dependencies, one file, no
-network, nothing written to your repository.
+**Does `v1.4.2` mean one thing in your repository?**
 
 ```
-python3 closure_drift.py                          # your repo, drift at tags
-python3 closure_drift.py --at commits             # continuously published output
-python3 closure_drift.py --closure 'src/**/*.py'  # say what determines your output
-python3 closure_drift.py --json                   # machine-readable
+$ closure-drift lodash
+DRIFT: 69 of 78 labels name more than one closure
+at a publication point. The worst covers 4.
 ```
 
-Exit codes, closed set:
+A version is a string a human edits. When two releases share a version and differ in code, one
+address names two artefacts — and nothing notices, because the version is all that was recorded.
 
-| code | meaning |
-|---|---|
-| `0` | the run completed — the verdict is in the report: `clean`, `inconclusive` or `no_labels` |
-| `1` | `drift` — a label covers more than one closure at a publication point |
-| `2` | a named refusal, cause on stderr: not a git repository, broken config file, invalid `--at`, no version label found, malformed or group-less `--version-regex`, no publication points |
+One command checks it. Read-only, one file, no dependencies, no network.
 
-A `0` is not by itself a clean bill: read the verdict.
+## Run it
 
-## What it measures
+```bash
+curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v0.9.0/closure_drift.py
+python3 closure_drift.py            # inside any git repository
+```
 
-For each **publication point** it computes two things and compares them across the history:
+or `pipx run --spec git+https://github.com/luizfnsilva/closure_drift@v0.9.0 closure-drift`.
+Needs Python 3.9+ and git. To see the three possible answers first: `python3 examples/demo.py`.
+
+## Check before you tag
+
+`--would-tag` answers: *if I tag this commit now, does its version already name different code?*
+
+```yaml
+# GitHub Actions
+- uses: actions/checkout@v4
+  with: { fetch-depth: 0 }
+- uses: luizfnsilva/closure_drift@v0.9.0
+```
+
+```yaml
+# pre-commit, on git push
+- repo: https://github.com/luizfnsilva/closure_drift
+  rev: v0.9.0
+  hooks: [{ id: closure-drift-would-tag }]
+```
+
+Other pipelines: [`docs/CI.md`](docs/CI.md).
+
+## The answer
+
+| verdict | exit | |
+|---|---|---|
+| `clean` | 0 | every label names one closure, over the points compared |
+| `drift` | 1 | a label names more than one closure |
+| `inconclusive`, `incomplete`, `no_labels`, `empty_closure`, `no_publication_points` | 2 | not enough to tell; the report says why |
+| refusal | 2 | cause on stderr |
+
+Exit 0 means `clean` and nothing else. No input produces a traceback; no failure exits 1.
+
+- **label** — the version your project declares at each tag: in its build files, in the module
+  they point to, or the tag itself when the version is derived from it
+- **closure** — SHA-256 over `(path, git object id)` of the files that determine your output
+
+The report also says how many tags it could **not** compare.
+
+## Options
 
 | | |
 |---|---|
-| **label** | the version you declare, read from your version file |
-| **closure** | SHA-256 over `(path, git blob id)` for the files that determine your output |
+| `--would-tag` | would tagging this commit reuse a label? |
+| `--tags 'py-*'` | only these tags are publication points (monorepos) |
+| `--at commits` | you publish at every commit |
+| `--closure 'src/**'` | which files determine your output |
+| `--strict` | `clean` only if every point was compared |
+| `--explain LABEL` | which paths differ under a label in drift |
+| `--compare A B` | two tags side by side |
+| `--version-file`, `--version-regex` | where the label is |
+| `--json`, `--badge`, `--diagnose` | report ([contract](docs/REPORT.md)), README badge, bug-report block |
 
-A label covering more than one closure means artefacts published under it are ambiguously addressed.
+Settings can be committed in `.closure-drift.json`. Flags override it; a broken file is refused.
 
-## Reproducibility needs an unambiguous address first
+## What it found
 
-The reproducibility question is: **rebuild the source, do you get the same artefact, bit for bit?**
+**The 100 most-downloaded PyPI projects, at the defaults** — rule and method fixed before the first
+run; no repository tuned ([full table and every collision](tools/study/STUDY.md)):
 
-That question presupposes something nobody checks. It presupposes that *"rebuild version 1.4.2"*
-**names a source**. If the label `1.4.2` covers more than one state of the producing code, it does
-not name a source — it names a *set*, and the rebuild you perform is one draw from that set. You can
-then get a mismatch and spend a week hunting a non-determinism that was never in the build at all,
-or get a match and have learned less than you think.
+| | repositories |
+|---|---|
+| `clean` | 63 |
+| `drift` | 29 |
+| no version label found, or inconclusive | 8 |
 
-So label drift is not a reproducibility failure. It sits **upstream** of one, and it is worse in a
-specific way:
+A version label names two different code states in **29 of the 92** decided, 29 of all 100. Each
+of the 87 labels is a line in `collisions.tsv`, reproducible by hand:
 
-> it does not make the reproducibility question fail. It makes it **unaskable** — and unaskable in a
-> shape that looks exactly like it was asked and answered.
-
-That is the same failure the rest of this README keeps circling: *the system cannot notice, because
-the label is the only thing it recorded.* Two of the three repositories measured on 2026-08-23 are
-in drift by a property of their release scheme, not by anyone's oversight. Neither could have
-noticed from what it records.
-
-This tool checks that precondition, in one command, and then stops.
-
-## What this is not, and what it does not compete with
-
-Three things are constantly bundled together, and this tool is deliberately only the first:
-
-| | the question | this tool |
-|---|---|---|
-| **addressing** | does the label name exactly one code state? | **yes, this is all it does** |
-| **rebuilding** | does re-executing that state yield the published bits? | **no.** It never runs your code. Rebuild-and-compare tooling answers this, by actually rebuilding |
-| **attestation** | is there a signed, verifiable statement about how the artefact was produced, that a third party can rely on? | **no.** It issues no attestation, signs nothing, and asks you to rely on nothing. Supply-chain attestation frameworks exist for this |
-
-The three are complementary, not alternatives — but the first is the one that can quietly invalidate
-the other two, because both of them take *"which source?"* as given, and it is not given.
-
-And the disarming case, said plainly: **if your labels are clean at your publication points, this
-tool has nothing further to offer you.** It will exit `0`, you will have spent one command, and the
-right next step is the rebuild and attestation tooling, not this. A detector that tries to stay
-useful after answering its question stops being a detector.
-
-`SCOPE.md` states the boundary in full, including what this tool will not be extended to do.
-
-## What it does not attest
-
-This tool answers one question — *does the label identify exactly one code state at the points
-where you publish?* — and nothing else. In particular, keep two claims apart:
-
-- **(A) the record is well-formed**: a version label exists, a closure can be computed, hashes are
-  present and comparable. That is the shape this tool checks.
-- **(B) the published artefact can be re-produced**: re-executing the recorded code state yields
-  the published output. This tool **never runs your code** and therefore never attests (B).
-
-A `clean` verdict means your addresses are unambiguous over the range scanned — it does not mean
-your outputs were replayed or verified. Reading (A) as (B) is a defect we paid to learn about in
-our own system: a 26-year, 4,756-record production ledger of ours is 100% label-only under a
-single catalogue label — every record carries a content hash, none carries its closure — so replay
-of the originating code states is impossible from the record alone, a fact no amount of (A)-shape
-checking can repair. The shape of that corpus is what this tool's negative fixture reproduces (see *Tests* below): a
-detector that stays quiet on that shape is broken.
-
-## Where your publication points are
-
-This is the setting that matters, and getting it wrong makes the tool useless.
-
-- `--at tags` **(default)** — you publish at releases. Between tags the code moves and the label does
-  not, and that is not drift; that is what a release is.
-- `--at commits` — you publish continuously: a feed, a dashboard, generated documentation, a daily
-  edition, model output served from a rolling checkpoint. Then every commit publishes, and every
-  commit is a point.
-
-An earlier version of this tool compared at every commit unconditionally. It reported drift in every
-repository it was pointed at, including four healthy ones — because measured that way, every project
-on earth is guilty. A detector whose alarm always fires is worth what a test that never fails is
-worth. If you are reading the source and wondering why the publication-point logic exists, that is
-why.
-
-## Reference results
-
-Measured 2026-08-02 with the 0.3.0 script (sha256 `da5da3c0e781b67b9b3a55800d599c243edc8df649fc90b24a88e289533805c5`).
-The script in this deposit is `6d8906ef374b73e6b8c58adba813c77c4ff352f5c9c280aa43ff2baa4f804451` and
-differs from it only in refusal handling: the two were run over the same repositories and every
-verdict field is identical. These counts are dated measurements and are not re-run here.
-
-| Repository | Points | Labels | Worst label | Verdict |
-|---|---|---|---|---|
-| `pallets/click` | 68 tags | 10 | 1 closure | clean |
-| `psf/requests` | 66 tags | 12 | 1 closure | clean |
-| `pypa/packaging` | 17 tags | 13 | 1 closure | clean |
-| `encode/httpx` | 28 tags | 28 | 1 closure | clean |
-| a system publishing daily | 133 commits | 2 | **6 closures** | **drift** |
-
-Measured 2026-08-23 with the same 0.3.0 script, at the default (tags), on three further repositories selected by
-a rule fixed before the run:
-
-| Repository | Points | Labels | In drift | Worst label | Verdict |
-|---|---|---|---|---|---|
-| `impress/impress.js` | 15 tags | 4 | 2 | 2 closures | **drift** |
-| `lodash/lodash` | 400 of 440 tags | 78 | 69 | 4 closures | **drift** |
-| `pola-rs/polars` | 400 of 570 tags | 51 | 40 | 16 closures | **drift** |
-
-Two distinct mechanisms produce these, and they should be cited as distinct. In `impress.js` it is
-the simple forgetting: a release tagged without bumping the version file (`1.1.0` is declared both
-at tag `1.1.0` and at tag `v2.0.0`). In `lodash` and `polars` it is **label collision across tag
-families**: variant tags (`-amd`/`-es`/`-npm` builds; a monorepo's `rs-*`/`py-*` releases sharing
-one version file) publish genuinely different artefacts that all declare the same label. Both are
-the defined phenomenon — one `(input, version)` address denoting more than one published artefact —
-but the second is a naming-scheme property, not an oversight.
-
-Well-run projects are clean at their publication points. Drift belongs to two regimes: **continuous
-publication under a hand-maintained label**, and **multi-artefact release schemes that reuse one
-label across variants**.
-
-## Send a result — the ask, and what you get for it
-
-Everything in the reference table above is the author measuring **other people's repositories from
-the outside**. Nobody outside the author has yet run this tool and reported a result from the
-inside. `RESULTS.md` is the table for that, and as of this release **it is empty, published empty on
-purpose**.
-
-```bash
-python3 closure_drift.py --json > result.json
+```
+$ closure-drift --compare v2.16.0 v2.16.1        # in psf/requests
+DIFFERS UNDER ONE LABEL: both declare 2.16.0, and the code differs in 2 path(s).
 ```
 
-Open a [**Report a measurement**](https://github.com/luizfnsilva/closure_drift/issues/new?template=measurement-result.yml)
-issue with it, or send it to **lfnsilva.invest@gmail.com** if a public issue is not appropriate. One
-command. The report carries counts, labels, hashes and the tool's own stamp — **never file
-contents**, so a private repository can be measured without anything leaving your machine.
+A collision is not a verdict on a project. The usual causes are a tag created without bumping the
+version, branch markers such as `7.x`, and tag families in a monorepo. A first run, kept in the
+repository, decided only 63 of 100 — it read the version from one file chosen at HEAD — and that
+is why this release finds the label where each project keeps it.
 
-What you get back is in `RESULTS.md` in full, and briefly: your line in the table with attribution
-as you choose it; a dated, version-pinned measurement you can cite when you claim your releases are
-unambiguously addressed; and a straight answer about which mechanism produced your result.
+Seven repositories measured since 0.3.0, with 0.7.1 and with this release:
 
-**A result that contradicts the tool is worth more than one that confirms it**, and goes in the
-table marked as such — there is a
-[separate form](https://github.com/luizfnsilva/closure_drift/issues/new?template=false-positive.yml)
-for it. A reference table that only ever agrees with its instrument is not evidence of anything.
+| Repository | 0.7.1 | 0.9.0 | Tags compared (0.7.1 → 0.9.0) |
+|---|---|---|---|
+| `pallets/click` | clean | **drift**, 3 of 66 labels | 11 → 71 of 71 |
+| `psf/requests` | clean | **drift**, 3 of 140 labels | 12 → 145 of 162 |
+| `pypa/packaging` | clean | clean | 14 → 50 of 53 |
+| `encode/httpx` | clean | clean | 69 → 88 of 88 |
+| `impress/impress.js` | drift, 2 of 4 | drift, 2 of 4 | 6 of 15 |
+| `lodash/lodash` | drift, 69 of 78 | drift, 69 of 78 | 280 of 400 |
+| `pola-rs/polars` | drift, 41 of 51 | drift, 41 of 51 | 281 of 400 |
 
-## The report stamps itself
+`click` and `requests` were `clean` over the dozen tags 0.7.1 could read; read at every tag, three
+labels in each name two trees.
 
-Every run reports the commit it measured and the hash of the tool that measured it:
+Two causes: a release tagged without bumping the version (`impress.js`), and tag families sharing
+one version file (`lodash`, `polars`). Neither project is badly run. `--would-tag` addresses the
+first, `--tags` the second.
 
-```json
-"stamp": {
-  "measured_at_head": "1ea5e43618b4",
-  "working_tree_dirty": false,
-  "detector_closure": "6d8906ef374b73e6"
-}
-```
+## Limits
 
-Counts over repository history are functions of `HEAD`. We learned this the hard way: our own
-headline count changed while the manuscript was open, because the commit that *fixed* the defect
-created one more code state under the same label. The number was generated from artefacts, not
-transcribed, and went stale anyway — because the measurement has a closure of its own and nothing
-recorded it. A finding without the state it was measured in is a finding you cannot return to.
+- It never runs your code and attests nothing. `clean` is about addressing, not reproducibility.
+- A change of file mode alone is not seen.
+- `tests/`, `docs/`, `vendor/`, `node_modules/` and `*.md` are never in the closure.
+- The default closure globs are a guess. Pass `--closure`.
+- Labels are compared as written: `1.0` and `1.0.0` are two labels.
+- How the label is found is a set of rules, not a build: [`docs/LABELS.md`](docs/LABELS.md).
 
-And once more, after 0.3.0 was deposited: an extended run was prepared with a working copy of this
-very tool that had silently drifted behind the version deposited under its own DOI — older
-semantics, same filename. The run was discarded and redone with the deposited bytes, checksum
-verified against the Zenodo record before execution. The instrument exhibited the phenomenon it
-measures. If you script this tool, pin the deposit and verify the checksum; the `CHANGELOG.md`
-carries the incident.
+More: [`SCOPE.md`](SCOPE.md), [`docs/WHY.md`](docs/WHY.md).
+
+## Safety
+
+It starts `git` and nothing else, never writes to the repository, and does not run commands named
+in that repository's git config. Details and reporting: [`SECURITY.md`](SECURITY.md).
 
 ## Tests
 
-`fixture_label_only.py` is the negative fixture: a synthetic repository with the shape of the
-label-only ledger described above (one declared label, N commits each changing the published
-content, no tags). It asserts that the tool (1) refuses to answer at the default when there are no
-tags — exit 2, never a false `clean` — and (2) reports drift with one label covering N closures
-under `--at commits`. Zero dependencies.
+Three batteries, each pre-registered before the code. Scores are never added together.
 
-It lives in `tests/` in the source repository and flat beside the detector in the deposit, so it is
-run one of two ways, and finds the detector beside itself first, then one directory up:
+| battery | macOS, Python 3.14 (3.9: the same, one more attack not run) |
+|---|---|
+| `tests/battery.py` — acceptance proofs | 120 declared · 119 green · 0 red · 1 not run |
+| `tests/negative_controls.py` — the battery must fail on a broken detector | 26 mutants · 26 caught · 0 not caught |
+| `tests/adversarial.py` — written by a reviewer who did not write the fixes | 235 attacks · 229 as required · 0 loose · 6 not run |
 
-```bash
-python3 fixture_label_only.py          # in the deposit, where the files are flat
-python3 tests/fixture_label_only.py    # in the source repository
-```
+CI runs the same three on Linux, macOS and Windows; what each platform could not run is in [`tests/RECORD.md`](tests/RECORD.md). These scores describe the cases executed, not inputs nobody tried.
 
-Every outcome names the detector it ran and the first 16 hex of its sha256, because a fixture that
-does not say what it measured can pass while measuring something else. Its own exit codes are a
-closed set: `0` the detector behaves, `1` the detector failed the fixture and each failure is
-listed, `2` the fixture could not run and the cause is named.
+## Send a result
 
-## Caveats
-
-- The default closure globs are a guess. If they do not describe what determines your output, pass
-  `--closure`. The tool prints what it used.
-- Version auto-detection covers static declarations and the common dynamic-version layouts. If it
-  cannot find your label it says so and exits `2` rather than reporting a number.
-- `clean` means clean **over the range scanned**, at the points you told it about. It is not a proof
-  — and it is a claim about addressing (A above), never about re-execution (B).
-- `--max-commits` is meant to be a positive integer and is not checked. `0` means "all of them". A
-  **negative** value silently cuts the range from the wrong end: the header then reports fewer
-  publication points than the repository has, and a repository whose baseline verdict is `drift` can
-  come back `inconclusive` at exit `0` because the points that differed were the ones dropped. A
-  value more negative than the number of points empties the range and produces the refusal `no tags
-  found`, whose stated cause is then false. Pass a positive number, or omit it.
-- `--version-regex` is only consulted alongside a version file — `--version-file`, or `version_file`
-  in `.closure-drift.json`. Passed on its own it is discarded in silence, and so is not checked for
-  being well-formed.
-
-## Requirements
-
-CPython **3.9 or later**, and `git` on `PATH`. No third-party packages, no network access, no
-required configuration. The tool never writes to the repository it measures.
-
-Tested on CPython 3.9, 3.11 and 3.13, macOS and Linux.
-
-## Repository-side configuration
-
-A repository may commit its own measurement settings in `.closure-drift.json` at the root:
-
-```json
-{
- "at": "commits",
- "version_file": "path/to/file-holding-the-label",
- "version_regex": "\"version\"\\s*:\\s*\"([^\"]+)\"",
- "closure": ["src/composer.py", "src/catalogue*.json"]
-}
-```
-
-Then `closure_drift.py` with no flags measures that repository the way it declares it should be
-measured. CLI flags override the file; a broken file is an error, never silently ignored. Committing
-the configuration makes the measurement itself reviewable — the flags become part of the
-repository's history instead of someone's shell history.
+[`RESULTS.md`](RESULTS.md) is for measurements made by someone other than the author. It is still
+empty. `closure-drift --json > result.json`, then
+[open an issue](https://github.com/luizfnsilva/closure_drift/issues/new?template=measurement-result.yml)
+or write to lfnsilva.invest@gmail.com. A result showing the tool is wrong is the most useful kind.
 
 ## Version
 
-**0.7.1** — see `CITATION.cff` and `CHANGELOG.md`. The measurement script changed in 0.7.0, for the
-first time since 0.3.0: it is sha256
-`6d8906ef374b73e6b8c58adba813c77c4ff352f5c9c280aa43ff2baa4f804451` here, against
-`da5da3c0e781b67b9b3a55800d599c243edc8df649fc90b24a88e289533805c5` for 0.3.0 through 0.6.0. What
-changed there is a refusal and not a measurement, and it was checked rather than asserted: the two
-were run over the same repositories and every verdict field is identical. The one field that differs
-is `detector_closure`, and it differs because the detector differs. **Every result produced under
-0.3.0 through 0.6.0 remains valid and comparable**, and carries the closure of the detector that
-produced it.
+**0.9.0.** Script sha256 `6548f891a826034c35ef83b276578c79564b57f892a54422af5c1be44591137c`.
+0.9.0 reads the label at every tag, so it compares more tags than 0.7.1 and can find drift 0.7.1
+could not see. With `--version-file` it reads one file, as before. What changed and which earlier
+results to measure again: [`CHANGELOG.md`](CHANGELOG.md).
 
-0.7.1 corrects this section and `CITATION.cff`: both still named 0.6.0 after the 0.7.0 release, which
-was tagged and never deposited. 0.7 makes a malformed `--version-regex`, and one with no capture
-group, a named refusal instead of an exception that left the process at the exit code for drift. 0.6
-replaces the `LICENSE` file, which carried an abridged text of the Apache License while naming that
-licence, with the unabridged one, and publishes the source repository; 0.5 added `SCOPE.md`, `NOTICE`
-and `RESULTS.md`; 0.4 added the negative fixture, the (A)/(B) limitation above, three further
-reference results, and the record of our own working-copy drift. Version 0.1 measured at every commit
-and is superseded; if you have results from it, they overstate drift for any repository that
-publishes at tags.
-
-## Licence and citation
-
-Apache-2.0, unabridged; the file deposited as 0.3.0 through 0.5.0 carried a shortened text under
-that name and `CHANGELOG.md` records what was missing. See `LICENSE`, and `NOTICE` for the scope of
-this release. Commercial use is
-permitted with **no royalty and no payment obligation** — if you make money with this tool, you owe
-nothing. `SCOPE.md` states what this tool does and what it will not be extended to do.
-`CITATION.cff` carries the machine-readable citation.
-
-Each deposited version gets its own DOI, and the deposit also has a concept DOI that always resolves
-to the latest. **Cite the version DOI** if you are reporting a measurement — the tool's own output
-records which version produced it, and a citation that does not pin the version cannot be checked
-against that record.
-
-The source is at **<https://github.com/luizfnsilva/closure_drift>**, where the files of this deposit
-are held byte-identical to it under a checksum gate, so you can verify what you run without taking
-anyone's word for it.
-
-## Related
-
-This is the detector for the first of six principles in an article about a production audit. The
-other five have detectors described in the article; only this one is packaged.
-
-It comes out of a longer research programme on measuring what a record can and cannot establish
-about the thing it records. `SCOPE.md` marks where this tool stops, and that boundary is deliberate:
-work on the far side of it — re-execution, attestation, provenance certification — exists but is not
-this tool and will not arrive as a silent extension of it. If your problem lives there, write.
+Apache-2.0. Cite the version DOI, under concept DOI `10.5281/zenodo.21763931`
+([`CITATION.cff`](CITATION.cff)). Planned next: [`ROADMAP.md`](ROADMAP.md).

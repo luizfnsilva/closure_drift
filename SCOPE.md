@@ -35,6 +35,14 @@ These are not gaps waiting to be filled. They are the boundary, and the boundary
 - **It does not decide what determines your output.** The default closure globs are a guess. If
   they are wrong for your project, the number is wrong, and the tool prints what it used so you can
   see that.
+- **It does not see a change of file mode alone.** The closure is `(path, object id)`. A file made
+  executable, or replaced by a symbolic link holding the same bytes, keeps the same object id.
+- **It never looks under the excluded folders.** `test/`, `tests/`, `spec/`, `docs/`, `vendor/`,
+  `node_modules/` and `*.md` are outside every closure, even when a `--closure` glob matches them.
+  Code that determines your output and lives there can change without this tool noticing.
+- **Its closure identifiers are not a defence against someone crafting collisions.** The 16-hex
+  value is kept for comparability; identity is decided by a full SHA-256, which is as strong as
+  git's own object ids are, and no stronger.
 - **It is not a proof of anything.** `clean` means clean over the range scanned, at the points you
   told it about.
 
@@ -58,13 +66,12 @@ will not arrive as a silent extension of this one.
 
 ## Stability
 
-`closure_drift.py` was byte-identical across 0.3.0, 0.4.0, 0.5.0 and 0.6.0
-(sha256 `da5da3c0e781b67b9b3a55800d599c243edc8df649fc90b24a88e289533805c5`). **It changed in 0.7.0**
-and is now `6d8906ef374b73e6b8c58adba813c77c4ff352f5c9c280aa43ff2baa4f804451`. What changed is a
-refusal and not a measurement: two malformed patterns that used to raise an exception, and so left
-the process at the exit code for drift, now refuse by name. Every result produced by 0.3.0 through
-0.6.0 remains valid and comparable — the two were run over the same repositories and every verdict
-field is identical — and each report carries the `detector_closure` of the detector that produced
-it, which is how a reader tells them apart. The CHANGELOG says what changed and what it does to
-results already published, because a measurement whose instrument moved without saying so is the
-phenomenon this tool exists to detect.
+| versions | script sha256 |
+|---|---|
+| 0.3.0 – 0.6.0 | `da5da3c0e781b67b9b3a55800d599c243edc8df649fc90b24a88e289533805c5` |
+| 0.7.0 – 0.7.1 | `6d8906ef374b73e6b8c58adba813c77c4ff352f5c9c280aa43ff2baa4f804451` |
+| 0.9.0 | `6548f891a826034c35ef83b276578c79564b57f892a54422af5c1be44591137c` |
+
+0.9.0 is the first change that can alter a measurement: it reads the label at every tag and
+compares more of them, so a `clean` from an earlier version can be `drift` now. `CHANGELOG.md`
+says what to measure again. Every report carries the `detector_closure` of the detector that produced it.

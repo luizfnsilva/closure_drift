@@ -1,0 +1,7 @@
+{
+ "cause": "could not find a version label. Pass --version-file / --version-regex.",
+ "exit": 2,
+ "head": "5e8083e845dc0b0225d8674240c556c879ce852f",
+ "outcome": "refused",
+ "repository": "open-telemetry/opentelemetry-python"
+}

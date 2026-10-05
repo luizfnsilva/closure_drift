@@ -1,0 +1,40 @@
+{
+ "report_format": 2,
+ "stamp": {
+  "measured_at_head": "33cfa8743c4e",
+  "working_tree_dirty": false,
+  "detector_closure": "6548f891a826034c"
+ },
+ "repo": ".",
+ "version_file": "VERSION",
+ "closure_globs": [
+  "src/**",
+  "lib/**",
+  "app/**",
+  "*.py",
+  "*.js",
+  "*.ts",
+  "*.rs",
+  "*.go",
+  "*.java"
+ ],
+ "published_at": "tags",
+ "publication_points": 2,
+ "labels": 2,
+ "labels_covering_multiple_closures": 0,
+ "max_closures_per_label": 1,
+ "verdict": "clean",
+ "drift": {},
+ "closure_ids": {},
+ "closure_changes_between_points": 1,
+ "label_sources": {
+  "VERSION": 2
+ },
+ "publication_points_scanned": 2,
+ "publication_points_compared": 2,
+ "points_without_label": 0,
+ "points_with_empty_closure": 0,
+ "points_not_commits": 0,
+ "range_truncated": false,
+ "points_with_conflicting_sources": 0
+}

@@ -1,0 +1,47 @@
+{
+ "exit": 0,
+ "head": "62c5068c971579d61fa1b55373390e12f25fd856",
+ "outcome": "clean",
+ "report": {
+  "closure_changes_between_points": 12,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {},
+  "drift": {},
+  "label_sources": {
+   "h11/_version.py": 13
+  },
+  "labels": 13,
+  "labels_covering_multiple_closures": 0,
+  "max_closures_per_label": 1,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points": 13,
+  "publication_points_compared": 13,
+  "publication_points_scanned": 13,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "python-hyper/h11",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "6548f891a826034c",
+   "measured_at_head": "62c5068c9715",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "clean",
+  "version_file": "h11/_version.py"
+ },
+ "repository": "python-hyper/h11"
+}

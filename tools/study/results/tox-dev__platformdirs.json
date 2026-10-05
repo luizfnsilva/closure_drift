@@ -1,0 +1,47 @@
+{
+ "exit": 0,
+ "head": "960ff632eb575deb6f0d5bf49519d5a2ee2098b6",
+ "outcome": "clean",
+ "report": {
+  "closure_changes_between_points": 77,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {},
+  "drift": {},
+  "label_sources": {
+   "(the tag)": 82
+  },
+  "labels": 82,
+  "labels_covering_multiple_closures": 0,
+  "max_closures_per_label": 1,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 13,
+  "publication_points": 95,
+  "publication_points_compared": 82,
+  "publication_points_scanned": 95,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "tox-dev/platformdirs",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "6548f891a826034c",
+   "measured_at_head": "960ff632eb57",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "clean",
+  "version_file": "(the tag)"
+ },
+ "repository": "tox-dev/platformdirs"
+}

@@ -1,0 +1,7 @@
+{
+ "cause": "could not find a version label. Pass --version-file / --version-regex.",
+ "exit": 2,
+ "head": "429524de0c19171c561b6a60690ed2e3cdad5c62",
+ "outcome": "refused",
+ "repository": "lxml/lxml"
+}

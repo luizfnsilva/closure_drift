@@ -7,26 +7,19 @@ message: >-
 title: "closure_drift: does your version label name exactly one version of your code?"
 abstract: >-
   A read-only, zero-dependency tool that measures, over any git repository,
-  whether a declared version label identifies exactly one state of the
-  producing code at the points where that repository publishes. Distinguishes
-  release-based publication (tags) from continuous publication (commits),
-  because measuring at every commit reports drift in every repository and
-  therefore carries no information. Each report stamps the commit measured and
-  the hash of the tool that measured it. The measurement script was
-  byte-identical across 0.3.0, 0.4.0, 0.5.0 and 0.6.0 and changed in 0.7.0:
-  what changed there is a refusal and not a measurement, and every result
-  produced under those earlier deposits remains valid and comparable, each
-  report carrying the hash of the detector that produced it. 0.7.1 corrects the
-  citation file and the README's version section, which still named 0.6.0 after
-  the 0.7.0 release, and makes the deposited fixture find the detector deposited
-  beside it. 0.7.0 was tagged as source and never deposited.
+  whether a declared version label identifies exactly one state of the code at
+  the points where that repository publishes. 0.9.0 corrects the detector after
+  an audit (files with non-ASCII names and submodule pointers were outside the
+  closure; undetermined results exited 0), adds a check to run before tagging,
+  and ships three pre-registered test batteries. Exit 0 means clean and nothing
+  else. Each report stamps the commit measured and the hash of the tool.
 type: software
 authors:
   - family-names: "Silva"
     given-names: "Luiz F. Nunes da"
     orcid: "https://orcid.org/0009-0002-5409-7074"
-version: 0.7.1
-date-released: "2026-09-15"
+version: 0.9.0
+date-released: "2026-10-04"
 license: Apache-2.0
 doi: 10.5281/zenodo.21763931
 repository-code: "https://github.com/luizfnsilva/closure_drift"

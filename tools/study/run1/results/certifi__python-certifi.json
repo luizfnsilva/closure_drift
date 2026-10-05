@@ -1,0 +1,7 @@
+{
+ "cause": "could not find a version label. Pass --version-file / --version-regex.",
+ "exit": 2,
+ "head": "9d0a8f1f3a0d6b2e38d5773db7afe1a37e4527b6",
+ "outcome": "refused",
+ "repository": "certifi/python-certifi"
+}

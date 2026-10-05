@@ -1,0 +1,7 @@
+{
+ "cause": "could not find a version label. Pass --version-file / --version-regex.",
+ "exit": 2,
+ "head": "926401c4543b84f9f579932d30fb52a104639398",
+ "outcome": "refused",
+ "repository": "sarugaku/shellingham"
+}

@@ -1,0 +1,48 @@
+{
+ "report_format": 2,
+ "stamp": {
+  "measured_at_head": "ae6b28396fb2",
+  "working_tree_dirty": false,
+  "detector_closure": "6548f891a826034c"
+ },
+ "repo": ".",
+ "version_file": "VERSION",
+ "closure_globs": [
+  "src/**",
+  "lib/**",
+  "app/**",
+  "*.py",
+  "*.js",
+  "*.ts",
+  "*.rs",
+  "*.go",
+  "*.java"
+ ],
+ "published_at": "tags",
+ "publication_points": 2,
+ "labels": 1,
+ "labels_covering_multiple_closures": 1,
+ "max_closures_per_label": 2,
+ "verdict": "drift",
+ "drift": {
+  "1.0.0": {
+   "067a6dbe50045565": "v1.0.0 (2020-01-02)",
+   "f1c007e78a122ba0": "v1.0.1 (2020-01-03)"
+  }
+ },
+ "closure_ids": {
+  "067a6dbe50045565": "3705e77bd7d90f8e3996bdfc2b6013c5850723969ea80fd69e7113284b98aac4",
+  "f1c007e78a122ba0": "1f21bf1ef2baffa75956231f9c1733fd0fb74422dd7b1f39f7ca4d9a511b33ad"
+ },
+ "closure_changes_between_points": 1,
+ "label_sources": {
+  "VERSION": 2
+ },
+ "publication_points_scanned": 2,
+ "publication_points_compared": 2,
+ "points_without_label": 0,
+ "points_with_empty_closure": 0,
+ "points_not_commits": 0,
+ "range_truncated": false,
+ "points_with_conflicting_sources": 0
+}

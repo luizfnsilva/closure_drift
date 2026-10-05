@@ -1,0 +1,85 @@
+{
+ "exit": 1,
+ "head": "0cd8f94447a1c4a6d1b29f80e16274a7e1d68ebe",
+ "outcome": "drift",
+ "report": {
+  "closure_changes_between_points": 34,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {
+   "23e1e862f88db7c7": "8c3729a59300241185391d81a231694a918baea30ba33d7ee9d74dfdb61e25c4",
+   "254b43719334aca6": "363265c1829cb00e0d108e7acfc30376a548829187d3a0d80ffc72aa52c5ff3f",
+   "27b12d82fa8fe867": "1a41cffe37d60fe3d1bede67e83ee5f68138f7545b24159a7df7ee79bca8a336",
+   "2c80ce755203837d": "7a2d0ebef98d91f1c9143a8afe85ec9bfe21427170c6a300016764234eb8bf4b",
+   "50d3428eb26afdba": "6abe0ab94ab97901bf0f42e5d0c11d6f2317485ff178cb5df72e479a0c2abd79",
+   "610234abbc7ae19a": "d274015bd276f3b1bd477cd747776be09ab15584a28e8d69433fb04126dec87e",
+   "78ed0b0f8e6ad88d": "ec5523ec0a77c3654e2609f8980b4fe71c80ecf239ee2163d172f169263bf6ff",
+   "7966603811a109f6": "2217b47bd3c60ae3a9e85ee65d6f4eed31e4511a63361cc836779c41a65802a3",
+   "800ffa9a5a3b5a5d": "117a20a43c2f53e9ea69385d80cf00f15f6ebb37f5895b4eda07ab32d3a6388d",
+   "8097dd0431fd1c0c": "2a148a2b598a84107c2b499d7c98caf375b3db0bb12a4c7e648ea22b86a6e731",
+   "971c25947e027c45": "d10569aee798470dd64b4613028ea014f3952871e86d800a17809b60e2a5d5bf",
+   "c1c0885ba83d4e7a": "ec760dca2d828db3eb422be30e7523d3b4483f2b0ee09cda18a4b5af40017df0",
+   "c41d00eb28012f27": "682169bcd0c4c65b530b49b400fdc42b1e1e601a93fca6ef78d5f9edc71c117b",
+   "c587672cd9c11e69": "aed0f51f5c8cbe9b13fd05f62970046078b2c026bf2ac28cd0576a267fd7d1c5",
+   "e08ce3661055620d": "247f561ea63827ccf8fcece2e0d5b0bd8c1bf18d9b7e9d84e68ba8b0f54fde25",
+   "ec062267d725fc55": "5e991dd6cbfc9580de1ea6288434ab8aff592ac279388cf90707de182389bb04",
+   "f76722e35a2210d6": "8d45344696358bcbe83743387cfbf5e8c61b0f33dfddb80363006a90405df889",
+   "f7e5e4bf39149ce3": "bae29d273c6f1d126294e5c2c2d0476c0de4696791a3b1a4502ccd08d1d5ecd1"
+  },
+  "drift": {
+   "0.0.0": {
+    "23e1e862f88db7c7": "v0.22.0 (2024-05-06)",
+    "27b12d82fa8fe867": "v0.24.0 (2024-08-28)",
+    "78ed0b0f8e6ad88d": "v0.18.1 (2022-11-07)",
+    "7966603811a109f6": "v0.16.0 (2022-07-21)",
+    "8097dd0431fd1c0c": "v0.17.0 (2022-09-10)",
+    "971c25947e027c45": "v0.15.0a1 (2022-06-03)",
+    "c1c0885ba83d4e7a": "v0.19.0 (2023-03-26)",
+    "c587672cd9c11e69": "v0.18.0 (2022-10-19)",
+    "e08ce3661055620d": "v0.23.0 (2024-08-07)",
+    "f76722e35a2210d6": "v0.20.0 (2023-08-24)"
+   },
+   "1.0.0": {
+    "254b43719334aca6": "v0.10a1 (2022-03-22)",
+    "2c80ce755203837d": "v0.13 (2022-04-08)",
+    "50d3428eb26afdba": "v0.14 (2022-05-16)",
+    "610234abbc7ae19a": "v0.11 (2022-03-30)",
+    "800ffa9a5a3b5a5d": "v0.10 (2022-03-23)",
+    "c41d00eb28012f27": "v0.12 (2022-04-01)",
+    "ec062267d725fc55": "v1.0.0 (2024-11-24)",
+    "f7e5e4bf39149ce3": "v0.14.1 (2022-05-17)"
+   }
+  },
+  "labels": 11,
+  "labels_covering_multiple_closures": 2,
+  "max_closures_per_label": 10,
+  "points_not_commits": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 14,
+  "publication_points": 44,
+  "publication_points_compared": 30,
+  "publication_points_scanned": 44,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "samuelcolvin/watchfiles",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "6df9787eb57df52b",
+   "measured_at_head": "0cd8f94447a1",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "drift",
+  "version_file": "Cargo.toml"
+ },
+ "repository": "samuelcolvin/watchfiles"
+}
