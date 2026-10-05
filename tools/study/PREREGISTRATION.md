@@ -68,3 +68,21 @@ per-repository tuning, and the detector released as 0.9.0. Reported, whatever co
 - every repository whose outcome differs between the two runs, named.
 
 A fall in the share of `drift` from run 1 to run 2 is as reportable as a rise.
+
+## Run 3 — added 2026-10-05, before run 3
+
+Runs 1 and 2 are kept as they are.
+
+Run 3 measures the detector of release 0.10.0, which changes what `clean` requires and which
+version files are believed (`tests/PREREGISTRATION.md` §10). The repositories have moved since
+run 2, so run 3 is not compared with run 2 directly: **each clone is measured twice, with 0.10.0
+and with 0.9.1**, and the difference between those two on the same clone is what is attributed to
+the detector. Same selection, same rule of no tuning, the defaults only.
+
+It runs on GitHub's runners (`.github/workflows/study.yml`, ten shards), not on the author's
+machine; the platform is recorded with the results. Reported, whatever comes out: the outcome
+counts of 0.10.0 and of 0.9.1 on the same clones; every repository whose outcome differs between
+the two, named with the field that moved; the two denominators for drift, as before.
+
+Expected from the stored reports of run 2: `coveragepy`, `scipy`, `tqdm` and `idna` move from
+`clean` to `incomplete`. Anything else that moves is reported, not explained away.

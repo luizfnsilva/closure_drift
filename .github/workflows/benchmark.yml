@@ -38,8 +38,10 @@ jobs:
         run: |
           sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache/CodeQL
           df -h /
+      - name: The previous release, for comparison on the same clone
+        run: git fetch --depth=1 origin tag v0.9.1 && git show v0.9.1:closure_drift.py > "$RUNNER_TEMP/closure_drift_0.9.1.py"
       - name: Measure
-        run: python3 tools/benchmark/run_benchmark.py "${{ matrix.repo }}" --out results --work "$RUNNER_TEMP"
+        run: python3 tools/benchmark/run_benchmark.py "${{ matrix.repo }}" --out results --work "$RUNNER_TEMP" --baseline "$RUNNER_TEMP/closure_drift_0.9.1.py"
       - name: Artifact name
         id: name
         run: echo "slug=$(echo '${{ matrix.repo }}' | tr '/' '_')" >> "$GITHUB_OUTPUT"

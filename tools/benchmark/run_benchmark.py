@@ -88,6 +88,7 @@ def main():
     ap.add_argument("slug", help="owner/name on GitHub")
     ap.add_argument("--out", required=True)
     ap.add_argument("--work", default=os.environ.get("RUNNER_TEMP", "/tmp"))
+    ap.add_argument("--baseline", help="an earlier closure_drift.py: B3 is run with it too, on the same clone")
     a = ap.parse_args()
 
     name = a.slug.replace("/", "__")
@@ -100,6 +101,7 @@ def main():
     result = {
         "repository": a.slug,
         "detector_sha256": sha(DETECTOR),
+        "baseline_sha256": sha(a.baseline) if a.baseline else None,
         "oracle_sha256": sha(ORACLE),
         "machine": {"platform": platform.platform(), "cpus": os.cpu_count(),
                     "python": sys.version.split()[0],
@@ -137,10 +139,15 @@ def main():
     })
 
     det = [sys.executable, str(DETECTOR), str(clone)]
+    recipes = json.loads((Path(__file__).parent / "recipes.json").read_text(encoding="utf-8"))
     plan = [("B1", det + ["--json"]), ("B2", det + ["--json"]),
             ("B3", det + ["--json", "--max-commits", "1000000"]),
             ("B4", det + ["--would-tag", "--json"]),
             ("B5", det + ["--at", "commits", "--json"])]
+    if a.baseline:
+        plan.append(("B3_baseline", [sys.executable, a.baseline, str(clone), "--json", "--max-commits", "1000000"]))
+    if a.slug in recipes:
+        plan.append(("B8", det + ["--json", "--max-commits", "1000000"] + recipes[a.slug]))
     pairs = []
     if len(tags) >= 2:
         oldest, median, newest = tags[0], tags[len(tags) // 2], tags[-1]

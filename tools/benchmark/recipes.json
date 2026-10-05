@@ -1,0 +1,9 @@
+{
+ "_note": "Written 2026-10-05 before any of these was run, from the files as they are on each default branch. Used by run 2 of the benchmark (B8).",
+ "torvalds/linux": ["--version-file", "Makefile", "--version-regex", "(?m)^VERSION = (?P<a>\\d+)\\nPATCHLEVEL = (?P<b>\\d+)\\nSUBLEVEL = (?P<c>\\d+)\\nEXTRAVERSION =[ \\t]*(?P<d>\\S*)", "--closure", "*.c", "--closure", "*.h"],
+ "llvm/llvm-project": ["--version-file", "cmake/Modules/LLVMVersion.cmake", "--version-regex", "set\\(LLVM_VERSION_MAJOR (?P<a>\\d+)\\)[\\s\\S]*?set\\(LLVM_VERSION_MINOR (?P<b>\\d+)\\)[\\s\\S]*?set\\(LLVM_VERSION_PATCH (?P<c>\\d+)\\)", "--closure", "llvm/lib/**", "--closure", "llvm/include/**"],
+ "rust-lang/rust": ["--version-file", "src/version", "--closure", "compiler/**", "--closure", "library/**"],
+ "python/cpython": ["--version-file", "Include/patchlevel.h", "--version-regex", "#define PY_VERSION\\s+\"([^\"]+)\"", "--closure", "Python/**", "--closure", "Objects/**", "--closure", "Include/**", "--closure", "Lib/**"],
+ "nodejs/node": ["--version-file", "src/node_version.h", "--version-regex", "#define NODE_MAJOR_VERSION (?P<a>\\d+)\\s*\\n#define NODE_MINOR_VERSION (?P<b>\\d+)\\s*\\n#define NODE_PATCH_VERSION (?P<c>\\d+)"],
+ "git/git": ["--version-file", "GIT-VERSION-GEN", "--version-regex", "DEF_VER=(\\S+)", "--closure", "*.c", "--closure", "*.h"]
+}

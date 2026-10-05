@@ -3,6 +3,7 @@
 
     python3 tools/study/run_study.py WORKDIR          # clone, measure, delete; resumable
     python3 tools/study/run_study.py WORKDIR --table  # only rebuild results from what is there
+    python3 tools/study/run_study.py WORKDIR --into run3 --shard 2/10 --baseline OLD.py --baseline-into run3-baseline
 
 Defaults only: `closure_drift.py <clone> --json`, nothing else. Writes, next to this file,
 results.tsv (one row per repository, none dropped) and results/<owner>__<repo>.json (the
@@ -40,7 +41,32 @@ def remove(path):
     shutil.rmtree(path, onerror=force)
 
 
-def measure(work: Path, repo: str) -> dict:
+def option(name, default=None):
+    return sys.argv[sys.argv.index(name) + 1] if name in sys.argv else default
+
+
+def run_detector(detector, clone, repo, row):
+    try:
+        r = subprocess.run([sys.executable, str(detector), str(clone), "--json"],
+                           capture_output=True, env=ENV, timeout=TIMEOUT)
+    except subprocess.TimeoutExpired:
+        row["outcome"] = "timeout"
+        return row
+    row["exit"] = r.returncode
+    try:
+        report = json.loads(r.stdout.decode("utf-8"))
+    except ValueError:
+        first = (r.stderr.decode("utf-8", "replace").strip().splitlines() or ["no message"])[0]
+        row["outcome"] = "refused"
+        row["cause"] = first[:120]
+        return row
+    report["repo"] = repo                      # the clone's temporary path says nothing
+    row["outcome"] = report.get("verdict", "unknown")
+    row["report"] = report
+    return row
+
+
+def measure(work: Path, repo: str, baseline=None) -> dict:
     clone = work / (repo.replace("/", "__") + ".git")
     if clone.exists():
         remove(clone)
@@ -54,24 +80,9 @@ def measure(work: Path, repo: str) -> dict:
             return row
         row["head"] = subprocess.run(["git", "-C", str(clone), "rev-parse", "HEAD"],
                                      capture_output=True, env=ENV).stdout.decode().strip()
-        try:
-            r = subprocess.run([sys.executable, str(DETECTOR), str(clone), "--json"],
-                               capture_output=True, env=ENV, timeout=TIMEOUT)
-        except subprocess.TimeoutExpired:
-            row["outcome"] = "timeout"
-            return row
-        row["exit"] = r.returncode
-        try:
-            report = json.loads(r.stdout.decode("utf-8"))
-        except ValueError:
-            first = (r.stderr.decode("utf-8", "replace").strip().splitlines() or ["no message"])[0]
-            row["outcome"] = "refused"
-            row["cause"] = first[:120]
-            return row
-        report["repo"] = repo                      # the clone's temporary path says nothing
-        row["outcome"] = report.get("verdict", "unknown")
-        row["report"] = report
-        return row
+        if baseline:
+            row["baseline"] = run_detector(baseline, clone, repo, {"repository": repo, "head": row["head"]})
+        return run_detector(DETECTOR, clone, repo, row)
     except subprocess.TimeoutExpired:
         row["outcome"] = "clone_failed"
         return row
@@ -81,7 +92,7 @@ def measure(work: Path, repo: str) -> dict:
 
 
 def table():
-    results = HERE / "results"
+    results = HERE / option("--into", ".") / "results"
     rows = []
     for rank, project, repo in selected():
         f = results / (repo.replace("/", "__") + ".json")
@@ -94,7 +105,7 @@ def table():
                      rep.get("publication_points_scanned", ""), rep.get("publication_points_compared", ""),
                      rep.get("labels", ""), rep.get("labels_covering_multiple_closures", ""),
                      rep.get("max_closures_per_label", ""), row.get("cause", "")))
-    with open(HERE / "results.tsv", "w", encoding="utf-8", newline="\n") as fh:
+    with open(HERE / option("--into", ".") / "results.tsv", "w", encoding="utf-8", newline="\n") as fh:
         fh.write("# detector sha256 %s\n" % hashlib.sha256(DETECTOR.read_bytes()).hexdigest())
         fh.write("# rank\tproject\trepository\toutcome\texit\tscanned\tcompared\tlabels\tlabels_in_drift\tworst\tcause\n")
         for r in rows:
@@ -108,20 +119,30 @@ def table():
 
 
 def main():
-    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    values = {option(n) for n in ("--into", "--shard", "--baseline", "--baseline-into")}
+    args = [a for a in sys.argv[1:] if not a.startswith("--") and a not in values]
     if not args:
         print(__doc__)
         return 2
     work = Path(args[0])
     work.mkdir(parents=True, exist_ok=True)
-    results = HERE / "results"
-    results.mkdir(exist_ok=True)
+    results = HERE / option("--into", ".") / "results"
+    results.mkdir(parents=True, exist_ok=True)
+    shard, of = (int(x) for x in option("--shard", "1/1").split("/"))
+    baseline = option("--baseline")
     if "--table" not in sys.argv:
-        for rank, project, repo in selected():
+        for i, (rank, project, repo) in enumerate(selected()):
+            if i % of != shard - 1:
+                continue
             out = results / (repo.replace("/", "__") + ".json")
             if out.exists():
                 continue
-            row = measure(work, repo)
+            row = measure(work, repo, baseline)
+            if baseline:
+                side = HERE / option("--baseline-into") / "results"
+                side.mkdir(parents=True, exist_ok=True)
+                (side / out.name).write_text(json.dumps(row.pop("baseline"), indent=1, sort_keys=True) + "\n",
+                                             encoding="utf-8")
             out.write_text(json.dumps(row, indent=1, sort_keys=True) + "\n", encoding="utf-8")
             print("%3d %-40s %s" % (rank, repo, row["outcome"]), flush=True)
     table()
