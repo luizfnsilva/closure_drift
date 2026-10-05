@@ -45,7 +45,7 @@ MUTANTS = [
     ("M11", "W02", [('collides = [s["where"] for f, s in by_label.get(label, {}).items() if f != full]',
                      'collides = [][:0]')]),
     ("M12", "T01", [('if tag_globs and not any(fnmatch.fnmatchcase(name, g) for g in tag_globs):', 'if False:')]),
-    ("M13", "S01", [('    elif labels.conflicts or (a.strict and (no_label or empty or truncated)):', '    elif labels.conflicts:')]),
+    ("M13", "S01", [(' or (a.strict and (no_label or empty or truncated)) or', ' or')]),
     ("M14", "U02", [('        short, full, nfiles = closure.ids(entries)\n        if nfiles == 0:\n            empty += 1',
                      '        short, full, nfiles = closure.ids(entries)\n        full = short\n        if nfiles == 0:\n            empty += 1')]),
     ("M15", "X04", [('"label_sources": dict(sorted(labels.counts.items())),\n        }',
@@ -67,6 +67,13 @@ MUTANTS = [
     ("M25", "PL01", [('        self.values[(oid, how)] = value if plausible(value) else None',
                       '        self.values[(oid, how)] = value')]),
     ("M26", "PL03", [('        if called != "setup":', '        if called is None:')]),
+    ("M27", "CV01", [(' or compared < no_label + empty:', ':')]),
+    ("M28", "CV02", [(' or compared < no_label + empty:', ' or compared < len(pts):')]),
+    ("M29", "AG04", [('if disagree and not agree and not self.fixed)', 'if disagree and not agree)')]),
+    ("M30", "AG02", [('tally[0 if nums[:len(tag_nums)] == tag_nums else 1] += 1', 'tally[0 if label == tag_label(tag) else 1] += 1')]),
+    ("M31", "AG03", [('if disagree and not agree and not self.fixed)', 'if disagree and not self.fixed)')]),
+    ("M32", "NG02", [('out += value if (not out or value[0] in "-+") else "." + value', 'out += value if not out else "." + value')]),
+    ("M33", "MM03", [('        self.held += len(out) + 1\n', '        self.held += 0\n')]),
 ]
 
 

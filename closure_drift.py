@@ -745,11 +745,6 @@ class Labels:
                 label = tag_label(tag) if tag else None
             else:
                 label = self.sources.read(blobs, *src)
-                tag_nums = release_numbers(tag) if tag else None
-                if count and label and tag_nums is not None:
-                    tally = self.agreement.setdefault(src[0], [0, 0])
-                    nums = release_numbers(label) or ()
-                    tally[0 if nums[:len(tag_nums)] == tag_nums else 1] += 1   # `v1` agrees with 1.2.3
             # the source changed since the last point, and the earlier one still declares
             # something else here: two files disagree about the version of this commit
             if (count and label and self.previous and self.previous != src
@@ -761,14 +756,19 @@ class Labels:
                 self.previous = src
         if label and count:
             self.counts[src[0]] = self.counts.get(src[0], 0) + 1
+            tag_nums = release_numbers(tag) if tag and src[0] != TAG_SOURCE else None
+            if tag_nums is not None:
+                nums = release_numbers(label) or ()
+                tally = self.agreement.setdefault(src[0], [0, 0])
+                tally[0 if nums[:len(tag_nums)] == tag_nums else 1] += 1   # `v1` agrees with 1.2.3
         self.last = src[0] if label else None
         return label
 
     def contradicted(self) -> list[str]:
-        """Sources found by the rules that were read at a tag carrying a version and agreed at none."""
-        if self.fixed:
-            return []
-        return sorted(p for p, (agree, disagree) in self.agreement.items() if disagree and not agree)
+        """Sources found by the rules that were read at a tag carrying a version and agreed at none.
+        A source given with --version-file is the user's statement and is never second-guessed."""
+        return sorted(p for p, (agree, disagree) in self.agreement.items()
+                      if disagree and not agree and not self.fixed)
 
 
 CONFIG_KEYS = {"at": str, "version_file": str, "version_regex": str, "closure": list, "tags": list}

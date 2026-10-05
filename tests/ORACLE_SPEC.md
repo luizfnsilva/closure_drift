@@ -112,3 +112,24 @@ The author of the oracle listed twenty places where this page was silent. Two ch
 
 The other eighteen choices stand as the oracle's author made them and are listed in
 `tests/PROPERTIES_RECORD.md`.
+
+## Amendment 2 — 2026-10-05, for detector 0.10.0, before the oracle is changed
+
+Two rules change. Everything else stands.
+
+**Section 5, label.** If the pattern has *named* groups (`(?P<name>…)`), the label is built from
+them instead of group 1: take the named groups in the order of their group numbers, skip those
+whose value is `None` or empty, and join the rest — each value is preceded by `.` except the first
+one and except a value whose first character is `-` or `+`, which is appended as it is. An empty
+result means no label. A pattern without named groups: group 1, as before.
+
+Examples: values `6`, `1`, `0` → `6.1.0`; `6`, `1`, `0`, `-rc1` → `6.1.0-rc1`; `6`, `1`, `0`, `` →
+`6.1.0`; `6`, `+local` → `6+local`.
+
+**Section 6, verdict.** A new row, after the `--strict` row and before `clean`:
+
+| rule | verdict | exit |
+|---|---|---|
+| fewer compared points than points that are empty or without label | `incomplete` | 2 |
+
+So `clean` needs `compared >= empty + without label`.
