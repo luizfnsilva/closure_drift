@@ -36,8 +36,9 @@ The result files are kept as produced.
    `0.1.0` from the root `Cargo.toml`, a helper crate added in 2025; git's version comes from
    `GIT-VERSION-GEN`. 20 of 1,011 tags were compared. A single wrong source is believed.
 3. **`Azure/azure-sdk-for-python`, every tag: `clean`, exit 0, with 9 of 5,508 tags compared.**
-   The report prints the two numbers and `--strict` answers `incomplete`; without `--strict`, exit
-   0 is reached on 0.16 % of the tags.
+   The report prints the two numbers. By the rule in the code `--strict` answers `incomplete` here;
+   that run was not part of the protocol and was not made. Without `--strict`, exit 0 is reached on
+   0.16 % of the tags.
 4. **`googleapis/google-cloud-python`: refusal at 400 tags, `drift` at every tag** (311 of 6,559
    compared). Both are answers about a monorepo read without `--tags`; neither says anything
    about a package in it.
