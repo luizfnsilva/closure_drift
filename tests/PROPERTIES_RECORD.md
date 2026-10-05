@@ -1,6 +1,7 @@
 # Record — properties and oracle
 
-Detector: 0.9.0, sha256 `6548f891a826034c35ef83b276578c79564b57f892a54422af5c1be44591137c`.
+Detectors: 0.9.0, sha256 `6548f891a826034c35ef83b276578c79564b57f892a54422af5c1be44591137c`, and from
+the section *After the change*, 0.9.1, sha256 `89b5349928eba22b0394d01940ed3d4aa989d6820f48fdddf189ad521689c51c`.
 Engineering evidence about the relations tested, on generated repositories. Not added to any
 other score.
 
@@ -67,6 +68,17 @@ The oracle reproduces the recorded constants on all three platforms (PR15); the 
 on Windows.
 
 Committed as found, before any change to the detector.
+
+## After the change — detector 0.9.1, CI run 37372951536
+
+| platform | CPython | properties | controls |
+|---|---|---|---|
+| Ubuntu | 3.9, 3.11, 3.13 | 17 · 17 green · 0 red | 10 of 10 caught |
+| macOS | 3.11, 3.13 | 17 · 17 green · 0 red | 10 of 10 caught |
+| Windows | 3.9, 3.13 | 17 · 17 green · 0 red | 10 of 10 caught |
+
+The change is the one written in the pre-registration before it was made. On macOS, 0.9.0 and
+0.9.1 print the same report for all 60 seeds.
 
 ## Reproduce
 

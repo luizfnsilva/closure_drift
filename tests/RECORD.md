@@ -20,9 +20,16 @@ it as not caught, as they must. It was re-anchored to the new text and nothing e
 the 60 generated repositories of the property suite and, at the default range, at every tag and
 with `--would-tag`, for `click`, `requests`, `packaging`, `httpx`, `impress.js` and `lodash`.
 
-## 0.9.1 — Linux, macOS, Windows — CI run @@CI@@
+## 0.9.1 — Linux, macOS, Windows — CI run 37372951536 (`a4cfd8c`)
 
-@@CITABLE@@
+| platform | CPython | battery | mutation controls | adversarial | properties |
+|---|---|---|---|---|---|
+| Ubuntu | 3.9, 3.11, 3.13 | 120 declared · 120 green · 0 red · 0 not run | 26 of 26 caught | 235 · 229 as required · 0 loose · 6 not run | 17 of 17 green · 10 of 10 controls |
+| macOS | 3.11, 3.13 | 120 · 119 green · 0 red · 1 not run | 26 of 26 caught | 235 · 229 as required · 0 loose · 6 not run | 17 of 17 green · 10 of 10 controls |
+| Windows | 3.9, 3.13 | 120 · 115 green · 0 red · 5 not run | 26 of 26 caught | 235 · 209 as required · 0 loose · 26 not run | 17 of 17 green · 10 of 10 controls |
+
+What does not run on each platform is the same as for 0.9.0, below. Two jobs of this run were
+cancelled by the runner before they started and were run again; they are the rows above.
 
 Properties and the oracle have their own record: `tests/PROPERTIES_RECORD.md`.
 
