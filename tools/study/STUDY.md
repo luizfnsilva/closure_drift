@@ -243,3 +243,12 @@ Every row is in [`posthoc_17.tsv`](posthoc_17.tsv).
 configuration. It is a practical filter for deciding what is worth asking a maintainer about. It is
 not a second definition of a collision and not a classification the study makes: by the study's
 criterion all 17 are collisions, and they stay counted as such.
+
+### Answers received
+
+| repository | asked | answer | reading after the answer |
+|---|---|---|---|
+| `encode/httpcore` | 2026-10-04, [discussion 1121](https://github.com/encode/httpcore/discussions/1121) | a participant (`xop01`), 2026-10-05: tag `0.14.1` is four commits after `0.14.0`, `httpcore/__init__.py` still says `0.14.0`, and `setup.py` reads it there, so a build of `0.14.1` calls itself `0.14.0`; `0.14.2` sets the version again. "A missed bump, not a release rule." | confirmed as measured: a tag that moved the code and left the version string behind |
+
+An answer is recorded here with a link and is not counted anywhere. It is not a measurement made by
+someone else, so it does not go to `RESULTS.md`.
