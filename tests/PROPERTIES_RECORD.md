@@ -50,8 +50,23 @@ not changed:
 PR06 and PR07 found a case in 41 of 60 seeds, PR12 in 48; the others in all 60. PR15 covers
 seeds 0–9.
 
-The suspicion written before running (case folding on Windows) is answered by the CI rows, added
-below when they exist.
+## Linux, macOS, Windows — CI run 37355181714 (`0.9.0`, same detector)
+
+| platform | CPython | properties | controls |
+|---|---|---|---|
+| Ubuntu | 3.9, 3.11, 3.13 | 17 · 17 green · 0 red | 10 of 10 caught |
+| macOS | 3.11, 3.13 | 17 · 17 green · 0 red | 10 of 10 caught |
+| Windows | 3.9, 3.13 | 17 · 13 green · **4 red** (PR01, PR02, PR15, PR16) | not reached |
+
+**The suspicion written before running is confirmed, and it is the detector.** On Windows 0.9.0
+matches closure globs without regard to case (`fnmatch.fnmatch` folds case there), so a commit
+holding `Lib/data.txt` or `a.PY` has another closure than on Linux and macOS: PR02 differs in 23 of
+60 generated repositories, PR01 in 17, and in two (PR16, seeds 13 and 46) the verdict itself
+differs — `drift` on Windows where the oracle, and the detector elsewhere, say `empty_closure`.
+The oracle reproduces the recorded constants on all three platforms (PR15); the detector does not
+on Windows.
+
+Committed as found, before any change to the detector.
 
 ## Reproduce
 
