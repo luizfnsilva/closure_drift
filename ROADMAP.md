@@ -5,23 +5,21 @@ ships with pre-registered proofs and an entry in `CHANGELOG.md`; nothing here is
 
 ## Next
 
-1. **Labels compared as versions, not as text.** `1.0` and `1.0.0` are one version to a package
-   index and two labels here.
-2. **Per-family verdicts in one run.** `--tags` measures one family; a monorepo wants the table.
-3. **A closure that can include file modes**, opt-in, for projects where an executable bit is part
-   of what is released.
-4. **Annotations for pipelines other than GitHub's**, built from the same JSON report.
+From `docs/FAILURES.md`, in the order they hurt:
+
+1. **`clean` must say how much it rests on** (O1). A share of tags compared below which the
+   answer is `incomplete` without `--strict`.
+2. **Tree objects released as the scan moves on** (O4), and a refusal for want of a label before
+   the scan, not after (O5).
+3. **Components declared in the config file** (O2, O3): a version file, a closure and a tag
+   pattern per package, one verdict each. Declared, never inferred.
+4. **The glob language written down and frozen** (O6), with the exclusions matching files only.
+5. Labels compared as versions (`1.0` = `1.0.0`); file modes in the closure, opt-in.
 
 ## Known problems, still open
 
-- The default closure globs are a guess about what determines each project's output.
-- Finding the label is a set of rules (`docs/LABELS.md`), not a build. 8 of the 100 repositories of
-  the study are still undecided: versions computed from a tuple, and monorepos with no build file
-  at the root.
-- A change of file mode alone, and anything under the excluded folders, is not seen (`SCOPE.md`).
-- `RESULTS.md` is empty: nobody outside the author has reported a measurement yet.
-- Not measured: repositories with more than a few hundred thousand files, network file systems,
-  git older than 2.24.
+`docs/FAILURES.md` is the list. Not measured: repositories beyond 190,000 files, Windows at that
+size, network file systems, git older than 2.24.
 
 ## Small, self-contained tasks — a good place to start
 
