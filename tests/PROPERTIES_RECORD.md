@@ -61,7 +61,7 @@ seeds 0–9.
 **The suspicion written before running is confirmed, and it is the detector.** On Windows 0.9.0
 matches closure globs without regard to case (`fnmatch.fnmatch` folds case there), so a commit
 holding `Lib/data.txt` or `a.PY` has another closure than on Linux and macOS: PR02 differs in 23 of
-60 generated repositories, PR01 in 17, and in two (PR16, seeds 13 and 46) the verdict itself
+60 generated repositories, PR01 in 17, and in two (PR16, seed 13 among them) the verdict itself
 differs — `drift` on Windows where the oracle, and the detector elsewhere, say `empty_closure`.
 The oracle reproduces the recorded constants on all three platforms (PR15); the detector does not
 on Windows.

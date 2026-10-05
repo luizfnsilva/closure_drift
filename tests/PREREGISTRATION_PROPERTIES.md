@@ -83,3 +83,21 @@ on the Windows runner will say. Written here so that the result cannot be told a
 
 `properties · green · red · not run`, and `controls · caught · not caught`, per platform, never
 added to the other batteries.
+
+## Amendment — 2026-10-05, after the Windows run and before the detector is changed
+
+Amendments 1–3 are in `tests/PROPERTIES_RECORD.md`. This one is about the detector.
+
+The Windows run confirmed the suspicion above. The change, written before it is made: in
+`matches`, the three calls to `fnmatch.fnmatch` become `fnmatch.fnmatchcase`. Nothing else in the
+logic. `__version__` becomes 0.9.1.
+
+Required afterwards:
+
+1. Windows: PR01, PR02, PR15 and PR16 green; 10 of 10 controls caught.
+2. Linux and macOS: every battery and every property as before. On POSIX the two functions are
+   the same function, so no report may change: for seeds 0–59 and for six public repositories
+   (`click`, `requests`, `packaging`, `httpx`, `impress.js`, `lodash`), 0.9.0 and 0.9.1 print the
+   same JSON apart from `detector_closure`.
+3. A measurement made **on Windows** with 0.9.0 or earlier, on a repository with upper-case
+   letters in a path, is to be made again. The study and the benchmark ran on macOS and Linux.
