@@ -757,3 +757,23 @@ limit 20 s per detector run unless stated.
 | ZX08 | `--explain 0.1.0` on AG01's repository. | refusal, exit 2; never exit 1. |
 | ZX09 | `--would-tag` on ZV02's repository plus an empty-closure tag, HEAD declaring a new version. | `would_be_clean`, exit 0; `publication_points_scanned` = compared + without label + empty; `points_label_contradicted` 1. |
 | ZX10 | `--strict` on ZV02's repository. | `incomplete`, exit 2. |
+
+### Amendment by the maintainer after extension 3, 2026-10-05
+
+Extension 3 was committed as delivered (19 loose, LR02 and LR03 among them) before any fix. The
+rules it attacked were rewritten twice (`tests/PREREGISTRATION.md`, §10 amendments 2 and 3). Six of
+its cases had a required outcome that only made sense under the first form of a rule; their intent
+stands and the outcome they now require is the amended rule's:
+
+| case | first requirement | now | why |
+|---|---|---|---|
+| ZV02 | `clean` | `incomplete`, exit 2 | a contradicted source never leaves `clean` (ZA10) |
+| ZA08 | `no_labels` | `drift`, exit 1 | agreement is on the first number; `2.0.0` against `v2.52` agrees, the file is believed |
+| ZA09 | `no_labels` | `incomplete`, exit 2 | a contradicted source is refused with its name, not dropped |
+| ZA12 | `no_labels` | `incomplete`, exit 2 | the same |
+| ZN04, ZN05 | groups named `a`–`d` | named `part1`–`part4` | only `part<N>` groups are joined (ZN02) |
+
+LR02 and LR03 are **superseded**: by AG the automatic run refuses a source no tag agrees with, so it
+no longer equals the `--version-file` run on a fixture whose tags `v1`, `v2` disagree with
+`0.1.0`, `0.2.0`. Every other case keeps its requirement, the hardening ones included; those still
+loose are listed in `docs/FAILURES.md`.

@@ -1563,9 +1563,9 @@ def cargo_history(root, name, tags, version="0.1.0", head=False):
 
 @proof("AG01")
 def ag01(root):
-    doc = expect(cargo_history(root, "ag01", ["v2.1.0", "v2.2.0"]), "no_labels", 2,
-                 points_label_contradicted=2, contradicted_sources=["Cargo.toml"])
-    check(doc["labels_covering_multiple_closures"] == 0, "a contradicted label was counted in drift")
+    expect(cargo_history(root, "ag01", ["v2.1.0", "v2.2.0"]), "incomplete", 2,
+           points_label_contradicted=2, contradicted_sources=["Cargo.toml"], publication_points_compared=0,
+           points_without_label=2)
 
 
 @proof("AG02")
@@ -1615,7 +1615,7 @@ def ag07(root):
 
 
 MAKEFILE = "VERSION = 6\nPATCHLEVEL = 1\nSUBLEVEL = 0\nEXTRAVERSION =%s\n"
-NAMED = r"(?m)^VERSION = (?P<a>\d+)\nPATCHLEVEL = (?P<b>\d+)\nSUBLEVEL = (?P<c>\d+)"
+NAMED = r"(?m)^VERSION = (?P<part1>\d+)\nPATCHLEVEL = (?P<part2>\d+)\nSUBLEVEL = (?P<part3>\d+)"
 
 
 def label_at_head(root, name, makefile, pattern):
@@ -1639,13 +1639,13 @@ def ng01(root):
 
 @proof("NG02")
 def ng02(root):
-    got = label_at_head(root, "ng02", MAKEFILE % " -rc1", NAMED + r"\nEXTRAVERSION =[ \t]*(?P<d>\S*)")
+    got = label_at_head(root, "ng02", MAKEFILE % " -rc1", NAMED + r"\nEXTRAVERSION =[ \t]*(?P<part4>\S*)")
     check(got == "6.1.0-rc1", "label %r" % got)
 
 
 @proof("NG03")
 def ng03(root):
-    got = label_at_head(root, "ng03", MAKEFILE % "", NAMED + r"\nEXTRAVERSION =[ \t]*(?P<d>\S*)")
+    got = label_at_head(root, "ng03", MAKEFILE % "", NAMED + r"\nEXTRAVERSION =[ \t]*(?P<part4>\S*)")
     check(got == "6.1.0", "label %r" % got)
 
 
@@ -1665,6 +1665,65 @@ def ng05(root):
     refusal(rc, out, err, "--version-file")
     for needle in ("(?P<", "docs/LABELS.md", "version is the tag"):
         check(needle in err, "the refusal does not mention %r" % needle)
+
+
+@proof("AG08")
+def ag08(root):
+    r = Repo(root, "ag08")
+    for tag, version in (("v1.0", "1.0"), ("v1.1", "1.1"), ("v1.2", "1.2")):
+        r.write("setup.py", 'from setuptools import setup\nsetup(name="pkg", version="%s")\n' % version)
+        r.write("pkg/a.py", "# %s\n" % tag)
+        r.commit()
+        r.tag(tag)
+    r.remove("setup.py")
+    for tag in ("2024.1", "2024.2"):
+        r.write("pyproject.toml", '[project]\nname = "pkg"\nversion = "5.0.0"\n')
+        r.write("pkg/a.py", "# %s\n" % tag)
+        r.commit()
+        r.tag(tag)
+    rc, doc, _out, err = run(r)
+    check(doc is not None and rc != 0 and doc.get("verdict") != "clean",
+          "a collision under a contradicted source ended at %r, exit %d" % (doc and doc.get("verdict"), rc))
+
+
+@proof("AG09")
+def ag09(root):
+    r = Repo(root, "ag09")
+    for tag in ("v1.1", "v1.2", "v1.3"):
+        r.release(tag, "1.0.0", {"src/a.py": "# %s\n" % tag})
+    expect(r, "drift", 1, points_label_contradicted=0)
+
+
+@proof("AG10")
+def ag10(root):
+    r = Repo(root, "ag10")
+    for tag in ("0.1.450", "0.1.451"):
+        r.write("package.json", '{"private": true, "name": "x", "version": "0.0.3"}\n')
+        r.write("src/a.js", "// %s\n" % tag)
+        r.commit()
+        r.tag(tag)
+    rc, _doc, out, err = run(r)
+    check(rc == 2, "exit %d: a private package.json was read as the version" % rc)
+
+
+@proof("AG11")
+def ag11(root):
+    r = Repo(root, "ag11")
+    for tag, line in (("v1", 'version = "1.0"\n'), ("v2", "version = '1.0'\n")):
+        r.write("ver.cfg", line)
+        r.write("src/a.py", "# %s\n" % tag)
+        r.commit()
+        r.tag(tag)
+    rc, doc, _out, err = run(r, "--version-file", "ver.cfg", "--version-regex", "version = ([\"'])")
+    check(rc != 0, "a pattern capturing a quote gave %r, exit 0" % (doc and doc.get("verdict")))
+
+
+@proof("AG12")
+def ag12(root):
+    r = Repo(root, "ag12")
+    for tag, version in (("v1.0", "0.9.0"), ("v1.1", "1.0.0"), ("v1.1.1", "1.0.0")):
+        r.release(tag, version, {"src/a.py": "# %s\n" % tag})
+    expect(r, "drift", 1, points_label_contradicted=0)
 
 
 def many_trees(root, name, n=8):

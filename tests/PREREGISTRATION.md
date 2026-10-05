@@ -619,3 +619,30 @@ build-number tags such as `release-41` read as versions and can contradict a cor
 now gives exit 2, not a wrong answer (ZA02). LR02 and LR03 of the earlier campaign required the
 automatic run to equal the `--version-file` run on a fixture whose tags `v1`, `v2` disagree with
 `0.1.0`, `0.2.0`; by AG that is now a refusal, by design, and they are marked superseded.
+
+### Amendment 3 to §10, 2026-10-05 — after running the campaign against amendment 2
+
+Amendment 2, run against the whole campaign, broke cases that 0.9.1 passed:
+
+- **LR01, LR04, LR06**: tags `v1`, `v2`, `v3` over versions `1.0`, `1.0`, `2.0` — real drift on
+  `1.0`. Under "disagrees at more tags than it agrees" (1 against 2) the file was refused. **A
+  source is contradicted only when it agrees at no tag carrying a version.** ZA04 (one coincidental
+  agreement keeps a helper file believed) becomes a recorded limit.
+- **ZV05**: a collision under a believed source, beside a contradicted one, became `incomplete`.
+  **Order of the verdict**: `drift` over the believed sources first; then, if any source is
+  contradicted, `incomplete`; then the rest. A contradicted source's points are counted in
+  `points_label_contradicted` and in `points_without_label`, and decide nothing. ZA10 stays not
+  `clean`: its only collision is under the contradicted source.
+- **OI07, XP01, XP05, TR01**: "a declared label must contain a digit" turned labels such as
+  `clean` or `--json` into no label. **A declared label must contain a letter or a digit**; a label
+  of punctuation only (ZN01's quote) is no label.
+
+Proof AG01 requires `incomplete` as in amendment 2, with the counts of this amendment
+(`publication_points_compared` 0, `points_without_label` 2); `label_sources` leaves out a
+contradicted source, which `contradicted_sources` names (ZX04). Mutant M31 becomes "contradicted when any tag
+disagrees" against a new proof AG12 (tag before bump across a major version: `v1.0` declares `0.9.0`,
+`v1.1` and `v1.1.1` declare `1.0.0` with different code → `drift`) and M34 "a contradicted source does not prevent `clean`" (AG08).
+
+Cases of extension 3 whose required outcome was written against the first form of AG or NG, and
+that the amendments answer differently by design, are listed with their new requirement in
+`tests/PREREGISTRATION_ADVERSARIAL.md`, "Amendment by the maintainer after extension 3".

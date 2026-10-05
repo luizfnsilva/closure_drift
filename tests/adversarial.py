@@ -3801,6 +3801,8 @@ def _cargo(v, pre=b""):
 
 @case("LR02", "Cargo.toml with rust-version before version")
 def lr02(root):
+    raise NotRun("superseded by PREREGISTRATION.md §10 (AG): tags v1, v2 disagree with 0.1.0, 0.2.0, so "
+                 "the automatic run refuses the source by design and cannot equal --version-file")
     pre = b'rust-version = "1.70"\n'
     _lr(root, [("v1", {"Cargo.toml": _cargo("0.1.0", pre), "src/main.rs": b"1\n"}),
                ("v2", {"Cargo.toml": _cargo("0.2.0", pre), "src/main.rs": b"2\n"})], "Cargo.toml")
@@ -3808,6 +3810,8 @@ def lr02(root):
 
 @case("LR03", "Cargo.toml at every tag, a package.json at one")
 def lr03(root):
+    raise NotRun("superseded by PREREGISTRATION.md §10 (AG): tags v1, v2 disagree with 0.1.0, 0.2.0, so "
+                 "the automatic run refuses the source by design and cannot equal --version-file")
     _lr(root, [("v1", {"Cargo.toml": _cargo("0.1.0"), "src/main.rs": b"1\n"}),
                ("v2", {"Cargo.toml": _cargo("0.1.0"), "src/main.rs": b"2\n",
                        "package.json": b'{"name": "demo", "version": "0.0.0"}\n'})], "Cargo.toml")
@@ -3850,8 +3854,8 @@ def lr07(root):
 # of these was run.
 Z_LIMIT = 20.0
 NOVER = b'[project]\nname = "pkg"\n'          # a Python project that declares no version anywhere
-MAKE_PAT = (r"VERSION = (?P<a>\d+)\nPATCHLEVEL = (?P<b>\d+)\nSUBLEVEL = (?P<c>\d+)\n"
-            r"EXTRAVERSION = (?P<d>\S*)")
+MAKE_PAT = (r"VERSION = (?P<part1>\d+)\nPATCHLEVEL = (?P<part2>\d+)\nSUBLEVEL = (?P<part3>\d+)\n"
+            r"EXTRAVERSION = (?P<part4>\S*)")   # group names amended after extension 3
 
 
 def zrun(repo, *args, env_extra=None, timeout=Z_LIMIT, as_json=True):
@@ -3947,7 +3951,7 @@ def zv01(root):
 @case("ZV02", "compared equal to uncompared, a rejected point among them, is clean")
 def zv02(root):
     res = lrun(_zv02(root))
-    _want(res, "clean", 0)
+    _want(res, "incomplete", 2)       # amended after extension 3: a contradicted source never leaves `clean`
     d = res["doc"] or {}
     need(d.get("points_label_contradicted") == 1 and d.get("points_without_label") == 3,
          "counts: %s" % _zseen(res))
@@ -4057,15 +4061,15 @@ def za07(root):
 def za08(root):
     r = _hist(root, [("v2.52", _py("2.0.0", b"A=1\n")), ("v2.53", _py("2.0.0", b"A=2\n"))])
     res = lrun(r)
-    _want(res, "no_labels", 2)
-    need((res["doc"] or {}).get("points_label_contradicted") == 2, "%s" % _zseen(res))
+    _want(res, "drift", 1)            # amended after extension 3: the first number agrees, the file is believed
+    need((res["doc"] or {}).get("points_label_contradicted") == 0, "%s" % _zseen(res))
 
 
 @case("ZA09", "v1 does not agree with 10.0")
 def za09(root):
     r = _hist(root, [("v1", _py("10.0", b"A=1\n")), ("v1.5", _py("10.0", b"A=2\n"))])
     res = lrun(r)
-    _want(res, "no_labels", 2)
+    _want(res, "incomplete", 2)       # amended after extension 3: refused, with the source named
     need((res["doc"] or {}).get("points_label_contradicted") == 2, "%s" % _zseen(res))
 
 
@@ -4089,7 +4093,7 @@ def za11(root):
 def za12(root):
     r = _hist(root, [("py-1.2.0", _py("1.2.0", b"A=1\n")), ("rs-0.5.0", _py("1.2.0", b"A=2\n")),
                      ("py-1.3.0", _py("1.3.0", b"A=3\n")), ("rs-0.6.0", _py("1.3.0", b"A=4\n"))])
-    _want(lrun(r, "--tags", "rs-*"), "no_labels", 2)
+    _want(lrun(r, "--tags", "rs-*"), "incomplete", 2)   # amended after extension 3
 
 
 # --------------------------------------------------------------------------- ZN: named groups

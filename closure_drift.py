@@ -66,6 +66,8 @@ CLOSURE_EXCLUDE = ["**/test/**", "**/tests/**", "**/*_test.*", "**/*.test.*", "*
 # Seconds a user-supplied version pattern may spend on one file.
 REGEX_BUDGET = 5
 
+TEXT_CACHE_BYTES = 32 << 20     # version files kept in memory at once, oldest use evicted
+
 # Entries of tree objects kept in memory at once, oldest use evicted. Consecutive tags share most
 # trees, so this keeps the speed of reading each tree once without holding the whole history.
 def tree_cache_bound() -> int:
@@ -189,7 +191,8 @@ class Objects:
             raise Refusal(f"cannot run git: {e.strerror or e}")
         self.trees: OrderedDict[str, list[tuple[bytes, str, str]]] = OrderedDict()
         self.held, self.bound = 0, tree_cache_bound()
-        self.texts: dict[str, str] = {}
+        self.texts: OrderedDict[str, str] = OrderedDict()
+        self.text_bytes = 0
 
     def close(self) -> None:
         try:
@@ -254,23 +257,32 @@ class Objects:
         """[(path, kind, object id)] for every file and submodule pointer at a commit — the
         order and content of `git ls-tree -r -z`."""
         out: list[tuple[str, str, str]] = []
-        stack = [(b"", self.root_tree(commit), 0)]
+        # each frame keeps the list it is walking, so an evicted parent is never read twice
+        stack = [(b"", self.children(self.root_tree(commit)), 0)]
         while stack:
-            prefix, tree_oid, start = stack.pop()
-            kids = self.children(tree_oid)
+            prefix, kids, start = stack.pop()
             for n in range(start, len(kids)):
                 name, kind, oid = kids[n]
                 if kind == "tree":
-                    stack.append((prefix, tree_oid, n + 1))
-                    stack.append((prefix + name + b"/", oid, 0))
+                    stack.append((prefix, kids, n + 1))
+                    stack.append((prefix + name + b"/", self.children(oid), 0))
                     break
                 out.append(((prefix + name).decode("utf-8", "surrogateescape"), kind, oid))
         return out
 
     def text(self, oid: str) -> str:
-        if oid not in self.texts:
-            self.texts[oid] = self.read(oid, "blob").decode("utf-8", errors="replace")
-        return self.texts[oid]
+        got = self.texts.get(oid)
+        if got is None:
+            got = self.read(oid, "blob").decode("utf-8", errors="replace")
+            if len(got) > MAX_BUILD_FILE:
+                return got                                # read when needed, never kept
+            self.texts[oid] = got
+            self.text_bytes += len(got)
+            while self.text_bytes > TEXT_CACHE_BYTES and len(self.texts) > 1:
+                self.text_bytes -= len(self.texts.popitem(last=False)[1])
+        else:
+            self.texts.move_to_end(oid)
+        return got
 
 
 class Closure:
@@ -339,9 +351,10 @@ def match_on_stdin() -> int:
 
 
 def label_of(m) -> str | None:
-    """Group 1; or, when the pattern has named groups, their non-empty values in order joined by
-    `.` — a value starting with `-` or `+` is attached without it (`6.1.0-rc1`)."""
-    names = sorted(m.re.groupindex, key=m.re.groupindex.get)
+    """Group 1; or, when the pattern names groups `part1`, `part2`, …, their non-empty values in
+    order joined by `.` — a value starting with `-` or `+` is attached without it (`6.1.0-rc1`).
+    Groups with other names are left alone, so a pattern of 0.9.1 keeps its meaning."""
+    names = sorted((n for n in m.re.groupindex if re.fullmatch(r"part\d+", n)), key=m.re.groupindex.get)
     if not names:
         return m.group(1)
     out = ""
@@ -534,6 +547,8 @@ class Sources:
             try:
                 doc = json.loads(text, strict=False)
                 value = doc.get("version") if isinstance(doc, dict) else None
+                if path.rsplit("/", 1)[-1] == "package.json" and isinstance(doc, dict) and doc.get("private") is True:
+                    value = None                              # npm refuses to publish it: no release carries this version
             except (ValueError, RecursionError):
                 value = None
         elif how == "token":
@@ -655,15 +670,11 @@ class Sources:
         return None
 
 
-def release_numbers(text) -> tuple[int, ...] | None:
-    """The leading run of numbers of a version, trailing zeros dropped: `v2.52.0-rc0` → (2, 52)."""
-    m = re.match(r"^(?:[\w-]+-)?[vV]?(\d+(?:\.\d+)*)", text or "")
-    if not m:
-        return None
-    nums = [int(n) for n in m.group(1).split(".")]
-    while len(nums) > 1 and nums[-1] == 0:
-        nums.pop()
-    return tuple(nums)
+def release_numbers(text) -> tuple[str, ...] | None:
+    """The leading numbers of a version, as text without leading zeros: `py-v2.052.0-rc0` →
+    ('2', '52', '0'). A prefix must start with a letter, so `2024-01-05` is ('2024',)."""
+    m = re.match(r"^(?:[A-Za-z][\w.]*?[-_/])?[vV]?([0-9]+(?:\.[0-9]+)*)", text or "")
+    return tuple(n.lstrip("0") or "0" for n in m.group(1).split(".")) if m else None
 
 
 def tag_label(name: str) -> str:
@@ -736,6 +747,8 @@ class Labels:
                     if path == src[0] and kind == "blob" and len(self.objects.text(oid).split()) == 1 \
                             and plausible(self.objects.text(oid).strip()):
                         label = self.objects.text(oid).strip()
+            if label is not None and not any(c.isalnum() for c in label):
+                label = None                                  # punctuation only (a captured quote) is no version
         else:
             blobs = {path: oid for path, kind, oid in entries if kind == "blob"}
             src = self.sources.find(blobs)
@@ -758,14 +771,14 @@ class Labels:
             self.counts[src[0]] = self.counts.get(src[0], 0) + 1
             tag_nums = release_numbers(tag) if tag and src[0] != TAG_SOURCE else None
             if tag_nums is not None:
-                nums = release_numbers(label) or ()
+                nums = release_numbers(label) or ("",)
                 tally = self.agreement.setdefault(src[0], [0, 0])
-                tally[0 if nums[:len(tag_nums)] == tag_nums else 1] += 1   # `v1` agrees with 1.2.3
+                tally[0 if nums[0] == tag_nums[0] else 1] += 1   # the first number: `v1.1` agrees with 1.0.0
         self.last = src[0] if label else None
         return label
 
     def contradicted(self) -> list[str]:
-        """Sources found by the rules that were read at a tag carrying a version and agreed at none.
+        """Sources found by the rules that were read at tags carrying a version and agree with none.
         A source given with --version-file is the user's statement and is never second-guessed."""
         return sorted(p for p, (agree, disagree) in self.agreement.items()
                       if disagree and not agree and not self.fixed)
@@ -988,8 +1001,8 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
             churn += 1
         prev = full
 
-    # a source the rules found, read at tags that carry a version and agreeing with none of them,
-    # is not the project's version: its points count as without a label
+    # a source the rules found that no tag agrees with decides nothing: its points are counted, and
+    # the verdict can then be `drift` (over the other sources) or `incomplete`, never `clean`
     contradicted = labels.contradicted()
     rejected = 0
     for v, src, sha, date, name, short, full in labelled:
@@ -1003,10 +1016,11 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
                             "where": f"{name} ({date})", "commit": sha, "name": name}
         compared += 1
     no_label += rejected
+    for src in contradicted:
+        labels.counts.pop(src, None)                      # label_sources counts the compared points
     empty_by_label: dict[str, list[str]] = defaultdict(list)
-    for v, src, where in empty_labelled:
-        if src not in contradicted:
-            empty_by_label[v].append(where)
+    for v, _src, where in empty_labelled:
+        empty_by_label[v].append(where)
 
     if not labels.counts and vsrc is None and not a.would_tag:
         raise Refusal("could not find a version label. Pass --version-file / --version-regex.\n"
@@ -1070,6 +1084,8 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
 
     if drifting:
         verdict = "drift"
+    elif contradicted:
+        verdict = "incomplete"
     elif empty == len(pts):
         verdict = "empty_closure"
     elif not by_label:
@@ -1161,8 +1177,9 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
     elif verdict == "empty_closure":
         print("EMPTY CLOSURE: the closure globs match no file at any publication point scanned.")
         print("Nothing was compared. Pass --closure with the files that determine your output.")
-    elif verdict == "no_labels" and contradicted:
-        print("NO LABELS: the only version found contradicts the tags. Nothing to compare.")
+    elif verdict == "incomplete" and contradicted:
+        print(f"INCOMPLETE: no tag named for a version agrees with {', '.join(printable(p) for p in contradicted)},")
+        print("so it is probably not your version. Nothing is decided from it.")
         print("Pass --version-file with the file that declares your version.")
     elif verdict == "no_labels":
         print("NO LABELS: no publication point declared a version. Nothing to compare.")
@@ -1271,8 +1288,11 @@ def compare(a, objects, closure, labels, vpath, include, head_sha) -> int:
         entries = objects.entries(sha)
         short, full, n = closure.ids(entries)
         src = labels.source(entries)
+        label = labels.at(entries, ref if tag else None, count=False)
+        tag_nums = release_numbers(ref) if tag and label and not labels.fixed and src and src[0] != TAG_SOURCE else None
         sides.append({"ref": ref, "commit": sha[:12],
-                      "label": labels.at(entries, ref if tag else None, count=False),
+                      "label": label,
+                      "agrees_with_tag": None if tag_nums is None else (release_numbers(label) or ("",))[0] == tag_nums[0],
                       "label_source": src[0] if src else None,
                       "closure": short if n else None, "closure_id": full if n else None,
                       "files": n,
@@ -1286,6 +1306,8 @@ def compare(a, objects, closure, labels, vpath, include, head_sha) -> int:
         verdict = "identical"
     elif not (one["files"] and two["files"] and one["label"] and two["label"]):
         verdict = "not_comparable"
+    elif one["agrees_with_tag"] is False and two["agrees_with_tag"] is False:
+        verdict = "not_comparable"          # the rules read a file that both tags contradict
     elif one["label"] == two["label"]:
         verdict = "differs_under_one_label"
     else:
@@ -1325,6 +1347,9 @@ def compare(a, objects, closure, labels, vpath, include, head_sha) -> int:
     elif verdict == "differs_under_two_labels":
         print(f"DIFFERS UNDER TWO LABELS: {printable(one['label'])} and {printable(two['label'])}. "
               "The code differs and so does the label.")
+    elif one["agrees_with_tag"] is False and two["agrees_with_tag"] is False and one["files"] and two["files"]:
+        print(f"NOT COMPARABLE: {printable(one['label_source'])} declares a version that neither tag agrees with;")
+        print("it is probably not your version. Pass --version-file with the file that declares it.")
     else:
         print("NOT COMPARABLE: a label or a closure is missing on one side (see above).")
     print_method(stamp, dirty, dirty_note)
@@ -1394,9 +1419,9 @@ def print_coverage(c: dict, max_commits: int, total) -> None:
     if c["points_without_label"]:
         print(f"  {c['points_without_label']} declared no version label there and were not compared.")
     if c.get("points_label_contradicted"):
-        print(f"  {c['points_label_contradicted']} of them declared one in "
+        print(f"  {c['points_label_contradicted']} took their label from "
               + ", ".join(printable(p) for p in c.get("contradicted_sources", []))
-              + ", which no tag named for a version agrees with.")
+              + ", which the tags contradict.")
     if c["points_with_empty_closure"]:
         print(f"  {c['points_with_empty_closure']} had no file matching the closure globs and were not compared.")
     if c["points_not_commits"]:

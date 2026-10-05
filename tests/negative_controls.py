@@ -70,9 +70,11 @@ MUTANTS = [
     ("M27", "CV01", [(' or compared < no_label + empty:', ':')]),
     ("M28", "CV02", [(' or compared < no_label + empty:', ' or compared < len(pts):')]),
     ("M29", "AG04", [('if disagree and not agree and not self.fixed)', 'if disagree and not agree)')]),
-    ("M30", "AG02", [('tally[0 if nums[:len(tag_nums)] == tag_nums else 1] += 1', 'tally[0 if label == tag_label(tag) else 1] += 1')]),
-    ("M31", "AG03", [('if disagree and not agree and not self.fixed)', 'if disagree and not self.fixed)')]),
+    ("M30", "AG02", [('tally[0 if nums[0] == tag_nums[0] else 1] += 1', 'tally[0 if label == tag_label(tag) else 1] += 1')]),
+    ("M31", "AG12", [('if disagree and not agree and not self.fixed)', 'if disagree and not self.fixed)')]),
     ("M32", "NG02", [('out += value if (not out or value[0] in "-+") else "." + value', 'out += value if not out else "." + value')]),
+    ("M34", "AG08", [('    elif contradicted:\n        verdict = "incomplete"\n', '')]),
+    ("M35", "AG10", [('and doc.get("private") is True:', 'and doc.get("private") is None:')]),
     ("M33", "MM03", [('        self.held += len(out) + 1\n', '        self.held += 0\n')]),
 ]
 
