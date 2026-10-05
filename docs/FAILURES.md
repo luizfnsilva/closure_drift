@@ -31,7 +31,7 @@ author has reported one yet; when someone does, it goes here with their name if 
 | 0.9.0 | the new label resolution: hangs, order-dependent answers, wrong source, false drift, a vendored package read as the project | third adversarial pass: 41 of 72 cases loose; the resolution was rewritten |
 | 0.7.1 | the 0.7.0 tag carried `CITATION.cff` at 0.6.0 with CI green — a version label naming two states, in this repository; the deposited fixture could not run in the deposit | reading the nine files by hand before upload; now `tools/conferir_versao.py` |
 | 0.4.0 | the author's working copy had drifted behind the deposited version under the same file name; a run was discarded | preparing an extended run |
-| 0.3.0 | 0.1 measured at every commit and overstated drift for anything published at tags | re-reading the design |
+| 0.3.0 | 0.1 measured at every commit and overstated drift for anything published at tags | the author, before the first deposit |
 
 Detail for each: `CHANGELOG.md`.
 
@@ -46,6 +46,6 @@ A test that is wrong hides a failure or invents one. These were wrong:
 | 2026-10-05 | benchmark harness compared closure ids where both closures are empty (F5 at two pairs) | reading the result |
 | 2026-10-04 | campaign compared output byte for byte; Windows writes `\r\n` (2 cases loose there) | first CI run on Windows |
 | 2026-10-04 | 16 command-execution cases did not run on Windows; a long-path case reported a pass without the file being committed | reading the Windows log |
-| 2026-10-04 | two mutants no longer applied after a refactor, and counted as caught | re-running the controls |
+| 2026-10-04 | after a refactor two mutation controls no longer tested what they named (one did not apply, one passed for another reason) | re-running the controls |
 
 Records: `tests/RECORD.md`, `tests/PROPERTIES_RECORD.md`, `tools/benchmark/READING.md`.

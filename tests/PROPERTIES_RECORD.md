@@ -30,6 +30,7 @@ not changed:
 | `git init` sets `core.ignorecase` on macOS; fast-import then filed `Lib/x` under `lib/`, so the generated repository had no case twins and would have differed on Linux | generator | PR06 could not find a path of the model in the repository |
 | fast-import refuses a submodule pointer whose id names a blob; that commit is now written through an index | generator | PR06 |
 | PR06 picked the version file as the member to remove; the new tag then has no label and `--explain` rightly refuses | PR06 | seed 51 |
+| on Windows git refuses the path `q?.js` unless `core.protectNTFS` is off; the suite stopped before any property ran (first CI run, 37347048205) | generator | the Windows jobs |
 | a property that could not be evaluated counted as a control caught (K02), and a control on PR13 ran no property at all (K08) | controls | reading the first control table |
 
 ## Amendments to the pre-registration — 2026-10-05, after the first run

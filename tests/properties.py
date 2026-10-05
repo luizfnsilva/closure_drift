@@ -205,6 +205,7 @@ def build(m: Model, where: str) -> str:
     # core.ignorecase is set by `git init` on macOS and Windows; with it fast-import files `Lib/x`
     # under an existing `lib/`, and the repository would differ from one platform to the next
     r = subprocess.run(["git", "-C", where, "-c", "core.ignorecase=false", "-c", "core.precomposeunicode=false",
+                        "-c", "core.protectNTFS=false", "-c", "core.protectHFS=false",
                         "fast-import", "--quiet", "--date-format=raw"], input=bytes(s),
                        capture_output=True)
     if r.returncode != 0:
@@ -222,7 +223,8 @@ def build(m: Model, where: str) -> str:
                    GIT_COMMITTER_DATE="1950000000 +0000")
         lines = b"".join(mode.encode() + b" " + (payload if mode == "160000" else blob_id(payload))
                          + b"\t" + p + b"\0" for p, (mode, payload) in tree.items())
-        g = ["git", "-C", where, "-c", "core.ignorecase=false", "-c", "core.precomposeunicode=false"]
+        g = ["git", "-C", where, "-c", "core.ignorecase=false", "-c", "core.precomposeunicode=false", "-c", "core.protectNTFS=false",
+             "-c", "core.protectHFS=false"]
         subprocess.run(g + ["update-index", "-z", "--index-info"], input=lines, env=env, check=True,
                        capture_output=True)
         tree_id = subprocess.run(g + ["write-tree", "--missing-ok"], env=env, check=True,
