@@ -14,33 +14,37 @@ Evidence, and one fix it led to. The script is sha256 `89b5349928eba22b0394d0194
   generated repositories two verdicts. `fnmatch.fnmatch` became `fnmatch.fnmatchcase`; nothing else
   in the logic changed. On Linux and macOS no report changes: checked on 60 generated repositories
   and six public ones. Suspected in writing before the run, found by the property suite.
-- `SECURITY.md` printed the checksum of an unreleased build as that of 0.9.0.
+- `SECURITY.md` printed the checksum of an unreleased build as that of 0.9.0; the 0.9.0 entry
+  below said two adversarial passes where there were three; the README said the tool starts `git`
+  and nothing else, and it also starts itself to match a version pattern you supply.
 
 ### Added
 
 - `tests/properties.py`: 17 properties over 60 generated repositories, with 10 controls, against
   `tests/oracle.py` — a second implementation written from `tests/ORACLE_SPEC.md` by a reviewer who
   did not read the detector.
-- `tools/benchmark/`: ten large repositories, protocol first. No run exceeded 40 minutes; every tag
-  of the Linux kernel takes 90 s and 3.4 GB; the oracle agrees at all pairs with files.
-- `THREAT_MODEL.md`, `docs/FAILURES.md`, `reproduce.sh`.
+- `tools/benchmark/`: ten large repositories, protocol first. No run exceeded 40 minutes; scanning
+  every tag of the Linux kernel takes 90 s and 3.4 GB; the oracle agrees at all pairs with files.
+- `THREAT_MODEL.md`, `docs/FAILURES.md`, `reproduce.sh`. A reviewer who did not write these
+  documents found eighteen statements to correct in them: `docs/REVIEW-0.9.1.md`.
 
 ### Found and not fixed
 
 Listed in `docs/FAILURES.md` as open: `clean` at exit 0 with 9 of 5,508 tags compared
-(`Azure/azure-sdk-for-python`; use `--strict`); `drift` on `git/git` read from a helper crate's
-`Cargo.toml` (use `--version-file`); no label found in six of ten large repositories; memory grows
+(`Azure/azure-sdk-for-python`; use `--strict`); `drift` on `git/git` and `would_drift` on
+`DefinitelyTyped`, each read from a file that is not the project's version (use `--version-file`); no label found in six of ten large repositories; memory grows
 with history.
 
 ### Comparability
 
-Results from 0.9.0 on Linux and macOS stand, the study and the benchmark included: both were
-measured there, with 0.9.0, and say so. Results from any earlier version on Windows, on a
+Results from 0.9.0 on Linux and macOS stand. The benchmark records its platform (Linux). The
+study was run on the author's macOS machine; its result files record the detector and not the
+platform. Results from any earlier version on Windows, on a
 repository with upper-case letters in a path, should be measured again.
 
 ## 0.9.0 — 2026-10-04
 
-0.7.1 was audited: acceptance proofs written before the code, mutation controls, and two adversarial
+0.7.1 was audited: acceptance proofs written before the code, mutation controls, and three adversarial
 passes by a reviewer who did not write the fixes. Against 0.7.1 as deposited, 30 of 51 proofs were
 red. The script changes; it is sha256 `6548f891a826034c35ef83b276578c79564b57f892a54422af5c1be44591137c`.
 

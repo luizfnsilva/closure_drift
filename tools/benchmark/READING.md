@@ -16,7 +16,8 @@ author takes from it. It is a reading, made after seeing the numbers.
 
 ## The oracle at scale
 
-20 comparisons, up to 40,577 files in a closure. Ids, counts and path lists agree in every one
+18 comparisons (two pairs in each of nine repositories; `DefinitelyTyped` has one tag), up to
+40,577 files in a closure. Ids, counts and path lists agree in every one
 where both sides have files.
 
 **F5 at two pairs (`llvm`, `git`) is the harness, not a difference.** The older tag has no file in

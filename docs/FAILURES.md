@@ -25,7 +25,7 @@ author has reported one yet; when someone does, it goes here with their name if 
 | 0.9.1 | `SECURITY.md` printed the checksum of an unreleased build as that of 0.9.0 | reading the page against `DEPOSIT.sha256` |
 | 0.9.0 | files with non-ASCII names silently outside the closure; submodule pointers ignored; root-level `tests/`, `docs/`, `*.md` inside it | acceptance proofs written before the fix: 30 of 51 red against 0.7.1 |
 | 0.9.0 | undetermined results exited 0; errors could exit 1, the code for drift; tags that could not be compared were skipped in silence | the same |
-| 0.9.0 | measuring a repository could run its commands (`core.fsmonitor`, filters, lazy fetch) and rewrote its index | the same, each with a positive control |
+| 0.9.0 | measuring a repository could run its commands (`core.fsmonitor`, filters, lazy fetch) and rewrote its index | the same; plain git runs the configured command in 4 of the 16 cases, and in none of them under the tool |
 | 0.9.0 | a replace ref hid drift; `GIT_DIR` redirected the measurement; a version pattern could hang the run | first adversarial pass, by a reviewer who did not write the fixes |
 | 0.9.0 | two different file lists with one closure id | adversarial pass (HC02), proof U02 |
 | 0.9.0 | label read from one file chosen at HEAD: `click` compared at 11 of 71 tags, `requests` at 12 of 162, both reported `clean` and both in drift | study run 1: 34 of 100 without a label, 7 of 21 `drift` read from a constant |

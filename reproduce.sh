@@ -1,6 +1,6 @@
 #!/bin/sh
 # Re-run every claim of the README that a machine can re-run. Needs git and python3; no network
-# except with --study or --record. About ten minutes without them.
+# except with --study or --record.
 set -eu
 cd "$(dirname "$0")"
 step() { printf '\n== %s\n' "$1"; }

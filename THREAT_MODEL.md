@@ -18,7 +18,8 @@ Trusted: the `git` binary on `PATH`, the Python interpreter, the copy of `closur
 (verify it: `SECURITY.md`), your own command line.
 
 Not trusted: every byte of the measured repository — objects, refs, tag names, file names, file
-contents, its `.git/config`, its `.closure-drift.json` — and the git variables in your environment.
+contents, its `.git/config`, its `.closure-drift.json` — and eleven git variables that would
+redirect the measurement if set in your environment (`GIT_DIR`, `GIT_WORK_TREE` and kin).
 
 ## Attackers
 
@@ -34,20 +35,23 @@ contents, its `.git/config`, its `.closure-drift.json` — and the git variables
 
 | threat | defence | test |
 |---|---|---|
-| T1 `core.fsmonitor`, filters, lazy fetch, replace refs, `GIT_DIR` and kin | fixed git options and a cleaned environment on every call; `git status` skipped where a filter is configured; partial clones refused on git older than 2.45 | adversarial CX series: 16 cases with a positive control (plain git does run the command); AF01 for replace refs |
+| T1 `core.fsmonitor`, filters, lazy fetch | fixed git options on every call; `git status` skipped where a filter is configured; partial clones refused on git older than 2.45 | adversarial CX series, 16 cases. Each carries a positive control; plain git runs the configured command in 4 of them on the machines tested, and in none of those under the tool |
+| T2 replace refs; `GIT_DIR` and ten other redirecting variables | `--no-replace-objects`; the variables are removed | adversarial AF01, EC10 |
 | T1, T3 a version pattern in the repository's config | matched in a child process under a time limit | adversarial EC18 and LD series |
 | T1 `setup.py` | parsed with `ast`, never imported or run | **no dedicated case**: by construction only |
 | T2 non-ASCII, quoted or invalid file names | paths are read from tree objects, never from quoted output | battery C01–C06; properties PR01, PR02 against the oracle |
-| T2 two file lists with one 16-hex id | identity is the full SHA-256 (`closure_ids`) | adversarial HC series; property PR06 |
+| T2 two file lists with one 16-hex id | identity is the full SHA-256 (`closure_ids`) | adversarial HC series; battery U02 |
 | T2 two files declaring different versions | counted, and never reported `clean` | adversarial LS and LC series |
 | T2 a tag list arranged so that order hides a collision | every closure of a label is kept, whatever the order | properties PR08, PR09, PR11 |
-| T3 malformed trees, broken config, huge or cyclic input | named refusal, exit 2; exit 0 is `clean` only; no traceback | battery D series; adversarial EC and TR series; property PR13 over every run of the suite |
+| T3 malformed trees, broken config, very large or deep input | named refusal, exit 2; exit 0 is `clean` only; no traceback | battery D series; adversarial EC and TR series; property PR13 over every run of the suite |
 | T4 control characters, line breaks, bidirectional marks in labels, paths, tag names | escaped on output | adversarial OI series |
 | T5 a label already used by an old tag outside the scan window | `--would-tag` reads every tag | battery W series; adversarial WT series; property PR12 |
 
 ## Not defended
 
 - **A git binary that lies**, or a malicious Python. Out of scope.
+- **Your own environment beyond the eleven variables.** `GIT_CONFIG_COUNT`, `GIT_CONFIG_PARAMETERS`,
+  `GIT_CONFIG_GLOBAL`, `GIT_EXEC_PATH` and your global git config are obeyed. Not tested.
 - **SHA-1 collisions in git objects.** The closure is as strong as git's object ids and no stronger.
 - **Code that determines your output and sits outside the closure globs**, under an excluded
   folder, or in a submodule's content (only the pointer is read). `clean` says nothing about it.
@@ -63,5 +67,5 @@ contents, its `.git/config`, its `.closure-drift.json` — and the git variables
 
 ## What a pass of the tests means
 
-The cases executed behaved as written, on the platforms listed. It is not a proof, and nobody
-outside the author has attacked this tool yet. `docs/FAILURES.md` lists what was found so far.
+The cases executed behaved as written, on the platforms listed. It is not a proof. The reviewers so far
+worked at the author's request; nobody outside this project has attacked the tool yet. `docs/FAILURES.md` lists what was found so far.

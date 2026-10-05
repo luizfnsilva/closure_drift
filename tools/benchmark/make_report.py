@@ -34,7 +34,7 @@ def main():
            f"({m['platform']}, {m['cpus']} CPUs, {m.get('memory_mb', '?')} MB, {m['git']}, Python {m['python']}). "
            "Times on shared runners vary; these are single measurements.", "",
            "## The repositories", "",
-           "| repository | files at HEAD | tags | commits | clone |", "|---|---|---|---|---|"]
+           "| repository | files at HEAD | tags (at commits) | commits | clone |", "|---|---|---|---|---|"]
     for slug in ORDER:
         r = rows.get(slug)
         if r is None:
@@ -43,7 +43,7 @@ def main():
             out.append(f"| `{slug}` | clone failed: {r['clone'].get('stderr_first', '')} | | | |")
         else:
             c = r["clone"]
-            out.append(f"| `{slug}` | {c['files_at_head']:,} | {c['tags']:,} | {c['commits_from_head']:,} | "
+            out.append(f"| `{slug}` | {c['files_at_head']:,} | {c['tags']:,} ({c['tags_at_commits']:,}) | {c['commits_from_head']:,} | "
                        f"{c['disk_mb']:,} MB in {c['seconds']:.0f} s |")
     out += ["", "## Time, peak memory, answer", "",
             "| repository | " + " | ".join(t for _i, t in RUNS) + " |", "|---|" + "---|" * len(RUNS)]

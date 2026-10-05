@@ -88,7 +88,7 @@ fixed before the first run; no repository tuned ([full table and every collision
 | no version label found, or inconclusive | 8 |
 
 A version label names two different code states in **29 of the 92** decided, 29 of all 100. Each
-of the 87 labels is a line in `collisions.tsv`, reproducible by hand:
+of the 87 labels is in `collisions.tsv`, one line per tag involved, reproducible by hand:
 
 ```
 $ closure-drift --compare v2.16.0 v2.16.1        # in psf/requests
@@ -136,7 +136,7 @@ Every failure found so far: [`docs/FAILURES.md`](docs/FAILURES.md). More: [`SCOP
 
 ## Safety
 
-It starts `git` and nothing else, never writes to the repository, and does not run commands named
+It starts `git` and, for a version pattern you supply, itself; nothing else. It never writes to the repository, and does not run commands named
 in that repository's git config. What is defended and what is not:
 [`THREAT_MODEL.md`](THREAT_MODEL.md). Reporting: [`SECURITY.md`](SECURITY.md).
 
@@ -144,7 +144,7 @@ in that repository's git config. What is defended and what is not:
 
 Four suites, each pre-registered before the code. Scores are never added together.
 
-| battery | macOS, Python 3.14 (3.9: the same, one more attack not run) |
+| suite | macOS, Python 3.14 |
 |---|---|
 | `tests/battery.py` — acceptance proofs | 120 declared · 119 green · 0 red · 1 not run |
 | `tests/negative_controls.py` — the battery must fail on a broken detector | 26 mutants · 26 caught · 0 not caught |
@@ -156,9 +156,9 @@ CI runs the same four on Linux, macOS and Windows; what each platform could not 
 tried. `./reproduce.sh` runs all of it.
 
 **Ten large repositories** (the Linux kernel, LLVM, CPython and seven more), protocol written
-first: every tag of the kernel in 90 s and 3.4 GB; the oracle agrees at every pair compared; in six
-of ten the default rules find no version label, and two answers are wrong for want of
-`--strict` or `--version-file`. [`tools/benchmark/BENCHMARK.md`](tools/benchmark/BENCHMARK.md).
+first: scanning every tag of the kernel takes 90 s and 3.4 GB; the oracle agrees at every pair
+with files; in six of ten the default rules find no version label, and three answers a gate would
+act on are wrong, or rest on almost nothing, for want of `--strict` or `--version-file`. [`tools/benchmark/BENCHMARK.md`](tools/benchmark/BENCHMARK.md).
 
 ## Send a result
 

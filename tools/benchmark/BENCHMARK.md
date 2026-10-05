@@ -6,18 +6,18 @@ Detector sha256 `6548f891a826034c35ef83b276578c79564b57f892a54422af5c1be44591137
 
 ## The repositories
 
-| repository | files at HEAD | tags | commits | clone |
+| repository | files at HEAD | tags (at commits) | commits | clone |
 |---|---|---|---|---|
-| `torvalds/linux` | 96,053 | 949 | 1,484,687 | 6,578 MB in 430 s |
-| `llvm/llvm-project` | 186,257 | 327 | 600,693 | 4,210 MB in 606 s |
-| `rust-lang/rust` | 63,439 | 164 | 342,488 | 1,103 MB in 79 s |
-| `python/cpython` | 6,498 | 674 | 133,505 | 903 MB in 59 s |
-| `nodejs/node` | 55,583 | 962 | 48,921 | 1,644 MB in 444 s |
-| `kubernetes/kubernetes` | 31,356 | 1,250 | 141,779 | 1,339 MB in 57 s |
-| `git/git` | 4,857 | 1,012 | 82,399 | 325 MB in 105 s |
-| `Azure/azure-sdk-for-python` | 55,010 | 5,508 | 23,548 | 1,062 MB in 423 s |
-| `googleapis/google-cloud-python` | 58,265 | 6,559 | 63,667 | 1,014 MB in 63 s |
-| `DefinitelyTyped/DefinitelyTyped` | 62,831 | 1 | 91,661 | 817 MB in 71 s |
+| `torvalds/linux` | 96,053 | 949 (947) | 1,484,687 | 6,578 MB in 430 s |
+| `llvm/llvm-project` | 186,257 | 327 (327) | 600,693 | 4,210 MB in 606 s |
+| `rust-lang/rust` | 63,439 | 164 (164) | 342,488 | 1,103 MB in 79 s |
+| `python/cpython` | 6,498 | 674 (674) | 133,505 | 903 MB in 59 s |
+| `nodejs/node` | 55,583 | 962 (962) | 48,921 | 1,644 MB in 444 s |
+| `kubernetes/kubernetes` | 31,356 | 1,250 (1,250) | 141,779 | 1,339 MB in 57 s |
+| `git/git` | 4,857 | 1,012 (1,011) | 82,399 | 325 MB in 105 s |
+| `Azure/azure-sdk-for-python` | 55,010 | 5,508 (5,508) | 23,548 | 1,062 MB in 423 s |
+| `googleapis/google-cloud-python` | 58,265 | 6,559 (6,559) | 63,667 | 1,014 MB in 63 s |
+| `DefinitelyTyped/DefinitelyTyped` | 62,831 | 1 (1) | 91,661 | 817 MB in 71 s |
 
 ## Time, peak memory, answer
 
