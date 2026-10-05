@@ -1,0 +1,57 @@
+{
+ "report_format": 2,
+ "stamp": {
+  "measured_at_head": "8103b446517e",
+  "working_tree_dirty": null,
+  "detector_closure": "6548f891a826034c",
+  "working_tree_dirty_note": "not checked: this repository has no working tree"
+ },
+ "repo": "/home/runner/work/_temp/git__git.git",
+ "version_file": "Cargo.toml",
+ "closure_globs": [
+  "src/**",
+  "lib/**",
+  "app/**",
+  "*.py",
+  "*.js",
+  "*.ts",
+  "*.rs",
+  "*.go",
+  "*.java"
+ ],
+ "published_at": "tags",
+ "publication_points": 998,
+ "labels": 1,
+ "labels_covering_multiple_closures": 1,
+ "max_closures_per_label": 6,
+ "verdict": "drift",
+ "drift": {
+  "0.1.0": {
+   "70b241d9890b47c5": "v2.52.0-rc0 (2025-11-03)",
+   "1f155131dc119eb1": "v2.53.0-rc0 (2026-01-15)",
+   "3b89b82c7eb9bca8": "v2.54.0-rc0 (2026-04-01)",
+   "2fe0ca07b241751a": "v2.55.0-rc0 (2026-06-11)",
+   "c22460ac958093d4": "v2.56.0-rc0 (2026-09-10)",
+   "8e703a24f9382930": "v2.56.0-rc1 (2026-09-16)"
+  }
+ },
+ "closure_ids": {
+  "70b241d9890b47c5": "506ed72936c49c495ac976b0a96fbbf69be5995cfb038f6878b01b45af4e53be",
+  "1f155131dc119eb1": "9984d42124e65e4f6e0308360aba1f6a6df890b3aa3a81325c78711e59ee74d2",
+  "3b89b82c7eb9bca8": "4523ca7b129fd8009fdd79cb0fc83dfb24dc42c24b0157b0dd0fc3b920859f6e",
+  "2fe0ca07b241751a": "861f708bf8e60ee5e18d51fc53bf16abf8c5ea1cf8296884233c9cfb11ebb922",
+  "c22460ac958093d4": "09298db7b9df1954128b18bf139ba8b532ade94c9eda4aab300f61bdc3b40c80",
+  "8e703a24f9382930": "b0755aaf67dda14b4fc2689597062dda54f970b5689571565e353fd42bdadde8"
+ },
+ "closure_changes_between_points": 483,
+ "label_sources": {
+  "Cargo.toml": 20
+ },
+ "publication_points_scanned": 1011,
+ "publication_points_compared": 20,
+ "points_without_label": 978,
+ "points_with_empty_closure": 13,
+ "points_not_commits": 1,
+ "range_truncated": false,
+ "points_with_conflicting_sources": 0
+}

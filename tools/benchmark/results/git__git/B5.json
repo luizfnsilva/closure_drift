@@ -1,0 +1,53 @@
+{
+ "report_format": 2,
+ "stamp": {
+  "measured_at_head": "8103b446517e",
+  "working_tree_dirty": null,
+  "detector_closure": "6548f891a826034c",
+  "working_tree_dirty_note": "not checked: this repository has no working tree"
+ },
+ "repo": "/home/runner/work/_temp/git__git.git",
+ "version_file": "Cargo.toml",
+ "closure_globs": [
+  "src/**",
+  "lib/**",
+  "app/**",
+  "*.py",
+  "*.js",
+  "*.ts",
+  "*.rs",
+  "*.go",
+  "*.java"
+ ],
+ "published_at": "commits",
+ "publication_points": 393,
+ "labels": 1,
+ "labels_covering_multiple_closures": 1,
+ "max_closures_per_label": 4,
+ "verdict": "drift",
+ "drift": {
+  "0.1.0": {
+   "2fe0ca07b241751a": "serve: reject valueless promisor-remote capability (2026-08-12)",
+   "c22460ac958093d4": "Merge branch 'ps/odb-make-creation-pluggable' into ps/odb-eagerly-load-alternates (2026-08-12)",
+   "3b89b82c7eb9bca8": "pathspec: match and original in pathspec_item are const (2026-09-03)",
+   "8e703a24f9382930": "rust: respect CARGO_BUILD_TARGET when locating build output (2026-09-10)"
+  }
+ },
+ "closure_ids": {
+  "2fe0ca07b241751a": "861f708bf8e60ee5e18d51fc53bf16abf8c5ea1cf8296884233c9cfb11ebb922",
+  "c22460ac958093d4": "09298db7b9df1954128b18bf139ba8b532ade94c9eda4aab300f61bdc3b40c80",
+  "3b89b82c7eb9bca8": "4523ca7b129fd8009fdd79cb0fc83dfb24dc42c24b0157b0dd0fc3b920859f6e",
+  "8e703a24f9382930": "b0755aaf67dda14b4fc2689597062dda54f970b5689571565e353fd42bdadde8"
+ },
+ "closure_changes_between_points": 55,
+ "label_sources": {
+  "Cargo.toml": 391
+ },
+ "publication_points_scanned": 400,
+ "publication_points_compared": 391,
+ "points_without_label": 2,
+ "points_with_empty_closure": 7,
+ "points_not_commits": 0,
+ "range_truncated": true,
+ "points_with_conflicting_sources": 0
+}

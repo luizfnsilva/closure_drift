@@ -1,0 +1,40 @@
+{
+ "report_format": 2,
+ "stamp": {
+  "measured_at_head": "fbd2f56091aa",
+  "working_tree_dirty": null,
+  "detector_closure": "6548f891a826034c",
+  "working_tree_dirty_note": "not checked: this repository has no working tree"
+ },
+ "mode": "would_tag",
+ "repo": "/home/runner/work/_temp/DefinitelyTyped__DefinitelyTyped.git",
+ "version_file": "package.json",
+ "closure_globs": [
+  "src/**",
+  "lib/**",
+  "app/**",
+  "*.py",
+  "*.js",
+  "*.ts",
+  "*.rs",
+  "*.go",
+  "*.java"
+ ],
+ "published_at": "tags",
+ "verdict": "would_drift",
+ "label_at_head": "0.0.3",
+ "label_source": "package.json",
+ "closure_at_head": "d0e2723553e5c218",
+ "closure_id_at_head": "c116c8e0676ad3a3ccf7ee6953ec44f59718cfba2579f0814f07e043ae85947d",
+ "collides_with": [
+  "0.1.450 (2019-09-04)"
+ ],
+ "existing_drift_labels": 0,
+ "publication_points_scanned": 1,
+ "publication_points_compared": 1,
+ "points_without_label": 0,
+ "points_with_empty_closure": 0,
+ "points_not_commits": 0,
+ "range_truncated": false,
+ "points_with_conflicting_sources": 0
+}

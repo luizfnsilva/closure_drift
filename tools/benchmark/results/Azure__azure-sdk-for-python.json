@@ -1,0 +1,179 @@
+{
+ "repository": "Azure/azure-sdk-for-python",
+ "detector_sha256": "6548f891a826034c35ef83b276578c79564b57f892a54422af5c1be44591137c",
+ "oracle_sha256": "f9f8362c96f04a987e7ef8f12d352bfd0478fc21182939cc7ff02c1d854374f6",
+ "machine": {
+  "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "cpus": 4,
+  "python": "3.13.15",
+  "git": "git version 2.55.0",
+  "runner": "ubuntu24 20260927.320.1",
+  "memory_mb": 15989
+ },
+ "limit_seconds": 2400,
+ "runs": {
+  "B1": {
+   "exit": 2,
+   "seconds": 60.48,
+   "peak_mb": 143.8,
+   "stderr_first": "could not find a version label. Pass --version-file / --version-regex.",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stdout_bytes": 0,
+   "command": "closure_drift.py CLONE --json"
+  },
+  "B2": {
+   "exit": 2,
+   "seconds": 60.3,
+   "peak_mb": 143.8,
+   "stderr_first": "could not find a version label. Pass --version-file / --version-regex.",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stdout_bytes": 0,
+   "command": "closure_drift.py CLONE --json"
+  },
+  "B3": {
+   "exit": 0,
+   "seconds": 542.88,
+   "peak_mb": 771.0,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "3f382a21cbcb8a7aaeed79aea821f8cf1c07bfefd2d1f82c9a1707abb4e36ee9",
+   "stdout_bytes": 945,
+   "command": "closure_drift.py CLONE --json --max-commits 1000000",
+   "verdict": "clean",
+   "labels": 8,
+   "labels_covering_multiple_closures": 0,
+   "max_closures_per_label": 1,
+   "publication_points_scanned": 5508,
+   "publication_points_compared": 9,
+   "points_without_label": 5496,
+   "points_with_empty_closure": 3,
+   "range_truncated": false,
+   "version_file": null,
+   "detector_closure": "6548f891a826034c"
+  },
+  "B4": {
+   "exit": 2,
+   "seconds": 540.11,
+   "peak_mb": 766.7,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "e40e2012cfd32e7756e14c966132cb0b0d442f14155c3e6744c88f2d21738891",
+   "stdout_bytes": 978,
+   "command": "closure_drift.py CLONE --would-tag --json",
+   "verdict": "no_label_at_head",
+   "publication_points_scanned": 5508,
+   "publication_points_compared": 9,
+   "points_without_label": 5496,
+   "points_with_empty_closure": 3,
+   "range_truncated": false,
+   "version_file": null,
+   "label_at_head": null,
+   "detector_closure": "6548f891a826034c"
+  },
+  "B5": {
+   "exit": 2,
+   "seconds": 47.04,
+   "peak_mb": 111.9,
+   "stderr_first": "could not find a version label. Pass --version-file / --version-regex.",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stdout_bytes": 0,
+   "command": "closure_drift.py CLONE --at commits --json"
+  },
+  "B6_oldest_newest": {
+   "exit": 2,
+   "seconds": 2.71,
+   "peak_mb": 86.2,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "ab566f5ca8da2eefec4d6b71c7ffa2b75bbe7ba49d0ace9c0eba049d1d2e46f9",
+   "stdout_bytes": 4099967,
+   "command": "closure_drift.py CLONE --compare v0.8.2 azure-mgmt-computefleet_2.0.0 --json",
+   "verdict": "not_comparable",
+   "version_file": null,
+   "detector_closure": "6548f891a826034c"
+  },
+  "B7_oldest_newest": {
+   "exit": 0,
+   "seconds": 1.2,
+   "peak_mb": 90.1,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "255835d5d69a116c14e7f28487a585f7679f1a32dc681da1c0a1c9c9cd0b4631",
+   "stdout_bytes": 4018150,
+   "command": "tests/oracle.py CLONE --compare v0.8.2 azure-mgmt-computefleet_2.0.0"
+  },
+  "B6_median_newest": {
+   "exit": 2,
+   "seconds": 3.91,
+   "peak_mb": 129.6,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "920bad2b64032659e5a9ebc2dc51db2870fcab04c72bc3846d4504fa49ebdfa5",
+   "stdout_bytes": 5650143,
+   "command": "closure_drift.py CLONE --compare azure-mgmt-nginx_1.0.0 azure-mgmt-computefleet_2.0.0 --json",
+   "verdict": "not_comparable",
+   "version_file": null,
+   "detector_closure": "6548f891a826034c"
+  },
+  "B7_median_newest": {
+   "exit": 0,
+   "seconds": 1.75,
+   "peak_mb": 90.0,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "a03fee7a6e8451b26527c1fa845b57826eadb8298060a737ba8912c30722f10a",
+   "stdout_bytes": 5539753,
+   "command": "tests/oracle.py CLONE --compare azure-mgmt-nginx_1.0.0 azure-mgmt-computefleet_2.0.0"
+  }
+ },
+ "failures": [],
+ "clone": {
+  "exit": 0,
+  "seconds": 422.7,
+  "disk_mb": 1062,
+  "tags": 5508,
+  "tags_at_commits": 5508,
+  "commits_from_head": 23548,
+  "files_at_head": 55010,
+  "head": "ef22f459e05c5dda48786a8fc7910f58bbde55c6"
+ },
+ "tags_picked": {
+  "oldest": "v0.8.2",
+  "median": "azure-mgmt-nginx_1.0.0",
+  "newest": "azure-mgmt-computefleet_2.0.0"
+ },
+ "oracle": {
+  "oldest_newest": {
+   "compared": true,
+   "ids_and_counts_agree": true,
+   "path_lists_agree": true,
+   "files": [
+    21,
+    40577
+   ],
+   "paths_differing": 40597
+  },
+  "median_newest": {
+   "compared": true,
+   "ids_and_counts_agree": true,
+   "path_lists_agree": true,
+   "files": [
+    21653,
+    40577
+   ],
+   "paths_differing": 54880
+  }
+ }
+}

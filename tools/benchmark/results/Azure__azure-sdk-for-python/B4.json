@@ -1,0 +1,38 @@
+{
+ "report_format": 2,
+ "stamp": {
+  "measured_at_head": "ef22f459e05c",
+  "working_tree_dirty": null,
+  "detector_closure": "6548f891a826034c",
+  "working_tree_dirty_note": "not checked: this repository has no working tree"
+ },
+ "mode": "would_tag",
+ "repo": "/home/runner/work/_temp/Azure__azure-sdk-for-python.git",
+ "version_file": null,
+ "closure_globs": [
+  "src/**",
+  "lib/**",
+  "app/**",
+  "*.py",
+  "*.js",
+  "*.ts",
+  "*.rs",
+  "*.go",
+  "*.java"
+ ],
+ "published_at": "tags",
+ "verdict": "no_label_at_head",
+ "label_at_head": null,
+ "label_source": null,
+ "closure_at_head": "1cf5d011f984ea53",
+ "closure_id_at_head": "74770ea8375dd7a687fab42028c4d80078d7f532b5d95dd626b6fc6f6cb964d8",
+ "collides_with": [],
+ "existing_drift_labels": 0,
+ "publication_points_scanned": 5508,
+ "publication_points_compared": 9,
+ "points_without_label": 5496,
+ "points_with_empty_closure": 3,
+ "points_not_commits": 0,
+ "range_truncated": false,
+ "points_with_conflicting_sources": 0
+}

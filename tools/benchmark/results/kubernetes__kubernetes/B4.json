@@ -1,0 +1,38 @@
+{
+ "report_format": 2,
+ "stamp": {
+  "measured_at_head": "7708623c1a6c",
+  "working_tree_dirty": null,
+  "detector_closure": "6548f891a826034c",
+  "working_tree_dirty_note": "not checked: this repository has no working tree"
+ },
+ "mode": "would_tag",
+ "repo": "/home/runner/work/_temp/kubernetes__kubernetes.git",
+ "version_file": null,
+ "closure_globs": [
+  "src/**",
+  "lib/**",
+  "app/**",
+  "*.py",
+  "*.js",
+  "*.ts",
+  "*.rs",
+  "*.go",
+  "*.java"
+ ],
+ "published_at": "tags",
+ "verdict": "no_label_at_head",
+ "label_at_head": null,
+ "label_source": null,
+ "closure_at_head": "5fc0cfea3d1cb84b",
+ "closure_id_at_head": "68ea580bcf5f4ab6ec8f93843079c7c8cf546e4175ec20af47722598ac312adb",
+ "collides_with": [],
+ "existing_drift_labels": 0,
+ "publication_points_scanned": 1250,
+ "publication_points_compared": 0,
+ "points_without_label": 1250,
+ "points_with_empty_closure": 0,
+ "points_not_commits": 0,
+ "range_truncated": false,
+ "points_with_conflicting_sources": 0
+}
