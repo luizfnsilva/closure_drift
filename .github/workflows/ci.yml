@@ -90,6 +90,12 @@ jobs:
         run: python tests/negative_controls.py
       - name: Adversarial campaign — hostile repositories and hostile input
         run: python tests/adversarial.py
+      - name: Independent oracle — its own check
+        run: python tests/oracle.py --self-test
+      - name: Properties — generated repositories, against the oracle
+        run: python tests/properties.py
+      - name: Controls — each broken detector must turn its property red
+        run: python tests/properties.py --controls
 
   self:
     name: measure this repository with itself

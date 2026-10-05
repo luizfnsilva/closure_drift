@@ -100,3 +100,15 @@ and sorted as Python strings.
 
 `oracle.py --self-test` builds a few small repositories and checks the oracle against values
 worked out by hand in the test itself. It never calls `closure_drift.py`.
+
+## Amendment 1 — 2026-10-05, after the oracle was delivered and before any comparison
+
+The author of the oracle listed twenty places where this page was silent. Two change a name:
+
+- Sections 6 and 7 never said which of `closure_id` and `closure` is the full id. It is
+  `closure_id` = full id (64 hex), `closure` = short id (16 hex). The oracle had chosen the
+  opposite and was asked to exchange the two names; nothing else in it was touched.
+- `labels` is the sorted list of distinct labels; the property suite compares its length.
+
+The other eighteen choices stand as the oracle's author made them and are listed in
+`tests/PROPERTIES_RECORD.md`.

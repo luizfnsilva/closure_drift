@@ -1,0 +1,51 @@
+name: benchmark
+
+# Ten large repositories, as tools/benchmark/PREREGISTRATION.md says. Run by hand, or by pushing a
+# branch named benchmark-run/*. It measures; it does not gate anything.
+on:
+  workflow_dispatch:
+  push:
+    branches: ['benchmark-run/**']
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    name: ${{ matrix.repo }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        repo:
+          - torvalds/linux
+          - llvm/llvm-project
+          - rust-lang/rust
+          - python/cpython
+          - nodejs/node
+          - kubernetes/kubernetes
+          - git/git
+          - Azure/azure-sdk-for-python
+          - googleapis/google-cloud-python
+          - DefinitelyTyped/DefinitelyTyped
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Make room for the clone
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache/CodeQL
+          df -h /
+      - name: Measure
+        run: python3 tools/benchmark/run_benchmark.py "${{ matrix.repo }}" --out results --work "$RUNNER_TEMP"
+      - name: Artifact name
+        id: name
+        run: echo "slug=$(echo '${{ matrix.repo }}' | tr '/' '_')" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: benchmark-${{ steps.name.outputs.slug }}
+          path: results
+          if-no-files-found: error
