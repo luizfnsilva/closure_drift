@@ -554,3 +554,18 @@ Required beyond the proofs:
   `clean`.
 
 Not in scope: O5 (the refusal comes after the scan), O6 (folder exclusions), O7, O8.
+
+### Amendment to §10, 2026-10-05 — after the first run of the existing battery, before any new proof
+
+Two proofs of 0.9.1 went red under AG as written:
+
+- **J01**: tags `v1` and `v2`, versions `1.2.3` and `1.2.4`. Read as "the same leading numbers",
+  `v1` does not agree with `1.2.3`, so the source was contradicted. A tag that names a major
+  version only is common. **AG now reads: a tag agrees when its numbers, trailing zeros dropped,
+  are the beginning of the file's numbers, trailing zeros dropped.** `v1` agrees with `1.2.3`;
+  `v2.52` does not agree with `2.0.0` (the file is not allowed to be the shorter one, or a constant
+  `2.0.0` would agree with every `v2.x`); `v1.0` agrees with `1.0.0`. AG01–AG07 are unchanged.
+- **DG01**: tags `v1`, `v2` with label `7.7.7-label`. Under AG this repository is correctly no
+  longer in drift — no tag agrees with the file — and the proof hard-codes exit 1. Its subject is
+  the diagnostics block, not the label rule: the fixture's label becomes `1.7.7-label`, which `v1`
+  agrees with. Nothing it checks is weakened.

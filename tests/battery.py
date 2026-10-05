@@ -1085,7 +1085,7 @@ def cmp07(root):
 
 @proof("DG01")
 def dg01(root):
-    r = two_tags(root, "dg01", "7.7.7-label", "7.7.7-label")
+    r = two_tags(root, "dg01", "1.7.7-label", "1.7.7-label")
     rc0, _, out0, _ = run(r, text=True)
     rc, _, out, err = run(r, "--diagnose", text=True)
     check(rc == rc0 == 1, "exit %d with --diagnose, %d without" % (rc, rc0))
@@ -1094,7 +1094,7 @@ def dg01(root):
     digest = hashlib.sha256(Path(DETECTOR).read_bytes()).hexdigest()[:16]
     for needle in ("closure_drift " + module.__version__, digest, "Python " + sys.version.split()[0], "git version"):
         check(needle in block, "the block does not name %r" % needle)
-    for secret in ("7.7.7-label", "src/a.py", "keep.py", str(r.path), r.path.name):
+    for secret in ("1.7.7-label", "src/a.py", "keep.py", str(r.path), r.path.name):
         check(secret not in block, "the block holds %r" % secret)
     check(out.split("\nrepository   ", 1)[1].split("Measured at HEAD")[0]
           == out0.split("repository   ", 1)[1].split("Measured at HEAD")[0], "the report itself changed")
