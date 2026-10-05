@@ -3,6 +3,41 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 0.9.1 — 2026-10-05
+
+Evidence, and one fix it led to. The script is sha256 `89b5349928eba22b0394d01940ed3d4aa989d6820f48fdddf189ad521689c51c`.
+
+### Fixed
+
+- **On Windows, closure globs were matched without regard to case.** `Lib/data.txt` was inside the
+  default closure there and outside it on Linux and macOS, so one commit had two closures, and in
+  generated repositories two verdicts. `fnmatch.fnmatch` became `fnmatch.fnmatchcase`; nothing else
+  in the logic changed. On Linux and macOS no report changes: checked on 60 generated repositories
+  and six public ones. Suspected in writing before the run, found by the property suite.
+- `SECURITY.md` printed the checksum of an unreleased build as that of 0.9.0.
+
+### Added
+
+- `tests/properties.py`: 17 properties over 60 generated repositories, with 10 controls, against
+  `tests/oracle.py` — a second implementation written from `tests/ORACLE_SPEC.md` by a reviewer who
+  did not read the detector.
+- `tools/benchmark/`: ten large repositories, protocol first. No run exceeded 40 minutes; every tag
+  of the Linux kernel takes 90 s and 3.4 GB; the oracle agrees at all pairs with files.
+- `THREAT_MODEL.md`, `docs/FAILURES.md`, `reproduce.sh`.
+
+### Found and not fixed
+
+Listed in `docs/FAILURES.md` as open: `clean` at exit 0 with 9 of 5,508 tags compared
+(`Azure/azure-sdk-for-python`; use `--strict`); `drift` on `git/git` read from a helper crate's
+`Cargo.toml` (use `--version-file`); no label found in six of ten large repositories; memory grows
+with history.
+
+### Comparability
+
+Results from 0.9.0 on Linux and macOS stand, the study and the benchmark included: both were
+measured there, with 0.9.0, and say so. Results from any earlier version on Windows, on a
+repository with upper-case letters in a path, should be measured again.
+
 ## 0.9.0 — 2026-10-04
 
 0.7.1 was audited: acceptance proofs written before the code, mutation controls, and two adversarial

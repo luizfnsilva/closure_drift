@@ -21,6 +21,7 @@ author has reported one yet; when someone does, it goes here with their name if 
 
 | release | what failed | found by |
 |---|---|---|
+| 0.9.1 | **on Windows, closure globs matched without regard to case**: one commit, two closures, and in generated repositories two verdicts | property suite against the oracle, on the Windows runner; suspected in writing before the run |
 | 0.9.1 | `SECURITY.md` printed the checksum of an unreleased build as that of 0.9.0 | reading the page against `DEPOSIT.sha256` |
 | 0.9.0 | files with non-ASCII names silently outside the closure; submodule pointers ignored; root-level `tests/`, `docs/`, `*.md` inside it | acceptance proofs written before the fix: 30 of 51 red against 0.7.1 |
 | 0.9.0 | undetermined results exited 0; errors could exit 1, the code for drift; tags that could not be compared were skipped in silence | the same |

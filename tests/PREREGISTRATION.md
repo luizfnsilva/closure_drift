@@ -453,3 +453,9 @@ Required instead:
 
 Mutants: M25 removes the plausibility rule and must turn PL01 red; M26 reads `version=` from any
 call in `setup.py` and must turn PL03 red.
+
+### Amendment, 2026-10-05 — 0.9.1
+
+Mutant M20 removed a line of `matches` that 0.9.1 changes (`fnmatch.fnmatch` → `fnmatch.fnmatchcase`,
+`tests/PREREGISTRATION_PROPERTIES.md`). Against 0.9.1 it did not apply and was reported not caught.
+Its anchor now names the new text; the proof it must turn red (EX01) is unchanged.

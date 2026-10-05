@@ -16,12 +16,12 @@ One command checks it. Read-only, one file, no dependencies, no network.
 ## Run it
 
 ```bash
-curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v0.9.0/closure_drift.py
+curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v0.9.1/closure_drift.py
 python3 closure_drift.py            # inside any git repository
 ```
 
-or `pipx run --spec git+https://github.com/luizfnsilva/closure_drift@v0.9.0 closure-drift`.
-Needs Python 3.9+ and git. To see the three possible answers first: `python3 examples/demo.py`.
+or `pipx run --spec git+https://github.com/luizfnsilva/closure_drift@v0.9.1 closure-drift`.
+Needs Python 3.9+ and git. To see the three possible answers first: `python3 examples/demo.py`, or read [`docs/DEMOS.md`](docs/DEMOS.md).
 
 ## Check before you tag
 
@@ -31,13 +31,13 @@ Needs Python 3.9+ and git. To see the three possible answers first: `python3 exa
 # GitHub Actions
 - uses: actions/checkout@v4
   with: { fetch-depth: 0 }
-- uses: luizfnsilva/closure_drift@v0.9.0
+- uses: luizfnsilva/closure_drift@v0.9.1
 ```
 
 ```yaml
 # pre-commit, on git push
 - repo: https://github.com/luizfnsilva/closure_drift
-  rev: v0.9.0
+  rev: v0.9.1
   hooks: [{ id: closure-drift-would-tag }]
 ```
 
@@ -78,8 +78,8 @@ Settings can be committed in `.closure-drift.json`. Flags override it; a broken 
 
 ## What it found
 
-**The 100 most-downloaded PyPI projects, at the defaults** — rule and method fixed before the first
-run; no repository tuned ([full table and every collision](tools/study/STUDY.md)):
+**The 100 most-downloaded PyPI projects, at the defaults**, measured with 0.9.0 — rule and method
+fixed before the first run; no repository tuned ([full table and every collision](tools/study/STUDY.md)):
 
 | | repositories |
 |---|---|
@@ -100,7 +100,7 @@ version, branch markers such as `7.x`, and tag families in a monorepo. A first r
 repository, decided only 63 of 100 — it read the version from one file chosen at HEAD — and that
 is why this release finds the label where each project keeps it.
 
-Seven repositories measured since 0.3.0, with 0.7.1 and with this release:
+Seven repositories measured since 0.3.0, with 0.7.1 and with 0.9.0:
 
 | Repository | 0.7.1 | 0.9.0 | Tags compared (0.7.1 → 0.9.0) |
 |---|---|---|---|
@@ -128,24 +128,37 @@ first, `--tags` the second.
 - Labels are compared as written: `1.0` and `1.0.0` are two labels.
 - How the label is found is a set of rules, not a build: [`docs/LABELS.md`](docs/LABELS.md).
 
-More: [`SCOPE.md`](SCOPE.md), [`docs/WHY.md`](docs/WHY.md).
+- In a gate, pass `--strict` and `--version-file`: without them `clean` can rest on a few tags,
+  and a wrong version file can be believed. Both happened on large repositories.
+
+Every failure found so far: [`docs/FAILURES.md`](docs/FAILURES.md). More: [`SCOPE.md`](SCOPE.md),
+[`docs/WHY.md`](docs/WHY.md).
 
 ## Safety
 
 It starts `git` and nothing else, never writes to the repository, and does not run commands named
-in that repository's git config. Details and reporting: [`SECURITY.md`](SECURITY.md).
+in that repository's git config. What is defended and what is not:
+[`THREAT_MODEL.md`](THREAT_MODEL.md). Reporting: [`SECURITY.md`](SECURITY.md).
 
 ## Tests
 
-Three batteries, each pre-registered before the code. Scores are never added together.
+Four suites, each pre-registered before the code. Scores are never added together.
 
 | battery | macOS, Python 3.14 (3.9: the same, one more attack not run) |
 |---|---|
 | `tests/battery.py` — acceptance proofs | 120 declared · 119 green · 0 red · 1 not run |
 | `tests/negative_controls.py` — the battery must fail on a broken detector | 26 mutants · 26 caught · 0 not caught |
 | `tests/adversarial.py` — written by a reviewer who did not write the fixes | 235 attacks · 229 as required · 0 loose · 6 not run |
+| `tests/properties.py` — 60 generated repositories against `tests/oracle.py`, a second implementation written from a specification by someone who did not read this one | 17 properties · 17 green · 0 red · 10 controls · 10 caught |
 
-CI runs the same three on Linux, macOS and Windows; what each platform could not run is in [`tests/RECORD.md`](tests/RECORD.md). These scores describe the cases executed, not inputs nobody tried.
+CI runs the same four on Linux, macOS and Windows; what each platform could not run is in
+[`tests/RECORD.md`](tests/RECORD.md). These scores describe the cases executed, not inputs nobody
+tried. `./reproduce.sh` runs all of it.
+
+**Ten large repositories** (the Linux kernel, LLVM, CPython and seven more), protocol written
+first: every tag of the kernel in 90 s and 3.4 GB; the oracle agrees at every pair compared; in six
+of ten the default rules find no version label, and two answers are wrong for want of
+`--strict` or `--version-file`. [`tools/benchmark/BENCHMARK.md`](tools/benchmark/BENCHMARK.md).
 
 ## Send a result
 
@@ -156,10 +169,11 @@ or write to lfnsilva.invest@gmail.com. A result showing the tool is wrong is the
 
 ## Version
 
-**0.9.0.** Script sha256 `6548f891a826034c35ef83b276578c79564b57f892a54422af5c1be44591137c`.
-0.9.0 reads the label at every tag, so it compares more tags than 0.7.1 and can find drift 0.7.1
-could not see. With `--version-file` it reads one file, as before. What changed and which earlier
-results to measure again: [`CHANGELOG.md`](CHANGELOG.md).
+**0.9.1.** Script sha256 `89b5349928eba22b0394d01940ed3d4aa989d6820f48fdddf189ad521689c51c`.
+One change to the detector since 0.9.0: closure globs are matched with case on every platform. On
+Windows 0.9.0 folded case, so one commit could have two closures; found by the property suite.
+On Linux and macOS nothing changes. Measure again what you measured on Windows.
+[`CHANGELOG.md`](CHANGELOG.md).
 
 Apache-2.0. Cite the version DOI, under concept DOI `10.5281/zenodo.21763931`
 ([`CITATION.cff`](CITATION.cff)). Planned next: [`ROADMAP.md`](ROADMAP.md).
