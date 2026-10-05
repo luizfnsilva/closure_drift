@@ -133,6 +133,9 @@ def main():
             rank, project, repo, outcome(one[repo]), outcome(two[repo]), cov, rep.get("labels", ""),
             rep.get("labels_covering_multiple_closures", ""),
             ", ".join("`%s`" % s for s in sorted(rep.get("label_sources", {}))[:3])))
+    later = HERE / "posthoc.md"            # a later, exploratory reading: appended, never mixed in
+    if later.exists():
+        md += ["", later.read_text(encoding="utf-8").rstrip()]
     (HERE / "STUDY.md").write_bytes(("\n".join(md) + "\n").encode("utf-8"))
     print("run 1:", dict(c1), "| run 2:", dict(c2), "| collisions:", labels_in_drift, "labels,", len(lines) - 1, "lines")
 
