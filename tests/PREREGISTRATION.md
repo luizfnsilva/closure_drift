@@ -459,3 +459,98 @@ call in `setup.py` and must turn PL03 red.
 Mutant M20 removed a line of `matches` that 0.9.1 changes (`fnmatch.fnmatch` → `fnmatch.fnmatchcase`,
 `tests/PREREGISTRATION_PROPERTIES.md`). Against 0.9.1 it did not apply and was reported not caught.
 Its anchor now names the new text; the proof it must turn red (EX01) is unchanged.
+
+## 10. Added 2026-10-05, before any of it was written — the four open failures of 0.9.1
+
+`docs/FAILURES.md` O1–O4, found by the benchmark of ten large repositories
+(`tools/benchmark/READING.md`). The detector at the commit adding this section is 0.9.1, sha256
+`89b5349928eba22b0394d01940ed3d4aa989d6820f48fdddf189ad521689c51c`. What is not here is not
+changed. The release is 0.10.0: two of the changes can turn an exit 0 or 1 of 0.9.1 into 2.
+
+**CV — `clean` must rest on most of what was scanned (O1).**
+On `Azure/azure-sdk-for-python` 0.9.1 answered `clean`, exit 0, with 9 of 5,508 tags compared.
+Rule: a point is *uncompared* when it has no label or an empty closure. `clean` requires at least
+as many compared points as uncompared ones; otherwise the verdict is `incomplete`, exit 2.
+`drift` is unaffected: a collision found is a fact whatever the coverage. `--strict` keeps its
+meaning (every point compared). Measured before the change, from the stored reports of study
+run 2: 4 of its 63 `clean` have fewer compared than uncompared points (`coveragepy`, `scipy`,
+`tqdm`, `idna`) and would be `incomplete`.
+
+| id | setup | required |
+|---|---|---|
+| CV01 | 2 labelled tags with distinct labels, 3 tags without a label | `incomplete`, exit 2 |
+| CV02 | 3 labelled tags with distinct labels, 3 without | `clean`, exit 0 (equal counts) |
+| CV03 | 2 labelled tags under one label with different code, 5 without | `drift`, exit 1 |
+| CV04 | 2 labelled tags, 3 tags whose closure is empty | `incomplete`, exit 2 |
+| CV05 | the report of CV01 | carries `publication_points_compared` 2 and the uncompared counts; the text names the rule |
+
+**AG — a version file that no tag confirms is not believed (O2).**
+On `git/git` 0.9.1 read `0.1.0` from the root `Cargo.toml` of a helper crate and answered `drift`;
+on `DefinitelyTyped` it read `0.0.3` from a private `package.json` and answered `would_drift`.
+In both, no tag named for a version agrees with what the file declares.
+Rule, for a source found by the rules only (never one given with `--version-file`): at each tag
+whose name carries a version, the file's label *agrees* when the leading run of numbers of both
+is the same after trailing zeros are dropped (`v2.52.0-rc0` and `2.52` agree; `1.0` and `1.0.0`
+agree). A source that was read at one or more such tags and agrees at none is *contradicted*:
+its points count as without label, a new field `points_label_contradicted` counts them, and the
+source is named. Under `--would-tag`, a label at HEAD from a contradicted source is not believed:
+`no_label_at_head`, exit 2, with the source named. A tag whose name carries no version
+(`release-candidate`, `nightly`) takes no part.
+
+| id | setup | required |
+|---|---|---|
+| AG01 | tags `v2.1.0`, `v2.2.0`; a root `Cargo.toml` declares `0.1.0` at both, different code | not `drift`; `no_labels`, exit 2; `points_label_contradicted` 2; the source is named |
+| AG02 | tags `v1.0`, `v1.1`; `pyproject.toml` declares `1.0.0`, then `1.1.0` | `clean` (agreement after trailing zeros) |
+| AG03 | tags `v1.0.0`, `v1.1.0`, `v1.2.0`; the file declares `1.0.0`, `1.1.0`, `1.1.0` with different code at the last two | `drift`: one disagreement among agreements is the finding, not a contradiction |
+| AG04 | as AG01, with `--version-file Cargo.toml` | `drift`, exit 1: a declared source is not second-guessed |
+| AG05 | tags `nightly`, `stable` only; the file declares `0.1.0` at both with different code | `drift`: no tag carries a version, so nothing contradicts the file |
+| AG06 | as AG01, `--would-tag` at a HEAD declaring `0.1.0` | `no_label_at_head`, exit 2, the source named |
+| AG07 | tag `v2.52.0-rc0`, file `2.52.0`; tag `v2.53.0`, file `2.53.0` | `clean` |
+
+**NG — a version spread over several places in one file (O3).**
+Six of the ten large repositories keep their version where the rules do not look, and three of
+them (`linux`, `node`, `llvm`) spread it over several lines, which one capture group cannot
+assemble. Rule: when `--version-regex` has **named** groups, the label is their non-empty values
+in order, joined by `.`; a value starting with `-` or `+` is attached without the dot. A pattern
+without named groups keeps its meaning (group 1), so no existing configuration changes. The
+refusal for want of a label says where to look, and that a project whose version is the tag has
+nothing to measure here.
+
+| id | setup | required |
+|---|---|---|
+| NG01 | a `Makefile` with `VERSION = 6`, `PATCHLEVEL = 1`, `SUBLEVEL = 0`; the pattern names three groups | label `6.1.0` |
+| NG02 | the same with `EXTRAVERSION = -rc1` as a fourth named group | label `6.1.0-rc1` |
+| NG03 | a fourth named group that matches empty | label `6.1.0` |
+| NG04 | a pattern with two unnamed groups | label is group 1, as in 0.9.1 |
+| NG05 | the refusal for want of a label | names `--version-file` / `--version-regex`, the named-group form, and the tag case |
+
+**MM — memory does not grow with history (O4).**
+Every tag of `torvalds/linux` took 3.4 GB under 0.9.1, because every tree object read is kept.
+Rule: the cache of tree objects holds at most a fixed number of entries, oldest use evicted.
+No output may change.
+
+| id | setup | required |
+|---|---|---|
+| MM01 | a repository of 60 tags whose trees all differ, with the cache bound set to 50 entries through the environment variable `CLOSURE_DRIFT_TREE_CACHE` | the same report, byte for byte, as with the default bound |
+| MM02 | the same, bound 1 | the same report |
+
+Required beyond the proofs:
+
+- **Mutants** M27–M33, one per rule: CV rule removed (CV01), CV counted on scanned instead of
+  uncompared (CV02), AG applied to a declared source (AG04), AG agreement on text instead of
+  numbers (AG02), AG with a one-agreement threshold (AG03), NG joined without regard to `-`
+  (NG02), LRU that evicts the entry just read (MM01 — a wrong entry must change a report).
+- **All existing batteries** as before; the property suite after the oracle's specification is
+  amended for CV and NG by its author.
+- **An adversarial pass** on the four rules by a reviewer who did not write them, committed as
+  delivered before any fix.
+- **The study, run 3**: same selection, same rule, detector 0.10.0, run on GitHub's runners and
+  kept beside runs 1 and 2. Expected from the stored run-2 reports: the 4 above move from `clean`
+  to `incomplete`; whatever else moves is reported, not explained away.
+- **The benchmark, run 2**: same ten, same protocol, detector 0.10.0, plus a run per repository
+  with a declared version file where one exists, written in `docs/LABELS.md` before it is run.
+  Required: every tag of `linux` under 1.5 GB peak; no run more than 1.5× slower than in run 1.
+  `git/git` and `DefinitelyTyped` no longer answer `drift` or `would_drift`; `Azure` no longer
+  `clean`.
+
+Not in scope: O5 (the refusal comes after the scan), O6 (folder exclusions), O7, O8.
