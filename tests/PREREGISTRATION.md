@@ -569,3 +569,53 @@ Two proofs of 0.9.1 went red under AG as written:
   longer in drift — no tag agrees with the file — and the proof hard-codes exit 1. Its subject is
   the diagnostics block, not the label rule: the fixture's label becomes `1.7.7-label`, which `v1`
   agrees with. Nothing it checks is weakened.
+
+### Amendment 2 to §10, 2026-10-05 — after adversarial extension 3, before any change to the code
+
+Extension 3 (`tests/PREREGISTRATION_ADVERSARIAL.md`, committed as delivered) found that AG as
+written **hides the failure this tool exists to find**: dropping the points of a contradicted
+source removes the collisions they hold. In ZA10 that left a `clean`, exit 0, over a real
+collision. A file that does not track the tags is what drift looks like, so "agrees with no tag"
+also rejected textbook drift (ZA03, ZA11, ZX07). The rules are rewritten; nothing below drops a
+point.
+
+**AG, as amended.**
+1. A tag *carries a version* when its name, after an optional prefix that starts with a letter
+   and ends in `-`, `_` or `/`, and an optional `v`, starts with numbers separated by dots. The
+   numbers are read as text, leading zeros dropped (no conversion to integers: ZA05). `2024-01-05`
+   carries `2024` (the dashes end the run; ZA01).
+2. At such a tag the file's label *agrees* when its first number equals the tag's first number.
+   Tag-before-bump inside a major version agrees (ZA03); `0.1.0` against `v2.52` does not.
+3. A source found by the rules is *contradicted* when, over the tags scanned, it disagrees at more
+   tags than it agrees (ZA04: one coincidental agreement against three disagreements).
+4. **A contradicted source decides nothing: the verdict is `incomplete`, exit 2**, the source is
+   named in `contradicted_sources`, and every count stays as measured. Under `--would-tag`, a label
+   at HEAD from a contradicted source is `no_label_at_head`, exit 2. Under `--compare`, two tags
+   whose labels come from the rules and both disagree with their tag are `not_comparable`, exit 2
+   (ZX02).
+5. A `package.json` with `"private": true` is never a source: npm refuses to publish it, so its
+   version names no release (DefinitelyTyped).
+6. A source given with `--version-file` is never second-guessed, but a label read from it must
+   contain a digit; otherwise the point has no label (ZN01: a pattern capturing a quote gave two
+   different labels `"` and `'` and a `clean`, exit 0).
+
+Proofs: AG01 now requires `incomplete`, exit 2, `contradicted_sources` `["Cargo.toml"]` and
+`points_label_contradicted` 2. AG02–AG07 stand. New: AG08 (ZA10's two eras → not `clean`), AG09
+(ZA11 → `drift`), AG10 (private `package.json` → not read), AG11 (a declared pattern capturing a
+quote → no label). Mutants: M29 (rule applied to a declared source → AG04), M30 (agreement on text →
+AG02), M31 (contradicted when any tag disagrees → AG03), M34 (contradiction drops the points
+instead of refusing → AG08), M35 (private `package.json` read → AG10).
+
+**NG, as amended.** ZN02: a pattern of 0.9.1 that already named a group changed meaning. Only
+groups named `part` followed by digits (`part1`, `part2`, …) are joined; any other pattern keeps
+group 1. NG01–NG03 use those names.
+
+**MM, as amended.** ZM05: under a small bound, a parent tree evicted while its children are read
+was read again after each child. `entries` keeps the list it is walking. ZM06: the cache of version
+files grew with history; it is bounded too (32 MiB). MM03 stands.
+
+**Not changed, recorded as limits:** `--at commits` has no tag to check a source against (ZX03);
+build-number tags such as `release-41` read as versions and can contradict a correct file, which
+now gives exit 2, not a wrong answer (ZA02). LR02 and LR03 of the earlier campaign required the
+automatic run to equal the `--version-file` run on a fixture whose tags `v1`, `v2` disagree with
+`0.1.0`, `0.2.0`; by AG that is now a refusal, by design, and they are marked superseded.
