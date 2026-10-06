@@ -4,8 +4,8 @@
 
 ```
 $ closure-drift lodash
-DRIFT: 69 of 78 labels name more than one closure
-at a publication point. The worst covers 4.
+DRIFT: 60 of 67 labels name more than one closure
+at a publication point. The worst covers 3.
 ```
 
 A version is a string a human edits. When two releases share a version and differ in code, one
@@ -49,10 +49,10 @@ Other pipelines: [`docs/CI.md`](docs/CI.md).
 |---|---|---|
 | `clean` | 0 | every label names one closure, over at least as many points compared as not |
 | `drift` | 1 | a label names more than one closure |
-| `inconclusive`, `incomplete`, `no_labels`, `empty_closure`, `no_publication_points` | 2 | not enough to tell; the report says why |
+| any other verdict ([list](docs/REPORT.md)) | 2 | not enough to tell; the report says why |
 | refusal | 2 | cause on stderr |
 
-Exit 0 means `clean` and nothing else. No input produces a traceback; no failure exits 1.
+Exit 0 means `clean` and nothing else. No input we tried produces a traceback, and no failure exits 1.
 
 - **label** — the version your project declares at each tag: in its build files, in the module
   they point to, or the tag itself when the version is derived from it
@@ -75,7 +75,8 @@ The report also says how many tags it could **not** compare.
 | `--component NAME` | one component of a monorepo (below) |
 | `--json`, `--badge`, `--diagnose` | report ([contract](docs/REPORT.md)), README badge, bug-report block |
 
-Settings can be committed in `.closure-drift.json`. Flags override it; a broken file is refused.
+Settings can be committed in `.closure-drift.json`. Flags override it, except beside `components`,
+where they need `--component`; a broken file is refused.
 
 A monorepo declares its components, and gets one verdict each:
 
@@ -87,11 +88,12 @@ A monorepo declares its components, and gets one verdict each:
 ```
 
 The answer is `drift` if any component is in drift, `clean` if all are clean, otherwise
-`incomplete`. Components are declared, never guessed.
+`incomplete`. Components are declared, never guessed. A gate in such a repository passes
+`--component NAME` to `--would-tag`.
 
 ## What it found
 
-**The 100 most-downloaded PyPI projects, at the defaults**, measured with a build of 0.10.0 that prints
+**The 100 most-downloaded PyPI projects with a public repository, at the defaults**, measured with a build of 0.10.0 that prints
 the same reports as the release — rule and method
 fixed before the first run; no repository tuned ([full table and every collision](tools/study/STUDY.md)):
 
@@ -115,30 +117,27 @@ version, branch markers such as `7.x`, and tag families in a monorepo. A first r
 repository, decided only 63 of 100 — it read the version from one file chosen at HEAD — and that
 is why this release finds the label where each project keeps it.
 
-Seven repositories measured since 0.3.0, with 0.7.1 and with 0.9.0:
+Six reference repositories, measured with 1.0.0 at every tag ([`tools/reference/`](tools/reference/)):
 
-| Repository | 0.7.1 | 0.9.0 | Tags compared (0.7.1 → 0.9.0) |
+| Repository | verdict | labels in drift | tags compared |
 |---|---|---|---|
-| `pallets/click` | clean | **drift**, 3 of 66 labels | 11 → 71 of 71 |
-| `psf/requests` | clean | **drift**, 3 of 140 labels | 12 → 145 of 162 |
-| `pypa/packaging` | clean | clean | 14 → 50 of 53 |
-| `encode/httpx` | clean | clean | 69 → 88 of 88 |
-| `impress/impress.js` | drift, 2 of 4 | drift, 2 of 4 | 6 of 15 |
-| `lodash/lodash` | drift, 69 of 78 | drift, 69 of 78 | 280 of 400 |
-| `pola-rs/polars` | drift, 41 of 51 | drift, 41 of 51 | 281 of 400 |
-
-`click` and `requests` were `clean` over the dozen tags 0.7.1 could read; read at every tag, three
-labels in each name two trees.
+| `pallets/click` | drift | 3 of 66 | 71 of 71 |
+| `psf/requests` | drift | 3 of 140 | 145 of 162 |
+| `pypa/packaging` | clean | 0 of 50 | 50 of 53 |
+| `encode/httpx` | clean | 0 of 88 | 88 of 88 |
+| `impress/impress.js` | drift | 2 of 4 | 6 of 15 |
+| `lodash/lodash` | drift | 60 of 107 | 209 of 440 |
 
 Two causes: a release tagged without bumping the version (`impress.js`), and tag families sharing
-one version file (`lodash`, `polars`). Neither project is badly run. `--would-tag` addresses the
-first, `--tags` the second.
+one version file (`lodash`). Neither project is badly run. `--would-tag` addresses the first,
+`--tags` or components the second.
 
 ## Limits
 
 - It never runs your code and attests nothing. `clean` is about addressing, not reproducibility.
 - A change of file mode alone is not seen.
-- `tests/`, `docs/`, `vendor/`, `node_modules/` and `*.md` are never in the closure.
+- Never in the closure: folders `test/`, `tests/`, `spec/`, `docs/`, `vendor/`, `node_modules/`,
+  `.git/`; files named `*_test.*`, `*.test.*`, `*.md`.
 - The default closure globs are a guess. Pass `--closure`.
 - Labels are compared as written: `1.0` and `1.0.0` are two labels.
 - How the label is found is a set of rules, not a build: [`docs/LABELS.md`](docs/LABELS.md).

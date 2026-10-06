@@ -5,13 +5,11 @@ ships with pre-registered proofs and an entry in `CHANGELOG.md`; nothing here is
 
 ## Next
 
-From `docs/FAILURES.md`, in the order they hurt:
+From `docs/FAILURES.md`:
 
 1. **A refusal before the scan, not after** (O5).
-2. **Components declared in the config file** (O2a, O3): a version file, a closure and a tag
-   pattern per package, one verdict each. Declared, never inferred.
-3. **The glob language written down and frozen** (O6), with the exclusions matching files only.
-4. Labels compared as versions (`1.0` = `1.0.0`); file modes in the closure, opt-in.
+2. Labels compared as versions (`1.0` = `1.0.0`), opt-in; file modes in the closure, opt-in (O7).
+3. More version sources for the rules (O3), each with a proof.
 
 ## Known problems, still open
 
@@ -22,7 +20,6 @@ size, network file systems, git older than 2.24.
 
 - Add `go.mod`, `Chart.yaml` or `*.gemspec` to the version sources, each with a battery proof.
 - A proof for a tag that points at an annotated tag that points at a commit.
-- `--badge` for `--at commits`.
 - Translate nothing: the tool's output is English only, by decision.
 
 ## Not planned

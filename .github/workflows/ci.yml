@@ -84,7 +84,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
-      # Three batteries, each with its own polarity and its own pre-registration
+      # Four suites and the oracle's own check, each with its own polarity and pre-registration
       # (tests/PREREGISTRATION.md, tests/PREREGISTRATION_ADVERSARIAL.md). Their scores are
       # printed side by side and never added together.
       - name: Demonstration — the three answers

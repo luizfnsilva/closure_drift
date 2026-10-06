@@ -1,7 +1,8 @@
 # The JSON report — `report_format: 2`
 
 `closure_drift --json` prints one JSON object on standard output. This page is the contract for
-it. Proof `K02` in `tests/battery.py` checks every report against the tables below.
+it. Proof `K02` in `tests/battery.py` checks the reports of every mode except components against the
+tables below; CM01–CM10 check the components report.
 
 ## Three kinds of outcome, never confused
 

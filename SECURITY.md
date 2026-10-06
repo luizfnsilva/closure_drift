@@ -8,8 +8,8 @@ that pattern under a time limit. Nothing else. No dependencies, no network, and 
 the repository it measures.
 
 A repository's own git configuration can name commands. These are blocked, and each is a case in
-`tests/adversarial.py` with a positive control (plain git does run the command on the same
-repository):
+`tests/adversarial.py` with a positive control; on the machines tested, plain git runs the
+configured command in 4 of the 16 cases, and in none of them does it run under this tool:
 
 - `core.fsmonitor`
 - clean / smudge / process filters (the working-tree check is skipped and reported as `null`)
@@ -21,9 +21,10 @@ Hooks, pagers, editors, `textconv`, `core.sshCommand` and aliases are not reache
 above. This is what was tested, not a proof about every git version. For a repository received as
 an archive from someone you do not trust, `git clone` it first and measure the clone.
 
-The JSON report holds counts, labels, hashes, the repository path as you typed it and the path of
-the version file. No file contents, and no path inside the closure unless you pass `--explain` or
-`--compare`.
+The JSON report holds counts, labels, hashes, the repository path as you typed it, and the paths of
+the files the label was read from (`version_file`, `label_sources`, `contradicted_sources`), which
+can be inside the closure. No file contents, and no other path inside the closure unless you pass
+`--explain` or `--compare`.
 
 ## Reporting a vulnerability
 

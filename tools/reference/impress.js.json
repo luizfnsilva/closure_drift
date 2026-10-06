@@ -1,0 +1,129 @@
+{
+ "head": "b44b9694b41fd2c076c3d1ad7a0c3e0cea9eb262",
+ "repository": "impress/impress.js",
+ "runs": {
+  "default": {
+   "args": [],
+   "exit": 1,
+   "report": {
+    "closure_changes_between_points": 14,
+    "closure_globs": [
+     "src/**",
+     "lib/**",
+     "app/**",
+     "*.py",
+     "*.js",
+     "*.ts",
+     "*.rs",
+     "*.go",
+     "*.java"
+    ],
+    "closure_ids": {
+     "6febb5a303be8712": "ee0078c2802c74350c31bc60e2032082ddd1599861af2e4142da863d3355f64e",
+     "880a52867ba514ad": "5ba26b11cc6ccb54cd995e7d44845fc32b7c4e1e0d4e9bf5fb8aeb4a99be1204",
+     "cd9fd91a97ece413": "a0f022557625046a8e8cab5976bfdf1ace52b39ebe13f41aae80a68962b93db2",
+     "f4d02a1c2282dc73": "e7ecd4287e19ea1122f411a124e01a98d3b2d33f6b1bee78aaa1585f04d58c07"
+    },
+    "drift": {
+     "1.0.0-beta1": {
+      "880a52867ba514ad": "1.0.0-beta1 (2017-11-12)",
+      "cd9fd91a97ece413": "1.0.0-beta2 (2018-01-08)"
+     },
+     "1.1.0": {
+      "6febb5a303be8712": "1.1.0 (2020-04-10)",
+      "f4d02a1c2282dc73": "v2.0.0 (2022-07-21)"
+     }
+    },
+    "label_sources": {
+     "package.json": 6
+    },
+    "labels": 4,
+    "labels_covering_multiple_closures": 2,
+    "max_closures_per_label": 2,
+    "points_label_contradicted": 0,
+    "points_not_commits": 0,
+    "points_with_conflicting_sources": 0,
+    "points_with_empty_closure": 0,
+    "points_without_label": 9,
+    "publication_points": 15,
+    "publication_points_compared": 6,
+    "publication_points_scanned": 15,
+    "published_at": "tags",
+    "range_truncated": false,
+    "repo": "impress/impress.js",
+    "report_format": 2,
+    "stamp": {
+     "detector_closure": "74309fe6db463a53",
+     "measured_at_head": "b44b9694b41f",
+     "working_tree_dirty": null,
+     "working_tree_dirty_note": "not checked: this repository has no working tree"
+    },
+    "verdict": "drift",
+    "version_file": "package.json"
+   }
+  },
+  "every_tag": {
+   "args": [
+    "--max-commits",
+    "1000000"
+   ],
+   "exit": 1,
+   "report": {
+    "closure_changes_between_points": 14,
+    "closure_globs": [
+     "src/**",
+     "lib/**",
+     "app/**",
+     "*.py",
+     "*.js",
+     "*.ts",
+     "*.rs",
+     "*.go",
+     "*.java"
+    ],
+    "closure_ids": {
+     "6febb5a303be8712": "ee0078c2802c74350c31bc60e2032082ddd1599861af2e4142da863d3355f64e",
+     "880a52867ba514ad": "5ba26b11cc6ccb54cd995e7d44845fc32b7c4e1e0d4e9bf5fb8aeb4a99be1204",
+     "cd9fd91a97ece413": "a0f022557625046a8e8cab5976bfdf1ace52b39ebe13f41aae80a68962b93db2",
+     "f4d02a1c2282dc73": "e7ecd4287e19ea1122f411a124e01a98d3b2d33f6b1bee78aaa1585f04d58c07"
+    },
+    "drift": {
+     "1.0.0-beta1": {
+      "880a52867ba514ad": "1.0.0-beta1 (2017-11-12)",
+      "cd9fd91a97ece413": "1.0.0-beta2 (2018-01-08)"
+     },
+     "1.1.0": {
+      "6febb5a303be8712": "1.1.0 (2020-04-10)",
+      "f4d02a1c2282dc73": "v2.0.0 (2022-07-21)"
+     }
+    },
+    "label_sources": {
+     "package.json": 6
+    },
+    "labels": 4,
+    "labels_covering_multiple_closures": 2,
+    "max_closures_per_label": 2,
+    "points_label_contradicted": 0,
+    "points_not_commits": 0,
+    "points_with_conflicting_sources": 0,
+    "points_with_empty_closure": 0,
+    "points_without_label": 9,
+    "publication_points": 15,
+    "publication_points_compared": 6,
+    "publication_points_scanned": 15,
+    "published_at": "tags",
+    "range_truncated": false,
+    "repo": "impress/impress.js",
+    "report_format": 2,
+    "stamp": {
+     "detector_closure": "74309fe6db463a53",
+     "measured_at_head": "b44b9694b41f",
+     "working_tree_dirty": null,
+     "working_tree_dirty_note": "not checked: this repository has no working tree"
+    },
+    "verdict": "drift",
+    "version_file": "package.json"
+   }
+  }
+ }
+}

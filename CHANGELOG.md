@@ -20,7 +20,7 @@ eight requirements, each checked by a command or a file. The script is sha256 `@
 
 - **Components**: a monorepo declares them in `.closure-drift.json`, each with its own tags,
   version file and closure; one verdict each, and `--component NAME`.
-- `--diagnose` reports `objects_read`.
+- `--diagnose --json` reports `objects_read`; the components report carries its own stamp.
 - **A regression corpus**: the 100 projects of the study, each pinned to a recorded HEAD and set of
   tags (`tools/regression/`). @@REGRESSION@@
 - The scale benchmark runs on the 2nd of every month. @@BENCH@@

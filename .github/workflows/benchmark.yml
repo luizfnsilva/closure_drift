@@ -1,6 +1,6 @@
 name: benchmark
 
-# Ten large repositories, as tools/benchmark/PREREGISTRATION.md says. Run by hand, or by pushing a
+# Ten large repositories, as tools/benchmark/PREREGISTRATION.md says. Monthly, by hand, or by pushing a
 # branch named benchmark-run/*. It measures; it does not gate anything.
 on:
   schedule:

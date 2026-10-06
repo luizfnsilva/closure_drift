@@ -1,6 +1,7 @@
 #!/bin/sh
-# Re-run every claim of the README that a machine can re-run. Needs git and python3; no network
-# except with --study or --record.
+# Re-run the suites and the checks of the deposit. Needs git and python3; no network except with
+# --study or --record. The regression corpus and the scale benchmark run on GitHub's runners:
+# .github/workflows/regression.yml and benchmark.yml.
 set -eu
 cd "$(dirname "$0")"
 step() { printf '\n== %s\n' "$1"; }
@@ -29,7 +30,7 @@ for arg in "$@"; do
     --record) step "the nine files against the published Zenodo record"
               python3 tools/verify_deposit.py --from-zenodo ;;
     --study)  step "the study: 100 clones, several hours, about 30 GB of traffic"
-              python3 tools/study/run_study.py && python3 tools/study/make_report.py ;;
+              python3 tools/study/run_study.py "${TMPDIR:-/tmp}/closure-drift-study" && python3 tools/study/make_report.py ;;
     *) echo "unknown option $arg (known: --record, --study)" >&2; exit 2 ;;
   esac
 done

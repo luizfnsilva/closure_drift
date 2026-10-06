@@ -51,6 +51,11 @@ These are not gaps waiting to be filled. They are the boundary, and the boundary
   (`release-41`) can make a correct file look contradicted, which ends at exit 2; `--at commits`
   has no tag to check against. A file given with `--version-file` is never second-guessed. **In a
   gate, pass it.**
+- **Three things the closure does not see** (declared since 0.9.0). Labels are compared as written:
+  `1.0` and `1.0.0` are two labels, so two tags building the same version under those spellings
+  are not compared — write versions one way. A change of file mode alone keeps the object id —
+  check modes separately (`git diff --summary A B`). A submodule's content is not read, only its
+  pointer — measure the submodule's repository on its own.
 - **A publication point is a tag.** Whether a tag was ever released is recorded in a package
   index, not in the repository, and this tool reads only the repository. A tag never released is
   still compared (`astral-sh/ruff` `v0.0.268`). Pass `--tags` to select the tags that are
@@ -83,9 +88,18 @@ will not arrive as a silent extension of this one.
 | 0.9.0 | `6548f891a826034c35ef83b276578c79564b57f892a54422af5c1be44591137c` |
 | 0.9.1 | `89b5349928eba22b0394d01940ed3d4aa989d6820f48fdddf189ad521689c51c` |
 | 0.10.0 | `91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990` |
+| 1.0.0 | `@@SHA@@` |
 
 0.9.0 is the first change that can alter a measurement: it reads the label at every tag and
 compares more of them, so a `clean` from an earlier version can be `drift` now. `CHANGELOG.md`
 says what to measure again. 0.9.1 changes a measurement only on Windows, where 0.9.0 matched
 closure globs without regard to case. 0.10.0 can turn a `clean` or `drift` of 0.9.x into
 `incomplete`. Every report carries the `detector_closure` of the detector that produced it.
+
+1.0.0 can change a result of 0.10.0 where code sits under a folder whose name looks like a test or
+a document (`src/x_test.d/`): that code is now in the closure. On the 100 repositories of the
+regression corpus, no result changed.
+
+**What 1.0 keeps stable** until 2.0: the command-line options, the exit codes and what each means,
+the verdict names, and `report_format: 2` (fields are only added). A change to any of these is a
+new major version.
