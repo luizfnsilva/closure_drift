@@ -772,3 +772,49 @@ Effect predicted on the regression corpus (§12): **no repository changes**. Any
 with the path that moved, and decides whether this prediction was wrong.
 
 The oracle's specification is amended for O6 by its author before the comparison.
+
+## 14. Added 2026-10-06, before any of it was written — components declared (R5)
+
+A monorepo releases several artefacts, each with its own tags, version file and code. One
+verdict over all of them mixes families (`polars`, `lodash`, the SDK monorepos of the benchmark).
+The project says which components it has; the tool never guesses them.
+
+```json
+{"components": {
+  "python": {"tags": ["py-*"], "version_file": "py/pyproject.toml", "closure": ["py/**"]},
+  "rust":   {"tags": ["rs-*"], "version_file": "rs/Cargo.toml", "closure": ["rs/**"]}
+}}
+```
+
+- Each component has `tags` (required, a non-empty list of globs) and may have `version_file`,
+  `version_regex` and `closure`, with the meaning they have at the top level. Anything else, an
+  empty `components`, or a component without `tags`, is a refusal. `components` cannot be combined
+  with top-level `tags`, `version_file`, `version_regex` or `closure`.
+- Without `--component`, every component is measured and the answer is one report per component
+  plus one verdict: `drift` (exit 1) if any component is in drift; `clean` (exit 0) if every one
+  is clean; otherwise `incomplete` (exit 2). `--json` gives
+  `{"mode": "components", "verdict", "components": {name: report}}`.
+- `--component NAME` measures that component only and prints its ordinary report, with
+  `"component": NAME`. An unknown name is a refusal.
+- `--would-tag`, `--compare` and `--explain` answer about one component: without `--component` they
+  are refused. `--tags`, `--closure`, `--version-file` and `--version-regex` on the command line,
+  with `components` in the file and no `--component`, are refused as ambiguous.
+- A tag that matches the globs of two components is measured in both. Nothing is exclusive unless
+  the globs make it so.
+
+| id | setup | required |
+|---|---|---|
+| CM01 | `py-*` tags clean, `rs-*` tags in drift | `drift`, exit 1; `components.python.verdict` `clean`, `components.rust.verdict` `drift` |
+| CM02 | both clean | `clean`, exit 0 |
+| CM03 | one clean, one where no version is found | `incomplete`, exit 2 |
+| CM04 | `--component rust` | the rust report only, `drift`, exit 1, `"component": "rust"` |
+| CM05 | `--component nope` | refusal, exit 2, naming the components that exist |
+| CM06 | `--would-tag` without `--component`; then with `--component rust` | refusal; then the would-tag answer for rust |
+| CM07 | a component with an unknown key; `components` empty; a component without `tags`; `components` beside a top-level `tags` | four refusals |
+| CM08 | `--tags 'x*'` on the command line, `components` in the file, no `--component` | refusal |
+| CM09 | the text report of CM01 | names each component with its verdict |
+| CM10 | one tag matching both components' globs | counted in both |
+
+Mutants: M38 (a component without a version counts as clean → CM03), M39 (`--component` ignored →
+CM04), M40 (`--would-tag` allowed without `--component` → CM06). An adversarial pass on components
+by a reviewer who did not write them, committed as delivered before any fix.
