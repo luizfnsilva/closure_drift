@@ -76,6 +76,9 @@ MUTANTS = [
     ("M35", "AG10", [('and doc.get("private") is True:', 'and doc.get("private") is None:')]),
     ("M36", "EX10", [('    return any(fnmatch.fnmatchcase(name, g[3:]) if g.startswith("**/") and "/" not in g[3:]\n', '    return any(False if False\n')]),
     ("M37", "EX01", [('if g.startswith("**/") and "/" not in g[3:]\n', 'if g.startswith("**/")\n')]),
+    ("M38", "CM03", [('else "clean" if all(v == "clean" for v in verdicts)', 'else "clean" if all(v in ("clean", "refused", "no_labels") for v in verdicts)')]),
+    ("M39", "CM04", [('    if comps and a.component is not None:\n', '    if False:\n')]),
+    ("M40", "CM06", [('        if a.would_tag or a.compare or a.explain is not None:\n', '        if a.compare or a.explain is not None:\n')]),
     ("M33", "MM03", [('        self.held += len(out) + 1\n', '        self.held += 0\n')]),
 ]
 
