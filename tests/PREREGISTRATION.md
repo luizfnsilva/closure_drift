@@ -739,3 +739,36 @@ in those fields — the four that study run 3 found.
 
 A field that the older of two reports does not carry is not compared (0.9.1 has no
 `points_label_contradicted`). Nothing else changes.
+
+## 13. Added 2026-10-06, before any of it was written — closing the open correctness items (R4)
+
+Every open row of `docs/FAILURES.md` that can produce a wrong `clean` or `drift`:
+
+| row | decision | why |
+|---|---|---|
+| O6 — file-name exclusions also matched folders (`src/x_test.d/real.py` left out by `**/*_test.*`) | **fixed** | a closure must not lose code because of a folder's name |
+| O2a — a wrong version file believed when one tag agrees by chance | **declared** in `SCOPE.md` | the agreement rule is evidence, not proof; every stronger rule tried refused real drift (amendment 3 to §10). A gate passes `--version-file`, which is never second-guessed |
+| O2b — build-number tags read as versions can refuse a correct file | **declared** | the answer is exit 2, never a wrong 0 or 1 |
+| O2c — `--at commits` has no tag to check a file against | **declared** | the same as O2a, for that mode |
+| O10 — a tag that was never released counts as a publication point | **declared** | which tags were released is in a package index, not in the repository; this tool reads only the repository. `--tags` selects the tags that are releases |
+| O8 — no test asserts that `setup.py` is never run | **proof added** | |
+
+**O6, the rule.** An exclusion whose pattern is `**/` followed by a name with no `/`
+(`**/*_test.*`, `**/*.test.*`, `**/*.md`) is matched against the file name only. Folder exclusions
+(`**/tests/**`, `**/docs/**`, …) are unchanged. `--closure` globs are unchanged.
+
+| id | setup | required |
+|---|---|---|
+| EX10 | two tags, one label; only `src/x_test.d/real.py` changes | `drift` (in 0.10.0: not compared) |
+| EX11 | the same with `src/a.test.utils/core.js` | `drift` |
+| EX12 | the same with `pkg/notes.md/run.py` | `drift` |
+| EX13 | only `src/foo_test.py` changes | not `drift`: still excluded |
+| SP01 | a `setup.py` that writes a marker file when run, and declares the version | the marker never appears; positive control: `python setup.py --version` creates it |
+
+Mutants: M36 (O6 reverted → EX10), M37 (the name rule applied to folder patterns too, so
+`**/tests/**` stops excluding → an existing proof of root-level `tests/` exclusion).
+
+Effect predicted on the regression corpus (§12): **no repository changes**. Any that does is named,
+with the path that moved, and decides whether this prediction was wrong.
+
+The oracle's specification is amended for O6 by its author before the comparison.
