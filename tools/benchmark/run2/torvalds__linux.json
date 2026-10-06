@@ -1,0 +1,202 @@
+{
+ "repository": "torvalds/linux",
+ "detector_sha256": "08ceb754eb8c376f62ccd5472f69d3de3070371b190d066614ab4e565a6d6749",
+ "baseline_sha256": "89b5349928eba22b0394d01940ed3d4aa989d6820f48fdddf189ad521689c51c",
+ "oracle_sha256": "2a0afd84146a352ee4d6d6308b2da11b7daf9d80723bcd29bb0e469fb32e02b6",
+ "machine": {
+  "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "cpus": 4,
+  "python": "3.13.15",
+  "git": "git version 2.55.0",
+  "runner": "ubuntu24 20260927.320.1",
+  "memory_mb": 15989
+ },
+ "limit_seconds": 2400,
+ "runs": {
+  "B1": {
+   "exit": 2,
+   "seconds": 68.39,
+   "peak_mb": 2571.5,
+   "stderr_first": "could not find a version label. Pass --version-file / --version-regex.",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stdout_bytes": 0,
+   "command": "closure_drift.py CLONE --json"
+  },
+  "B2": {
+   "exit": 2,
+   "seconds": 68.62,
+   "peak_mb": 2571.3,
+   "stderr_first": "could not find a version label. Pass --version-file / --version-regex.",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stdout_bytes": 0,
+   "command": "closure_drift.py CLONE --json"
+  },
+  "B3": {
+   "exit": 2,
+   "seconds": 123.81,
+   "peak_mb": 3304.6,
+   "stderr_first": "could not find a version label. Pass --version-file / --version-regex.",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stdout_bytes": 0,
+   "command": "closure_drift.py CLONE --json --max-commits 1000000"
+  },
+  "B4": {
+   "exit": 2,
+   "seconds": 124.51,
+   "peak_mb": 3304.9,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "78d67f13c3cad6732ed06b7eaba26dd7ddda894d16046e7e0da79ac05a38ee4e",
+   "stdout_bytes": 997,
+   "command": "closure_drift.py CLONE --would-tag --json",
+   "verdict": "no_label_at_head",
+   "publication_points_scanned": 947,
+   "publication_points_compared": 0,
+   "points_without_label": 947,
+   "points_with_empty_closure": 0,
+   "range_truncated": false,
+   "version_file": null,
+   "label_at_head": null,
+   "detector_closure": "08ceb754eb8c376f"
+  },
+  "B5": {
+   "exit": 2,
+   "seconds": 49.09,
+   "peak_mb": 1412.0,
+   "stderr_first": "could not find a version label. Pass --version-file / --version-regex.",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stdout_bytes": 0,
+   "command": "closure_drift.py CLONE --at commits --json"
+  },
+  "B3_baseline": {
+   "exit": 2,
+   "seconds": 96.84,
+   "peak_mb": 3276.5,
+   "stderr_first": "could not find a version label. Pass --version-file / --version-regex.",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stdout_bytes": 0,
+   "command": "/home/runner/work/_temp/closure_drift_0.9.1.py CLONE --json --max-commits 1000000"
+  },
+  "B8": {
+   "exit": 1,
+   "seconds": 204.18,
+   "peak_mb": 3305.7,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "3a8f6ce4cc8cf8634230d349566cf8f18be8fdd0fede17f8c4cf94f9631e0365",
+   "stdout_bytes": 131893,
+   "command": "closure_drift.py CLONE --json --max-commits 1000000 --version-file Makefile --version-regex (?m)^VERSION = (?P<a>\\d+)\\nPATCHLEVEL = (?P<b>\\d+)\\nSUBLEVEL = (?P<c>\\d+)\\nEXTRAVERSION =[ \\t]*(?P<d>\\S*) --closure *.c --closure *.h",
+   "verdict": "drift",
+   "labels": 6,
+   "labels_covering_multiple_closures": 6,
+   "max_closures_per_label": 235,
+   "publication_points_scanned": 947,
+   "publication_points_compared": 947,
+   "points_without_label": 0,
+   "points_with_empty_closure": 0,
+   "range_truncated": false,
+   "version_file": "Makefile",
+   "detector_closure": "08ceb754eb8c376f"
+  },
+  "B6_oldest_newest": {
+   "exit": 2,
+   "seconds": 1.85,
+   "peak_mb": 467.2,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "2e0d360f474ebc58fc87568515896d029e10f646384df904f388ee32d41eed2b",
+   "stdout_bytes": 61524,
+   "command": "closure_drift.py CLONE --compare v2.6.12 v7.3-rc6 --json",
+   "verdict": "not_comparable",
+   "version_file": null,
+   "detector_closure": "08ceb754eb8c376f"
+  },
+  "B7_oldest_newest": {
+   "exit": 0,
+   "seconds": 0.85,
+   "peak_mb": 412.7,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "0614a8188a1928de080086b85539dee1a3f79de7245aae28fb5a64418d7c9265",
+   "stdout_bytes": 57504,
+   "command": "tests/oracle.py CLONE --compare v2.6.12 v7.3-rc6"
+  },
+  "B6_median_newest": {
+   "exit": 2,
+   "seconds": 2.11,
+   "peak_mb": 615.1,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "5329918a7dfec1febc3677da02d9da99b0dddf4283c412a5dc3231f7c7c72a56",
+   "stdout_bytes": 62568,
+   "command": "closure_drift.py CLONE --compare v4.8-rc3 v7.3-rc6 --json",
+   "verdict": "not_comparable",
+   "version_file": null,
+   "detector_closure": "08ceb754eb8c376f"
+  },
+  "B7_median_newest": {
+   "exit": 0,
+   "seconds": 1.05,
+   "peak_mb": 464.7,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "8d92a7b7efce9de48bb1fd43d1d588e1d2ac258731a0741858a961127176108d",
+   "stdout_bytes": 58457,
+   "command": "tests/oracle.py CLONE --compare v4.8-rc3 v7.3-rc6"
+  }
+ },
+ "failures": [],
+ "clone": {
+  "exit": 0,
+  "seconds": 410.8,
+  "disk_mb": 6591,
+  "tags": 949,
+  "tags_at_commits": 947,
+  "commits_from_head": 1484687,
+  "files_at_head": 96053,
+  "head": "67f0943b394d920b6c142aad8c6af94340342ae7"
+ },
+ "tags_picked": {
+  "oldest": "v2.6.12",
+  "median": "v4.8-rc3",
+  "newest": "v7.3-rc6"
+ },
+ "oracle": {
+  "oldest_newest": {
+   "compared": true,
+   "ids_and_counts_agree": true,
+   "path_lists_agree": true,
+   "files": [
+    61,
+    1670
+   ],
+   "paths_differing": 1692
+  },
+  "median_newest": {
+   "compared": true,
+   "ids_and_counts_agree": true,
+   "path_lists_agree": true,
+   "files": [
+    331,
+    1670
+   ],
+   "paths_differing": 1737
+  }
+ }
+}
