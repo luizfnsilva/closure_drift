@@ -199,11 +199,15 @@ _EXC_PATH = [g for g in EXCLUDE if not _is_name_glob(g)]
 _EXC_NAME = [g for g in EXCLUDE if _is_name_glob(g)]
 
 
-def excluded(path):
-    """Section 3 + Amendment 3: is `path` (str) excluded by some exclude glob."""
+def excluded(path, typ="blob"):
+    """Section 3 + Amendments 3 and 4: is `path` (str) excluded by some exclude glob.
+    A submodule pointer (type 'commit') is a folder: the file-name rule does not apply."""
+    if any(_compiled(g).match(path) for g in _EXC_PATH):
+        return True
+    if typ == "commit":
+        return False
     name = path.rsplit("/", 1)[-1]
-    return (any(_compiled(g).match(path) for g in _EXC_PATH)
-            or any(_compiled(g).match(name) for g in _EXC_NAME))
+    return any(_compiled(g).match(name) for g in _EXC_NAME)
 
 
 def _members(entries, include):
@@ -211,7 +215,7 @@ def _members(entries, include):
     out = []
     for e in entries:
         p = _dec(e[3])
-        if any(g.match(p) for g in inc) and not excluded(p):
+        if any(g.match(p) for g in inc) and not excluded(p, e[1]):
             out.append(e)
     return out
 
@@ -720,6 +724,31 @@ def self_test():
               dict(zip(("closure", "closure_id"), hand_ids(hm)), files=3))
         check("A3 closure (include *)", closure_of(repo3, "m", ["*"]),
               dict(zip(("closure", "closure_id"), hand_ids(hm)), files=3))
+        # Amendment 4: submodule pointers are folders
+        for pth, typ, exp in (("util/readme.md", "commit", False), ("util/readme.md", "blob", True),
+                              ("tests/x", "commit", True), ("x_test.py", "commit", False),
+                              ("a/b.test.js", "commit", False), ("docs/m", "commit", True),
+                              ("x_test.py", "blob", True)):
+            check("A4 excluded(%r, %s)" % (pth, typ), excluded(pth, typ), exp)
+        gl4 = b"abcdefabcdefabcdefabcdefabcdefabcdefabcd"
+        a4 = {b"util/readme.md": ("160000", gl4), b"tests/x": ("160000", gl4),
+              b"src/readme.md": ("160000", gl4), b"x_test.py": ("160000", gl4),
+              b"blob/readme.md": ("100644", b"b\n"), b"keep.txt": ("100644", b"k\n")}
+        repo4 = os.path.join(tmp, "a4.git")
+        k4 = _build_repo(repo4, [("m", a4)])
+        g4 = gl4.decode()
+        # include '*': util/readme.md (gitlink) and x_test.py (gitlink), src/readme.md, keep.txt;
+        # tests/x excluded by **/tests/**, blob/readme.md excluded by **/*.md
+        star = [(b"keep.txt", "blob", _blob_oid(b"k\n")), (b"src/readme.md", "commit", g4),
+                (b"util/readme.md", "commit", g4), (b"x_test.py", "commit", g4)]
+        check("A4 closure (include *)", closure_of(repo4, k4["m"], ["*"]),
+              dict(zip(("closure", "closure_id"), hand_ids(star)), files=4))
+        # default includes: util/readme.md matches no include -> not a member;
+        # src/readme.md (src/**) and x_test.py (*.py) are members
+        dflt = [(b"src/readme.md", "commit", g4), (b"x_test.py", "commit", g4)]
+        check("A4 closure (default include)", closure_of(repo4, "m"),
+              dict(zip(("closure", "closure_id"), hand_ids(dflt)), files=2))
+        check("A4 closure (include util/**)", closure_of(repo4, "m", ["util/**"])["files"], 1)
         # Amendment 2: named-group labels, the four examples, through a repository
         NRX = r"^V=(?P<a>[^|\n]*)\|(?P<b>[^|\n]*)\|(?P<c>[^|\n]*)\|(?P<d>[^|\n]*)$"
         nv = [("k1", b"V=6|1|0|\n"), ("k2", b"V=6|1|0|-rc1\n"), ("k3", b"V=6|+local||\n"),
