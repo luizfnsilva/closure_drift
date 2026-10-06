@@ -1026,8 +1026,8 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
         raise Refusal("could not find a version label. Pass --version-file / --version-regex.\n"
                       "tried: pyproject.toml, setup.cfg, setup.py and the project's own package; "
                       "Cargo.toml, package.json, composer.json, build.gradle, VERSION, version.txt.\n"
-                      "A version spread over several lines: name the groups, e.g. "
-                      "'VERSION = (?P<a>\\d+)\\nPATCHLEVEL = (?P<b>\\d+)' reads 6.1. Recipes: docs/LABELS.md.\n"
+                      "A version spread over several lines: name the groups part1, part2, ..., e.g. "
+                      "'VERSION = (?P<part1>\\d+)\\nPATCHLEVEL = (?P<part2>\\d+)' reads 6.1. Recipes: docs/LABELS.md.\n"
                       "If your version is the tag itself, a tag names one commit and there is nothing "
                       "to measure here.")
     if not (a.json or a.badge):

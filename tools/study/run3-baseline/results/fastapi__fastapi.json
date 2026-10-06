@@ -1,0 +1,47 @@
+{
+ "exit": 0,
+ "head": "52159d7e7018df55b57a0b8fdd6c1193e48b2b57",
+ "outcome": "clean",
+ "report": {
+  "closure_changes_between_points": 307,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {},
+  "drift": {},
+  "label_sources": {
+   "fastapi/__init__.py": 308
+  },
+  "labels": 308,
+  "labels_covering_multiple_closures": 0,
+  "max_closures_per_label": 1,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points": 308,
+  "publication_points_compared": 308,
+  "publication_points_scanned": 308,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "fastapi/fastapi",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "89b5349928eba22b",
+   "measured_at_head": "52159d7e7018",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "clean",
+  "version_file": "fastapi/__init__.py"
+ },
+ "repository": "fastapi/fastapi"
+}

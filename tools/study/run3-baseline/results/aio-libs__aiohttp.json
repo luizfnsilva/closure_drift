@@ -1,0 +1,74 @@
+{
+ "exit": 1,
+ "head": "fc6cba8b0b2f219604a4ab232d6449794933a7d0",
+ "outcome": "drift",
+ "report": {
+  "closure_changes_between_points": 327,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {
+   "140d88f448e0c3a4": "351d16066a38d0a4c7020aca47fab58f074ad2745b2545fbf4e72bab5b2882b4",
+   "5c1ee4344118b4ea": "361716f42465b21d573bec789d4d0a5a233f96d652c804f428fff86e564d6573",
+   "7197d11717701080": "bb10b099657d4d09a9f9227a2cd3110b7773248c8416c70b483fff9b360b06a2",
+   "74b524b901de1569": "9c3b3a74cd8058a088d978ad390f0e0928dcdb5437880a553ab35e7af74fedc7",
+   "8f55dcf1d0060083": "93953c61dd34f10b43b25120708d0ba85c14344d2a84d5de143be9ce1d209dec",
+   "afa711b1a375ee8e": "57b6e43d1973f6499978bcef560b21935621dde95d9efa987b964534571d208d",
+   "d692ae52dd5c262a": "a5ca86f74c8dd7509bf2ef3832021317bb8bd70d6c087eff639cfb30d02819bd",
+   "f47e462c060ccd47": "e551345219e1aaa713fc340ba6e29e31b6c3580fac29de499db5af8b5592de3d"
+  },
+  "drift": {
+   "0.21.2": {
+    "140d88f448e0c3a4": "v0.21.3 (2016-03-12)",
+    "7197d11717701080": "v0.21.2 (2016-02-16)"
+   },
+   "2.0.2": {
+    "74b524b901de1569": "2.0.3 (2017-03-24)",
+    "afa711b1a375ee8e": "2.0.2 (2017-03-21)"
+   },
+   "3.4.0a0": {
+    "d692ae52dd5c262a": "v3.4.0a1 (2018-08-19)",
+    "f47e462c060ccd47": "v3.4.0a0 (2018-08-11)"
+   },
+   "3.8.1": {
+    "5c1ee4344118b4ea": "v3.8.2a0 (2022-09-20)",
+    "8f55dcf1d0060083": "v3.8.1 (2021-11-14)"
+   }
+  },
+  "label_sources": {
+   "aiohttp/__init__.py": 319,
+   "setup.py": 12
+  },
+  "labels": 324,
+  "labels_covering_multiple_closures": 4,
+  "max_closures_per_label": 2,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points": 331,
+  "publication_points_compared": 331,
+  "publication_points_scanned": 331,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "aio-libs/aiohttp",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "89b5349928eba22b",
+   "measured_at_head": "fc6cba8b0b2f",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "drift",
+  "version_file": "aiohttp/__init__.py"
+ },
+ "repository": "aio-libs/aiohttp"
+}

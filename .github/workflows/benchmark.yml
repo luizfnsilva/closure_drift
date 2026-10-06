@@ -4,6 +4,10 @@ name: benchmark
 # branch named benchmark-run/*. It measures; it does not gate anything.
 on:
   workflow_dispatch:
+    inputs:
+      repos:
+        description: "JSON list of owner/name to measure (default: the ten of the protocol)"
+        required: false
   push:
     branches: ['benchmark-run/**']
 
@@ -18,17 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        repo:
-          - torvalds/linux
-          - llvm/llvm-project
-          - rust-lang/rust
-          - python/cpython
-          - nodejs/node
-          - kubernetes/kubernetes
-          - git/git
-          - Azure/azure-sdk-for-python
-          - googleapis/google-cloud-python
-          - DefinitelyTyped/DefinitelyTyped
+        repo: ${{ fromJSON(inputs.repos || '["torvalds/linux", "llvm/llvm-project", "rust-lang/rust", "python/cpython", "nodejs/node", "kubernetes/kubernetes", "git/git", "Azure/azure-sdk-for-python", "googleapis/google-cloud-python", "DefinitelyTyped/DefinitelyTyped"]') }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

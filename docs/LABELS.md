@@ -31,23 +31,24 @@ From 0.10.0 a file found by the rules is not believed when no tag named for a ve
 agreed with it (`v1` agrees with `1.2.3`; `v2.52` does not agree with `0.1.0`). The report names it
 under `contradicted_sources`. A file you pass with `--version-file` is never second-guessed.
 
-A version spread over several lines: name the groups. Their values are joined with `.`, and a
-value starting with `-` or `+` is attached as it is. Without named groups, group 1 is the label.
+A version spread over several lines: name the groups `part1`, `part2`, … Their values are joined
+with `.`, and a value starting with `-` or `+` is attached as it is. Otherwise group 1 is the label.
 
 Recipes for large projects, written before they were run (`tools/benchmark/recipes.json`; results
 in `tools/benchmark/BENCHMARK.md`):
 
 | project | version file | pattern |
 |---|---|---|
-| Linux | `Makefile` | `(?m)^VERSION = (?P<a>\d+)\nPATCHLEVEL = (?P<b>\d+)\nSUBLEVEL = (?P<c>\d+)\nEXTRAVERSION =[ \t]*(?P<d>\S*)` |
-| LLVM | `cmake/Modules/LLVMVersion.cmake` | `set\(LLVM_VERSION_MAJOR (?P<a>\d+)\)[\s\S]*?set\(LLVM_VERSION_MINOR (?P<b>\d+)\)[\s\S]*?set\(LLVM_VERSION_PATCH (?P<c>\d+)\)` |
+| Linux | `Makefile` | `(?m)^VERSION = (?P<part1>\d+)\nPATCHLEVEL = (?P<part2>\d+)\nSUBLEVEL = (?P<part3>\d+)\nEXTRAVERSION =[ \t]*(?P<part4>\S*)` |
+| LLVM | `cmake/Modules/LLVMVersion.cmake` | `set\(LLVM_VERSION_MAJOR (?P<part1>\d+)\)[\s\S]*?set\(LLVM_VERSION_MINOR (?P<part2>\d+)\)[\s\S]*?set\(LLVM_VERSION_PATCH (?P<part3>\d+)\)` |
 | Rust | `src/version` | (the file is the version) |
 | CPython | `Include/patchlevel.h` | `#define PY_VERSION\s+"([^"]+)"` |
-| Node.js | `src/node_version.h` | `#define NODE_MAJOR_VERSION (?P<a>\d+)\s*\n#define NODE_MINOR_VERSION (?P<b>\d+)\s*\n#define NODE_PATCH_VERSION (?P<c>\d+)` |
-| git | `GIT-VERSION-GEN` | `DEF_VER=(\S+)` |
+| Node.js | `src/node_version.h` | `#define NODE_MAJOR_VERSION (?P<part1>\d+)\s*\n#define NODE_MINOR_VERSION (?P<part2>\d+)\s*\n#define NODE_PATCH_VERSION (?P<part3>\d+)` |
 
 LLVM kept its version in `llvm/CMakeLists.txt` before release 16; with one version file, older tags
-have no label there. Kubernetes has no version file: the version is the tag, and a tag names one
+have no label there. git and Kubernetes have no version file to read: the version comes from the tag (git's
+`DEF_VER` is a fallback that is not bumped at each release, and a first recipe that read it found
+39 labels in "drift" that are not), so the version is the tag, and a tag names one
 commit, so there is nothing for this tool to measure.
 
 ## What it does not do

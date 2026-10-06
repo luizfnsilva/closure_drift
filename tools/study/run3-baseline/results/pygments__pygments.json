@@ -1,0 +1,56 @@
+{
+ "exit": 1,
+ "head": "156d85fdd18d34427fe893527e71da91dcfb0eb5",
+ "outcome": "drift",
+ "report": {
+  "closure_changes_between_points": 69,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {
+   "0f991985db5b6f86": "522fd61633130f2712d2989593367f46b7610768ddaa8a8b8aaddf9971e9b171",
+   "aa708c4c533dbbed": "12ac111e16f1a38b7d69666be39d769940371ac51bc0f7491fd74bb323a9ec91"
+  },
+  "drift": {
+   "0.9": {
+    "0f991985db5b6f86": "0.9 (2007-10-14)",
+    "aa708c4c533dbbed": "0.8.1 (2007-06-27)"
+   }
+  },
+  "label_sources": {
+   "pygments/__init__.py": 42,
+   "setup.py": 28
+  },
+  "labels": 69,
+  "labels_covering_multiple_closures": 1,
+  "max_closures_per_label": 2,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points": 70,
+  "publication_points_compared": 70,
+  "publication_points_scanned": 70,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "pygments/pygments",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "89b5349928eba22b",
+   "measured_at_head": "156d85fdd18d",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "drift",
+  "version_file": "pygments/__init__.py"
+ },
+ "repository": "pygments/pygments"
+}

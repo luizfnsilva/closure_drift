@@ -646,3 +646,12 @@ disagrees" against a new proof AG12 (tag before bump across a major version: `v1
 Cases of extension 3 whose required outcome was written against the first form of AG or NG, and
 that the amendments answer differently by design, are listed with their new requirement in
 `tests/PREREGISTRATION_ADVERSARIAL.md`, "Amendment by the maintainer after extension 3".
+
+### Amendment 4 to §10, 2026-10-05 — after benchmark run 2
+
+The refusal for want of a label (NG05) still showed the named-group example with the names `a`
+and `b`, which amendment 2 stopped joining: followed as printed, it reads `6`, not `6.1`. NG05
+only checked for `(?P<`. The example now uses `part1`, `part2`; NG05 requires `(?P<part1>`. The same
+mistake was in the benchmark's recipes (`tools/benchmark/recipes.json`), found in their results.
+Only the text of that refusal changes in the detector. Study run 3 and benchmark run 2 were measured
+with the script before this change (sha256 `08ceb754…`); no measurement reads that message.

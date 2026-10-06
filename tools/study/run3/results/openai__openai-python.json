@@ -1,0 +1,69 @@
+{
+ "exit": 1,
+ "head": "919b6236382f3f9f76d8453efb9f9ad03cff1126",
+ "outcome": "drift",
+ "report": {
+  "closure_changes_between_points": 399,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {
+   "27926d3dd3244334": "86389994d931312b4be8fc96e6b36e3cc2430cfafc025f56518db2c47472cca6",
+   "a30c4a4b6fa2c4c2": "3c234fff593c5215bfbeb0c766551cc8b0ed9799a78ea73104f93b6f094391b7",
+   "b91b198f05670649": "df10e709dd6e5a1425aac753074fb5491eb1ff46123a3f423320ef6e0a6dfedf",
+   "d50310d1db83af83": "8146e4b4d325cc45bfb5d71d33bab634d7185083ed90da72fcc5effce9884e60",
+   "e3508781149ac5b6": "c31fa3dfc80de90694a17f9dfb07f2fe9a5eb0de410006c70c3c07fcc16644e4",
+   "ebffd15aa2687af0": "0343d25e23747aa813a2ccb1ecfd9998c1c1301095b113afe7bacc9d1c10e0e1"
+  },
+  "drift": {
+   "0.26.4": {
+    "27926d3dd3244334": "v0.26.4 (2023-01-26)",
+    "a30c4a4b6fa2c4c2": "v0.26.5 (2023-02-07)"
+   },
+   "0.27.5": {
+    "d50310d1db83af83": "v0.27.6 (2023-05-01)",
+    "ebffd15aa2687af0": "v0.27.5 (2023-04-27)"
+   },
+   "0.27.9": {
+    "b91b198f05670649": "v0.27.9 (2023-08-22)",
+    "e3508781149ac5b6": "v0.27.10 (2023-08-29)"
+   }
+  },
+  "label_sources": {
+   "openai/version.py": 28,
+   "pyproject.toml": 372
+  },
+  "labels": 397,
+  "labels_covering_multiple_closures": 3,
+  "max_closures_per_label": 2,
+  "points_label_contradicted": 0,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points": 400,
+  "publication_points_compared": 400,
+  "publication_points_scanned": 400,
+  "published_at": "tags",
+  "range_truncated": true,
+  "repo": "openai/openai-python",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "08ceb754eb8c376f",
+   "measured_at_head": "919b6236382f",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "drift",
+  "version_file": "pyproject.toml"
+ },
+ "repository": "openai/openai-python"
+}

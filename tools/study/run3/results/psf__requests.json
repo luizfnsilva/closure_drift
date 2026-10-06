@@ -1,0 +1,71 @@
+{
+ "exit": 1,
+ "head": "611c6162cbc4ac2020a2f91c7cfa4f3abf9bbb60",
+ "outcome": "drift",
+ "report": {
+  "closure_changes_between_points": 159,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {
+   "1b16492a7fa8a0dc": "4ed02ee12d46ac0a84fc1b2887efe35f333eba1738db1e9114d14406a7b3ced0",
+   "3d2886b87c2a7b94": "313d529797881224c30368f204c24852bf89c797934219cb5085d56192cf47cc",
+   "4c31d6535535d923": "72cbcbf2a329d31f94d741190f585b552e51ca40fb91cb65bd436a588b185330",
+   "5f8d9eb988f8ae4e": "737e707167a58da31797eb64bf58db149b9cc399f9ed37db638356da8264c78a",
+   "696b71ed6023f563": "cca5f08e1ed85ecbcc1fc632463daad9648a66664f5fdf997e34a3c0cafeaa6c",
+   "f5de6e2f6a4f40ba": "80a7ae71913f595811559c8fd6828b1c74ad2871a22393f02fed3a0ebcb3e802"
+  },
+  "drift": {
+   "0.13.2": {
+    "5f8d9eb988f8ae4e": "v0.13.3 (2012-07-12)",
+    "f5de6e2f6a4f40ba": "v0.13.2 (2012-06-28)"
+   },
+   "1.2.3": {
+    "1b16492a7fa8a0dc": "v1.2.3 (2013-05-25)",
+    "4c31d6535535d923": "2.0 (2013-07-31)"
+   },
+   "2.16.0": {
+    "3d2886b87c2a7b94": "v2.16.0 (2017-05-26)",
+    "696b71ed6023f563": "v2.16.1 (2017-05-27)"
+   }
+  },
+  "label_sources": {
+   "requests/__init__.py": 93,
+   "requests/__version__.py": 36,
+   "setup.py": 4,
+   "src/requests/__version__.py": 12
+  },
+  "labels": 140,
+  "labels_covering_multiple_closures": 3,
+  "max_closures_per_label": 2,
+  "points_label_contradicted": 0,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 17,
+  "publication_points": 162,
+  "publication_points_compared": 145,
+  "publication_points_scanned": 162,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "psf/requests",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "08ceb754eb8c376f",
+   "measured_at_head": "611c6162cbc4",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "drift",
+  "version_file": "src/requests/__version__.py"
+ },
+ "repository": "psf/requests"
+}

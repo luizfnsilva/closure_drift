@@ -1,0 +1,102 @@
+# detector sha256 08ceb754eb8c376f62ccd5472f69d3de3070371b190d066614ab4e565a6d6749
+# rank	project	repository	outcome	exit	scanned	compared	labels	labels_in_drift	worst	cause
+1	boto3	boto/boto3	clean	0	400	400	400	0	1	
+2	packaging	pypa/packaging	clean	0	53	50	50	0	1	
+3	typing-extensions	python/typing_extensions	clean	0	58	58	57	0	1	
+4	idna	kjd/idna	incomplete	2	43	17	17	0	1	
+5	urllib3	urllib3/urllib3	clean	0	109	109	108	0	1	
+6	certifi	certifi/python-certifi	clean	0	66	66	66	0	1	
+7	requests	psf/requests	drift	1	162	145	140	3	2	
+8	charset-normalizer	jawah/charset_normalizer	clean	0	64	55	55	0	1	
+9	cryptography	pyca/cryptography	clean	0	161	91	91	0	1	
+10	setuptools	pypa/setuptools	clean	0	400	302	302	0	1	
+11	cffi	python-cffi/cffi	drift	1	33	33	32	1	2	
+12	pygments	pygments/pygments	drift	1	70	70	69	1	2	
+13	pyyaml	yaml/pyyaml	drift	1	46	46	41	3	2	
+14	python-dateutil	dateutil/dateutil	clean	0	22	21	21	0	1	
+15	six	benjaminp/six	clean	0	26	26	26	0	1	
+17	botocore	boto/botocore	clean	0	400	400	400	0	1	
+18	pydantic	pydantic/pydantic	drift	1	218	151	138	1	3	
+19	pycparser	eliben/pycparser	clean	0	25	25	25	0	1	
+20	click	pallets/click	drift	1	71	71	66	3	2	
+22	anyio	agronholm/anyio	clean	0	72	72	72	0	1	
+23	numpy	numpy/numpy	drift	1	280	126	125	1	2	
+24	pytest	pytest-dev/pytest	clean	0	224	215	214	0	1	
+25	iniconfig	pytest-dev/iniconfig	clean	0	9	8	8	0	1	
+26	annotated-types	annotated-types/annotated-types	drift	1	8	8	6	1	3	
+27	h11	python-hyper/h11	clean	0	13	13	13	0	1	
+28	typing-inspection	pydantic/typing-inspection	clean	0	9	9	9	0	1	
+29	attrs	python-attrs/attrs	clean	0	38	33	32	0	1	
+30	s3transfer	boto/s3transfer	clean	0	63	63	63	0	1	
+31	aiobotocore	aio-libs/aiobotocore	drift	1	142	142	140	1	3	
+33	httpx	encode/httpx	clean	0	88	88	88	0	1	
+34	markupsafe	pallets/markupsafe	drift	1	39	39	35	2	2	
+35	httpcore	encode/httpcore	drift	1	55	55	54	1	2	
+36	python-dotenv	theskumar/python-dotenv	clean	0	53	53	53	0	1	
+37	pyjwt	jpadilla/pyjwt	clean	0	52	52	52	0	1	
+38	platformdirs	tox-dev/platformdirs	clean	0	95	82	82	0	1	
+39	fsspec	fsspec/filesystem_spec	clean	0	103	103	103	0	1	
+40	pandas	pandas-dev/pandas	clean	0	194	134	133	0	1	
+41	jinja2	pallets/jinja	drift	1	55	54	51	2	2	
+42	jmespath	jmespath/jmespath.py	clean	0	27	27	27	0	1	
+43	pathspec	cpburnz/python-pathspec	clean	0	18	17	17	0	1	
+44	filelock	tox-dev/py-filelock	clean	0	137	108	108	0	1	
+45	starlette	Kludex/starlette	drift	1	199	199	197	1	2	
+46	uvicorn	Kludex/uvicorn	clean	0	204	204	203	0	1	
+47	multidict	aio-libs/multidict	clean	0	175	175	173	0	1	
+48	jsonschema	python-jsonschema/jsonschema	clean	0	111	95	95	0	1	
+49	rpds-py	crate-py/rpds	drift	1	88	88	79	4	2	
+50	yarl	aio-libs/yarl	drift	1	155	155	153	1	2	
+51	aiohttp	aio-libs/aiohttp	drift	1	331	331	324	4	2	
+52	rich	Textualize/rich	drift	1	178	178	168	6	2	
+53	tomlkit	python-poetry/tomlkit	clean	0	55	55	55	0	1	
+54	markdown-it-py	executablebooks/markdown-it-py	drift	1	49	49	44	1	3	
+55	propcache	aio-libs/propcache	clean	0	14	13	13	0	1	
+56	referencing	python-jsonschema/referencing	clean	0	124	124	124	0	1	
+57	jsonschema-specifications	python-jsonschema/jsonschema-specifications	clean	0	27	27	27	0	1	
+58	mdurl	executablebooks/mdurl	clean	0	4	4	4	0	1	
+59	pillow	python-pillow/Pillow	clean	0	99	77	77	0	1	
+60	opentelemetry-api	open-telemetry/opentelemetry-python	refused	2						could not find a version label. Pass --version-file / --version-regex.
+61	frozenlist	aio-libs/frozenlist	clean	0	27	27	27	0	1	
+62	tqdm	tqdm/tqdm	incomplete	2	175	49	49	0	1	
+63	pip	pypa/pip	clean	0	165	165	165	0	1	
+64	googleapis-common-protos	googleapis/google-cloud-python	refused	2						could not find a version label. Pass --version-file / --version-regex.
+65	pyasn1	pyasn1/pyasn1	clean	0	25	25	25	0	1	
+66	aiosignal	aio-libs/aiosignal	clean	0	14	14	14	0	1	
+67	aiohappyeyeballs	aio-libs/aiohappyeyeballs	clean	0	47	47	47	0	1	
+68	websockets	python-websockets/websockets	clean	0	53	29	29	0	1	
+69	annotated-doc	fastapi/annotated-doc	clean	0	4	4	4	0	1	
+70	wrapt	GrahamDumpleton/wrapt	refused	2						could not find a version label. Pass --version-file / --version-regex.
+71	pytz	stub42/pytz	refused	2						could not find a version label. Pass --version-file / --version-regex.
+72	sniffio	python-trio/sniffio	clean	0	5	5	5	0	1	
+73	tzdata	python/tzdata	clean	0	53	53	46	0	1	
+74	fastapi	fastapi/fastapi	clean	0	308	308	308	0	1	
+76	zipp	jaraco/zipp	clean	0	69	68	67	0	1	
+77	greenlet	python-greenlet/greenlet	drift	1	68	68	67	1	2	
+78	importlib-metadata	python/importlib_metadata	clean	0	131	122	122	0	1	
+79	pydantic-settings	pydantic/pydantic-settings	clean	0	39	39	39	0	1	
+80	wheel	pypa/wheel	clean	0	72	72	72	0	1	
+81	tenacity	jd/tenacity	clean	0	75	65	65	0	1	
+82	trove-classifiers	pypa/trove-classifiers	refused	2						could not find a version label. Pass --version-file / --version-regex.
+83	python-multipart	Kludex/python-multipart	clean	0	30	30	30	0	1	
+84	pyasn1-modules	pyasn1/pyasn1-modules	drift	1	20	20	19	1	2	
+86	pyarrow	apache/arrow	refused	2						could not find a version label. Pass --version-file / --version-regex.
+87	sqlalchemy	sqlalchemy/sqlalchemy	clean	0	343	318	318	0	1	
+88	hatchling	pypa/hatch	drift	1	154	154	94	26	9	
+89	grpcio	grpc/grpc	drift	1	400	380	370	5	3	
+90	pyparsing	pyparsing/pyparsing	inconclusive	2	79	1	1	0	1	
+91	lxml	lxml/lxml	drift	1	165	60	45	3	2	
+92	jiter	pydantic/jiter	drift	1	34	34	29	2	5	
+93	regex	mrabarnett/mrab-regex	drift	1	88	88	66	6	3	
+94	watchfiles	samuelcolvin/watchfiles	drift	1	44	21	12	1	10	
+95	s3fs	fsspec/s3fs	clean	0	91	91	91	0	1	
+96	ruff	astral-sh/ruff	drift	1	400	247	246	1	2	
+97	scipy	scipy/scipy	incomplete	2	188	43	43	0	1	
+98	soupsieve	facelessuser/soupsieve	refused	2						could not find a version label. Pass --version-file / --version-regex.
+100	openai	openai/openai-python	drift	1	400	400	397	3	2	
+103	psutil	giampaolo/psutil	drift	1	204	198	98	1	2	
+104	coverage	coveragepy/coveragepy	incomplete	2	192	36	36	0	1	
+107	tomli	hukkin/tomli	clean	0	32	32	32	0	1	
+108	distro	python-distro/distro	clean	0	21	21	20	0	1	
+110	shellingham	sarugaku/shellingham	clean	0	21	19	19	0	1	
+111	mypy-extensions	python/mypy_extensions	clean	0	7	7	7	0	1	

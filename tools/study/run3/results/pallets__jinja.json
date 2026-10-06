@@ -1,0 +1,64 @@
+{
+ "exit": 1,
+ "head": "5ef70112a1ff19c05324ff889dd30405b1002044",
+ "outcome": "drift",
+ "report": {
+  "closure_changes_between_points": 54,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {
+   "2f8318f48a001966": "e6bc6a1e7a51a32ca1e5ce18a24403753b89633ff5589ef92201df65339272a7",
+   "820c47c86fea6bd1": "62f63913be36104e72fe77ec145117bd13a593177a44c09bbb53d4bcbf4ca025",
+   "8936358d435c430d": "5b1978f64e07111d8bb1d487dc1784c949dd3feaf4e85fe4c43620320c0b6ae4",
+   "a860c9ad57913cb4": "15afb6719abf2ecbbe81231baf8f0fb1c3bc18037f72ec8a4b14e8c8873cc53f"
+  },
+  "drift": {
+   "2.10.3": {
+    "2f8318f48a001966": "2.10.3 (2019-10-04)",
+    "a860c9ad57913cb4": "2.10.x (2022-03-11)"
+   },
+   "3.0.3": {
+    "820c47c86fea6bd1": "3.0.x (2022-03-24)",
+    "8936358d435c430d": "3.0.3 (2021-11-09)"
+   }
+  },
+  "label_sources": {
+   "jinja2/__init__.py": 3,
+   "setup.py": 31,
+   "src/jinja2/__init__.py": 20
+  },
+  "labels": 51,
+  "labels_covering_multiple_closures": 2,
+  "max_closures_per_label": 2,
+  "points_label_contradicted": 0,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 1,
+  "publication_points": 55,
+  "publication_points_compared": 54,
+  "publication_points_scanned": 55,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "pallets/jinja",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "08ceb754eb8c376f",
+   "measured_at_head": "5ef70112a1ff",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "drift",
+  "version_file": "pyproject.toml"
+ },
+ "repository": "pallets/jinja"
+}

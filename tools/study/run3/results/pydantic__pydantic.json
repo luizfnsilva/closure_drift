@@ -1,0 +1,62 @@
+{
+ "exit": 1,
+ "head": "1e6cc758a04b3b1b50d12907b6c463a9ea575b4a",
+ "outcome": "drift",
+ "report": {
+  "closure_changes_between_points": 212,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {
+   "12620f27c4c34ce0": "1cf78768cbb5e3bd019b7aa02201f441e3a11d2407dcd0d8ae0ba62fca2110dd",
+   "bfd23c52896ed894": "89c18967d8f329849ea274ff38cb62472660203092b3078b690bb6dc25e5b210",
+   "d8a89e16ee8ea232": "f084fc89891e530be05f5beb157a75e6b86c8f178c5c9ed06666e0b03b48d48b"
+  },
+  "drift": {
+   "2.13.0b3": {
+    "12620f27c4c34ce0": "core-v2.43.0 (2026-04-30)",
+    "bfd23c52896ed894": "v2.13.0b3 (2026-03-31)",
+    "d8a89e16ee8ea232": "core-v2.44.0 (2026-04-30)"
+   }
+  },
+  "label_sources": {
+   "pydantic/version.py": 151
+  },
+  "labels": 138,
+  "labels_covering_multiple_closures": 1,
+  "max_closures_per_label": 3,
+  "points_label_contradicted": 0,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 67,
+  "publication_points": 218,
+  "publication_points_compared": 151,
+  "publication_points_scanned": 218,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "pydantic/pydantic",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "08ceb754eb8c376f",
+   "measured_at_head": "1e6cc758a04b",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "tag_families": {
+   "": 1,
+   "core-": 2
+  },
+  "verdict": "drift",
+  "version_file": "pydantic/version.py"
+ },
+ "repository": "pydantic/pydantic"
+}

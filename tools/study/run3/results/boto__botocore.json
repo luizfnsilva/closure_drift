@@ -1,0 +1,48 @@
+{
+ "exit": 0,
+ "head": "6197e54b71a21a2e6dab2177ca051e64b51f4452",
+ "outcome": "clean",
+ "report": {
+  "closure_changes_between_points": 399,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {},
+  "drift": {},
+  "label_sources": {
+   "botocore/__init__.py": 400
+  },
+  "labels": 400,
+  "labels_covering_multiple_closures": 0,
+  "max_closures_per_label": 1,
+  "points_label_contradicted": 0,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points": 400,
+  "publication_points_compared": 400,
+  "publication_points_scanned": 400,
+  "published_at": "tags",
+  "range_truncated": true,
+  "repo": "boto/botocore",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "08ceb754eb8c376f",
+   "measured_at_head": "6197e54b71a2",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "clean",
+  "version_file": "botocore/__init__.py"
+ },
+ "repository": "boto/botocore"
+}

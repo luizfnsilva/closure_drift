@@ -1,0 +1,47 @@
+{
+ "exit": 0,
+ "head": "6996e05d9b9debe32f42f709c8041e744f850478",
+ "outcome": "clean",
+ "report": {
+  "closure_changes_between_points": 4,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {},
+  "drift": {},
+  "label_sources": {
+   "sniffio/_version.py": 5
+  },
+  "labels": 5,
+  "labels_covering_multiple_closures": 0,
+  "max_closures_per_label": 1,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points": 5,
+  "publication_points_compared": 5,
+  "publication_points_scanned": 5,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "python-trio/sniffio",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "89b5349928eba22b",
+   "measured_at_head": "6996e05d9b9d",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "clean",
+  "version_file": "sniffio/_version.py"
+ },
+ "repository": "python-trio/sniffio"
+}

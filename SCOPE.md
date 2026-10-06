@@ -72,7 +72,7 @@ will not arrive as a silent extension of this one.
 | 0.7.0 – 0.7.1 | `6d8906ef374b73e6b8c58adba813c77c4ff352f5c9c280aa43ff2baa4f804451` |
 | 0.9.0 | `6548f891a826034c35ef83b276578c79564b57f892a54422af5c1be44591137c` |
 | 0.9.1 | `89b5349928eba22b0394d01940ed3d4aa989d6820f48fdddf189ad521689c51c` |
-| 0.10.0 | `08ceb754eb8c376f62ccd5472f69d3de3070371b190d066614ab4e565a6d6749` |
+| 0.10.0 | `b8fead958904b3deb1e5def6bf1edaff3481274b604bc06971dac377ea3533ce` |
 
 0.9.0 is the first change that can alter a measurement: it reads the label at every tag and
 compares more of them, so a `clean` from an earlier version can be `drift` now. `CHANGELOG.md`

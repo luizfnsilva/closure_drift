@@ -1,0 +1,89 @@
+{
+ "exit": 1,
+ "head": "245fd60bf33a75548f17ff00a1d08e491b01c6d8",
+ "outcome": "drift",
+ "report": {
+  "closure_changes_between_points": 396,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {
+   "07700ca1f3a178e9": "42b2227d75facc91862224f1feca667a598e71ebda40e5adf4d6f670fa560116",
+   "0c3aecb528ad5c47": "54cea744c99bd3fa280debb04b55a88ab2510d7e0ff241a82f78eb82f9d15390",
+   "1a10bb8b86398865": "7f2e7a624c1bdc751fa75ff1d07f0bedf283ff6cabe3b315c385c4b0fa4bd626",
+   "53528cb24c4f24e7": "2c3f71f2e65e66b5a053a45aae7ffe03d0cdc92b51b90fd8803e312e38a2e07d",
+   "5fde0aab4346898f": "408e3b13fa7825b1178f1691ec213da18b453bcba43ccf440f524272ca96eea5",
+   "649b647fdffe284e": "d15d4b4e60a5f2d9942e5ed1f3ecaabe78c88127492f56e84de7163fd2d5d4b2",
+   "73e59b05a7eff72e": "1a50fb1f37956cae80d9733d1569aa0faffa42661038aa03e7da6c7f5e6a46e4",
+   "7411152e7b32cf86": "c852209c240e1b4ebcaec18eef8930ce8886fddfb13c9774b9b51128cd698006",
+   "807165bf11e43c99": "f9bba6c9590935a3d8307a9250a759d09e41d7da06a050bba99efc75fd5f5eef",
+   "8d5de69752fd07bb": "c62b0d5a72f7b580898ee9092ccf2dd8716b2a8a6e5c3ce347bfaf27297db2c1",
+   "c1b041d0c433a6e4": "2200ca56f4372166c2bd5e4ca3303191380cef7b7fd8ddaa946c9cf9dd849b48",
+   "eb2809d2bf289a35": "abd5d3ab76bfadeadb9078152fb66204bfe250a2e7cbb3001d0d88d59fe679ff"
+  },
+  "drift": {
+   "0.14.2rc1": {
+    "1a10bb8b86398865": "release-0_14 (2016-07-08)",
+    "649b647fdffe284e": "release-0_14_0-objective-c-0.14.0 (2016-06-27)",
+    "73e59b05a7eff72e": "release-0_14_0-objectivec-0.14.0 (2016-06-30)"
+   },
+   "0.15.1": {
+    "807165bf11e43c99": "release-0_15 (2016-07-13)",
+    "eb2809d2bf289a35": "release-0_15_1 (2016-07-01)"
+   },
+   "1.0.1": {
+    "53528cb24c4f24e7": "v1.0.1 (2016-10-27)",
+    "7411152e7b32cf86": "objective-c-v1.0.2 (2016-11-28)"
+   },
+   "1.17.1": {
+    "0c3aecb528ad5c47": "v1.17.1 (2018-12-12)",
+    "5fde0aab4346898f": "v1.17.2 (2018-12-14)"
+   },
+   "1.36.1": {
+    "07700ca1f3a178e9": "v1.36.1 (2021-03-02)",
+    "8d5de69752fd07bb": "v1.36.3 (2021-03-15)",
+    "c1b041d0c433a6e4": "v1.36.2 (2021-03-04)"
+   }
+  },
+  "label_sources": {
+   "src/python/grpcio/grpc_version.py": 380
+  },
+  "labels": 370,
+  "labels_covering_multiple_closures": 5,
+  "max_closures_per_label": 3,
+  "points_label_contradicted": 0,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 20,
+  "publication_points": 400,
+  "publication_points_compared": 380,
+  "publication_points_scanned": 400,
+  "published_at": "tags",
+  "range_truncated": true,
+  "repo": "grpc/grpc",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "08ceb754eb8c376f",
+   "measured_at_head": "245fd60bf33a",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "tag_families": {
+   "": 6,
+   "objective-c-": 1,
+   "release-": 5
+  },
+  "verdict": "drift",
+  "version_file": null
+ },
+ "repository": "grpc/grpc"
+}

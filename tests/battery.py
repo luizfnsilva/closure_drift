@@ -1663,7 +1663,7 @@ def ng05(root):
     r.tag("v1")
     rc, _, out, err = run(r, text=True)
     refusal(rc, out, err, "--version-file")
-    for needle in ("(?P<", "docs/LABELS.md", "version is the tag"):
+    for needle in ("(?P<part1>", "docs/LABELS.md", "version is the tag"):
         check(needle in err, "the refusal does not mention %r" % needle)
 
 
