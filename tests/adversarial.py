@@ -4410,6 +4410,447 @@ def zx10(root):
 
 
 
+# =========================================================================== Extension 4
+# Components (§14) and file-name exclusions (§13, O6). Pre-registered in
+# PREREGISTRATION_ADVERSARIAL.md, section "Extension 4, 2026-10-06", before any of these was run.
+K_LIMIT = 20.0
+PYC = {"tags": ["py-*"], "version_file": "py/pyproject.toml", "closure": ["py/**"]}
+RSC = {"tags": ["rs-*"], "version_file": "rs/Cargo.toml", "closure": ["rs/**"]}
+
+
+def _mfiles(pv, pa, rv, ra):
+    f = {"py/pyproject.toml": b'[project]\nname = "p"\nversion = "%s"\n' % pv.encode(),
+         "py/a.py": b"A=%d\n" % pa, "rs/a.rs": b"R=%d\n" % ra}
+    if rv is not None:
+        f["rs/Cargo.toml"] = _cargo(rv)
+    return f
+
+
+def _mono(root, comps=None, top=None, name="repo", py_drift=False, rs_x=False, raw=None):
+    """MONO: python clean (py-1.0, py-1.1), rust in drift on 0.2.0 (rs-0.2.0, rs-0.2.1)."""
+    rows = [("py-1.0", "1.0", 1, "0.1.0", 1), ("rs-0.1.0", "1.0", 1, "0.1.0", 1),
+            ("py-1.1", "1.1", 2, "0.1.0", 1), ("rs-0.2.0", "1.1", 2, "0.2.0", 2),
+            ("rs-0.2.1", "1.1", 2, "0.2.0", 3)]
+    if py_drift:
+        rows.append(("py-1.1.1", "1.1", 3, "0.2.0", 3))
+    if rs_x:
+        rows.append(("rs-x", "1.1", 3 if py_drift else 2, None, 4))
+    r = _hist(root, [(t, _mfiles(pv, pa, rv, ra)) for t, pv, pa, rv, ra in rows], name=name)
+    if raw is not None:
+        _kcfg(r, raw)
+    elif comps is not False:
+        cfg = dict(top or {})
+        cfg["components"] = comps if comps is not None else {"python": PYC, "rust": RSC}
+        _kcfg(r, cfg)
+    return r
+
+
+def _kcfg(r, cfg):
+    text = cfg if isinstance(cfg, str) else json.dumps(cfg)
+    (r.path / ".closure-drift.json").write_bytes(text.encode("utf-8"))
+
+
+def _kseen(res):
+    d = res["doc"] or {}
+    comps = {k: (v or {}).get("verdict") for k, v in (d.get("components") or {}).items()}
+    return "verdict=%r exit=%r components=%r stderr=%r stdout=%r" % (
+        d.get("verdict"), res["code"], comps, res["err"][:200], res["out"][:120] if not d else "")
+
+
+def _kwant(res, v, code):
+    _ok(res)
+    need(verdict(res) == v and res["code"] == code, "required %s/exit %d, got %s" % (v, code, _kseen(res)))
+
+
+def _krefused(res, what=""):
+    _ok(res, what)
+    exit_in(res, (2,))
+    need(verdict(res) is None or verdict(res) not in ("clean", "drift"),
+         "%sverdict %r" % (what, verdict(res)))
+
+
+def _kcomp(res, name):
+    return (((res["doc"] or {}).get("components") or {}).get(name) or {}).get("verdict")
+
+
+# --------------------------------------------------------------------------- KC: components
+@case("KC01", "a refused component does not hide another's drift")
+def kc01(root):
+    r = _mono(root, comps={"python": dict(PYC, tags=["[z-a]"]), "rust": RSC})
+    res = lrun(r, timeout=K_LIMIT)
+    _kwant(res, "drift", 1)
+    need(_kcomp(res, "python") == "refused" and _kcomp(res, "rust") == "drift", _kseen(res))
+
+
+@case("KC02", "every component refused is not clean")
+def kc02(root):
+    r = _mono(root, comps={"python": dict(PYC, tags=["[z-a]"]),
+                           "rust": {"tags": ["rs-*"], "version_regex": r'version = "([^"]+)"'}})
+    _kwant(lrun(r, timeout=K_LIMIT), "incomplete", 2)
+
+
+@case("KC03", "an inconclusive component makes the aggregate incomplete")
+def kc03(root):
+    r = _mono(root, comps={"python": PYC, "rust": dict(RSC, tags=["rs-0.1.0"])})
+    res = lrun(r, timeout=K_LIMIT)
+    _kwant(res, "incomplete", 2)
+    need(_kcomp(res, "rust") == "inconclusive", _kseen(res))
+
+
+@case("KC04", "--strict reaches every component")
+def kc04(root):
+    r = _mono(root, comps={"python": PYC, "rust": dict(RSC, tags=["rs-0.1.0", "rs-0.2.0", "rs-x"])}, rs_x=True)
+    res = lrun(r, "--strict", timeout=K_LIMIT)
+    _kwant(res, "incomplete", 2)
+    need(_kcomp(res, "rust") == "incomplete", _kseen(res))
+
+
+@case("KC05", "a component whose tags match nothing")
+def kc05(root):
+    r = _mono(root, comps={"python": PYC, "rust": dict(RSC, tags=["nothing-*"])})
+    _kwant(lrun(r, timeout=K_LIMIT), "incomplete", 2)
+
+
+@case("KC06", "a component whose closure matches nothing")
+def kc06(root):
+    r = _mono(root, comps={"python": PYC, "rust": dict(RSC, closure=["nowhere/**"])})
+    _kwant(lrun(r, timeout=K_LIMIT), "incomplete", 2)
+
+
+@case("KC07", "--component with top-level at: commits in the file")
+def kc07(root):
+    r = _mono(root, top={"at": "commits"})
+    res = lrun(r, "--component", "rust", timeout=K_LIMIT)
+    _ok(res)
+    need(res["code"] == 2, "required a refusal (exit 2), got %s; at=%r" % (
+        _kseen(res), (res["doc"] or {}).get("published_at")))
+
+
+@case("KC08", "--component with --at commits on the command line")
+def kc08(root):
+    r = _mono(root)
+    res = lrun(r, "--component", "rust", "--at", "commits", timeout=K_LIMIT)
+    _ok(res)
+    need(res["code"] == 2, "required a refusal (exit 2), got %s; at=%r" % (
+        _kseen(res), (res["doc"] or {}).get("published_at")))
+
+
+@case("KC09", "an invalid top-level 'at' beside components")
+def kc09(root):
+    r = _mono(root, top={"at": "bogus"})
+    res = lrun(r, timeout=K_LIMIT)
+    _ok(res)
+    need(res["code"] == 2, "required a refusal (exit 2), got %s" % _kseen(res))
+    need(verdict(res) is None, "required a refusal, got a report: %s" % _kseen(res))
+
+
+@case("KC10", "components as a list, a string, a non-object component, an empty name")
+def kc10(root):
+    r = _mono(root, comps=False)
+    for cfg in ({"components": [PYC]}, {"components": "py-*"}, {"components": {"a": "py-*"}},
+                {"components": {"": PYC}}):
+        _kcfg(r, cfg)
+        _krefused(lrun(r, timeout=K_LIMIT), "%s: " % json.dumps(cfg)[:60])
+
+
+@case("KC11", "one component named twice in the file (hardening)")
+def kc11(root):
+    raw = ('{"components": {"rust": %s, "rust": %s}}' % (json.dumps(RSC), json.dumps(PYC)))
+    r = _mono(root, raw=raw)
+    res = lrun(r, timeout=K_LIMIT)
+    _ok(res)
+    need(res["code"] == 2 and verdict(res) is None, "required a refusal, got %s" % _kseen(res))
+
+
+@case("KC12", "--component without components")
+def kc12(root):
+    r = _mono(root, comps=False)
+    _krefused(lrun(r, "--component", "rust", timeout=K_LIMIT))
+
+
+@case("KC13", "control characters in component names")
+def kc13(root):
+    r = _mono(root, comps={"py\nthon": PYC, "\x1b[31mrust": RSC, "a‮b": PYC})
+    res = lrun(r, as_json=False, timeout=K_LIMIT)
+    _ok(res)
+    exit_in(res, (1,))
+    raw = _raw_controls(res["out"] + res["err"])
+    need(not raw, "raw characters printed: %s" % raw)
+    need("py\nthon" not in res["out"], "a raw newline from a component name reached the report")
+    ref = lrun(r, "--component", "\x1b[2Jx", as_json=False, timeout=K_LIMIT)
+    _ok(ref)
+    exit_in(ref, (2,))
+    raw = _raw_controls(ref["out"] + ref["err"])
+    need(not raw, "--component refusal printed raw characters: %s" % raw)
+
+
+@case("KC14", "two long component names equal in their first 20 characters")
+def kc14(root):
+    a, b = "python-component-long-a", "python-component-long-b"
+    r = _mono(root, comps={a: PYC, b: RSC})
+    res = lrun(r, as_json=False, timeout=K_LIMIT)
+    _ok(res)
+    exit_in(res, (1,))
+    missing = [n for n in (a, b) if n not in res["out"]]
+    need(not missing, "the text report does not name %s; its table: %r" % (
+        missing, [l for l in res["out"].splitlines() if l.startswith("python-")]))
+
+
+@case("KC15", "components named __proto__ and constructor")
+def kc15(root):
+    r = _mono(root, comps={"__proto__": PYC, "constructor": RSC})
+    res = lrun(r, timeout=K_LIMIT)
+    _kwant(res, "drift", 1)
+    need(_kcomp(res, "__proto__") == "clean" and _kcomp(res, "constructor") == "drift", _kseen(res))
+
+
+@case("KC16", "the components report carries no stray key and consistent exits")
+def kc16(root):
+    res = lrun(_mono(root), timeout=K_LIMIT)
+    _kwant(res, "drift", 1)
+    d = res["doc"]
+    need(d.get("mode") == "components" and "component" not in d, "top-level keys: %s" % sorted(d))
+    for name, rep in (d.get("components") or {}).items():
+        need("component" not in rep and "diagnostics" not in rep, "%s holds %s" % (name, sorted(rep)))
+        want = {"clean": 0, "drift": 1}.get(rep.get("verdict"), 2)
+        need(rep.get("exit") == want, "%s: verdict %r with exit %r" % (name, rep.get("verdict"), rep.get("exit")))
+
+
+@case("KC17", "--diagnose and --badge with components")
+def kc17(root):
+    r = _mono(root)
+    t = lrun(r, "--diagnose", as_json=False, timeout=K_LIMIT)
+    _ok(t)
+    exit_in(t, (1,))
+    j = lrun(r, "--diagnose", timeout=K_LIMIT)
+    _kwant(j, "drift", 1)
+    need("diagnostics" in j["doc"], "no top-level diagnostics")
+    need(all("diagnostics" not in v for v in j["doc"]["components"].values()), "diagnostics inside a component")
+    b = lrun(r, "--badge", as_json=False, timeout=K_LIMIT)
+    _ok(b)
+    exit_in(b, (1,))
+    lines = b["out"].strip().splitlines()
+    need(len(lines) == 1 and "drift" in lines[0], "badge output %r" % b["out"][:200])
+
+
+@case("KC18", "--max-commits 1 with components")
+def kc18(root):
+    res = lrun(_mono(root), "--max-commits", "1", timeout=K_LIMIT)
+    _kwant(res, "incomplete", 2)
+    need(_kcomp(res, "python") == "inconclusive" and _kcomp(res, "rust") == "inconclusive", _kseen(res))
+
+
+@case("KC19", "--component with --tags on the command line says which tags it measured")
+def kc19(root):
+    res = lrun(_mono(root), "--component", "rust", "--tags", "py-*", timeout=K_LIMIT)
+    _ok(res)
+    exit_in(res, (0, 1, 2))
+    _consistent(res)
+    d = res["doc"] or {}
+    if res["code"] != 2 or d:
+        need(d.get("component") == "rust" and d.get("tag_globs") == ["py-*"],
+             "component=%r tag_globs=%r %s" % (d.get("component"), d.get("tag_globs"), _kseen(res)))
+
+
+@case("KC20", "--component equals the same keys at the top level")
+def kc20(root):
+    a = _mono(root / "a")
+    b = _mono(root / "b", comps=False)
+    _kcfg(b, RSC)
+    ra = lrun(a, "--component", "rust", timeout=K_LIMIT)
+    rb = lrun(b, timeout=K_LIMIT)
+    _ok(ra)
+    _ok(rb)
+    need(ra["code"] == rb["code"], "exit %r against %r" % (ra["code"], rb["code"]))
+    da, db = dict(ra["doc"] or {}), dict(rb["doc"] or {})
+    need(da.pop("component", None) == "rust", "component key: %r" % (ra["doc"] or {}).get("component"))
+    da.pop("repo", None)
+    db.pop("repo", None)
+    diff = sorted(k for k in set(da) | set(db) if da.get(k) != db.get(k))
+    need(not diff, "keys that differ: %s" % diff)
+
+
+@case("KC21", "the aggregate's component report equals --component's")
+def kc21(root):
+    r = _mono(root)
+    agg = lrun(r, timeout=K_LIMIT)
+    one = lrun(r, "--component", "rust", timeout=K_LIMIT)
+    _ok(agg)
+    _ok(one)
+    da = dict(((agg["doc"] or {}).get("components") or {}).get("rust") or {})
+    db = dict(one["doc"] or {})
+    need(da.pop("exit", None) == one["code"], "exit in the aggregate %r, alone %r" % (da.get("exit"), one["code"]))
+    db.pop("component", None)
+    diff = sorted(k for k in set(da) | set(db) if da.get(k) != db.get(k))
+    need(not diff, "keys that differ: %s" % diff)
+
+
+@case("KC22", "one-component options without --component are refused")
+def kc22(root):
+    r = _mono(root)
+    for args in (("--compare", "py-1.0", "py-1.1"), ("--explain", "0.2.0"), ("--closure", "x/**"),
+                 ("--version-file", "rs/Cargo.toml")):
+        _krefused(lrun(r, *args, timeout=K_LIMIT), "%s: " % " ".join(args))
+
+
+@case("KC23", "a malformed version_regex refuses one component, not the drift of another")
+def kc23(root):
+    r = _mono(root, comps={"python": dict(PYC, version_regex="("), "rust": RSC})
+    res = lrun(r, timeout=K_LIMIT)
+    _kwant(res, "drift", 1)
+    need(_kcomp(res, "python") == "refused", _kseen(res))
+
+
+@case("KC24", "--component with --compare and --explain")
+def kc24(root):
+    res = lrun(_mono(root / "a"), "--component", "python", "--compare", "py-1.0", "py-1.1", timeout=K_LIMIT)
+    _kwant(res, "differs_under_two_labels", 0)
+    need((res["doc"] or {}).get("component") == "python", "component %r" % (res["doc"] or {}).get("component"))
+    res = lrun(_mono(root / "b", py_drift=True), "--component", "python", "--explain", "1.1", timeout=K_LIMIT)
+    _kwant(res, "drift", 1)
+    ex = (res["doc"] or {}).get("explain") or {}
+    paths = [p for o in ex.get("others", []) for k in ("changed", "only_in_first", "only_in_other") for p in o[k]]
+    need(paths and all(p.startswith("py/") for p in paths), "explained paths %r" % paths)
+
+
+@case("KC25", "top-level at: tags beside components is not a clash")
+def kc25(root):
+    _kwant(lrun(_mono(root, top={"at": "tags"}), timeout=K_LIMIT), "drift", 1)
+
+
+# --------------------------------------------------------------------------- KE: exclusions
+def _ke(root, a: dict, b: dict, name="repo", head=False):
+    base = {"package.json": _pj("1.0"), "src/a.py": b"A=1\n"}
+    if head:
+        return _hist(root, [("v1", dict(base, **a)), (None, dict(base, **b))], name=name)
+    return _hist(root, [("v1", dict(base, **a)), ("v2", dict(base, **b))], name=name)
+
+
+@case("KE01", "root x.md and docs.md are excluded")
+def ke01(root):
+    for i, n in enumerate(("x.md", "docs.md")):
+        r = _ke(root, {n: b"1\n"}, {n: b"2\n"}, name="r%d" % i)
+        _not_exit(lrun(r, "--closure", "**"), 1, "%s counted" % n)
+
+
+@case("KE02", "a file named .md is excluded")
+def ke02(root):
+    _not_exit(lrun(_ke(root, {"src/.md": b"1\n"}, {"src/.md": b"2\n"})), 1, "src/.md counted")
+
+
+@case("KE03", "README.MD is not excluded by *.md")
+def ke03(root):
+    _want(lrun(_ke(root, {"src/README.MD": b"1\n"}, {"src/README.MD": b"2\n"})), "drift", 1)
+
+
+@case("KE04", "names no exclusion names stay in the closure")
+def ke04(root):
+    for i, n in enumerate(("src/**", "src/a.md.py", "src/foo_test")):
+        res = lrun(_ke(root, {n: b"1\n"}, {n: b"2\n"}, name="r%d" % i))
+        _ok(res)
+        need(verdict(res) == "drift" and res["code"] == 1, "%s: %s" % (n, _zseen(res)))
+
+
+@case("KE05", "a folder named like an excluded file keeps its contents")
+def ke05(root):
+    p = "src/foo_test.py/inner.py"
+    _want(lrun(_ke(root, {p: b"1\n"}, {p: b"2\n"})), "drift", 1)
+
+
+@case("KE06", "a backslash in a POSIX file name")
+def ke06(root):
+    if WINDOWS:
+        raise NotRun("a backslash cannot be part of a file name on Windows")
+    base = {"package.json": _pj("1.0"), "src/a.py": b"A=1\n"}
+    p = b"src/x_test.d\\real.py"
+    a, b = dict(base), dict(base)
+    a[p], b[p] = b"1\n", b"2\n"
+    r = _hist(root, [("v1", a), ("v2", b)])
+    _not_exit(lrun(r), 1, "src/x_test.d\\real.py counted")
+
+
+@case("KE07", "a --closure that names only excluded files")
+def ke07(root):
+    r = _ke(root, {"src/foo_test.py": b"1\n"}, {"src/foo_test.py": b"2\n"}, name="a")
+    _want(lrun(r, "--closure", "src/foo_test.py"), "empty_closure", 2)
+    r = _ke(root, {"src/n.md": b"1\n"}, {"src/n.md": b"2\n"}, name="b")
+    _want(lrun(r, "--closure", "**/*.md"), "empty_closure", 2)
+
+
+def _ke08(root):
+    a = {"src/x_test.d/real.py": b"R=1\n", "src/foo_test.py": b"T=1\n", "docs/x.py": b"D=1\n"}
+    b = {"src/x_test.d/real.py": b"R=2\n", "src/foo_test.py": b"T=2\n", "docs/x.py": b"D=2\n"}
+    return _ke(root, a, b)
+
+
+@case("KE08", "--explain lists exactly the folder-named path")
+def ke08(root):
+    res = lrun(_ke08(root), "--explain", "1.0")
+    _want(res, "drift", 1)
+    others = ((res["doc"] or {}).get("explain") or {}).get("others") or [{}]
+    o = others[0]
+    got = (o.get("changed"), o.get("only_in_first"), o.get("only_in_other"))
+    need(got == (["src/x_test.d/real.py"], [], []), "explain: %r" % (got,))
+
+
+@case("KE09", "--compare lists exactly the folder-named path")
+def ke09(root):
+    res = lrun(_ke08(root), "--compare", "v1", "v2")
+    _want(res, "differs_under_one_label", 1)
+    d = res["doc"] or {}
+    got = (d.get("changed"), d.get("only_in_a"), d.get("only_in_b"))
+    need(got == (["src/x_test.d/real.py"], [], []), "compare: %r" % (got,))
+
+
+@case("KE10", "--would-tag with a folder-named path and with an excluded file")
+def ke10(root):
+    p = "src/x_test.d/real.py"
+    _want(lrun(_ke(root, {p: b"1\n"}, {p: b"2\n"}, name="a", head=True), "--would-tag"), "would_drift", 1)
+    p = "src/foo_test.py"
+    _want(lrun(_ke(root, {p: b"1\n"}, {p: b"2\n"}, name="b", head=True), "--would-tag"), "would_be_clean", 0)
+
+
+@case("KE11", "the label search finds a module under a folder named like an excluded file")
+def ke11(root):
+    setup = b"import mod\nsetup(version=mod.__version__)\n"
+    r = _hist(root, [("v1", {"setup.py": setup, "pkgs/core_test.d/mod.py": _dunder("1.0"), "src/a.py": b"A=1\n"}),
+                     ("v2", {"setup.py": setup, "pkgs/core_test.d/mod.py": _dunder("2.0"), "src/a.py": b"A=2\n"})])
+    res = lrun(r)
+    _want(res, "clean", 0)
+    need(list(((res["doc"] or {}).get("label_sources") or {})) == ["pkgs/core_test.d/mod.py"], _zseen(res))
+
+
+@case("KE12", "folder patterns still exclude tests/ at the root and below")
+def ke12(root):
+    for i, p in enumerate(("tests/a.py", "src/tests/a.py")):
+        _not_exit(lrun(_ke(root, {p: b"1\n"}, {p: b"2\n"}, name="r%d" % i)), 1, "%s counted" % p)
+
+
+@case("KE13", "a submodule named like an excluded file stays in the closure (hardening)")
+def ke13(root):
+    p = "src/lib_test.d"
+    r = _ke(root, {p: (b"160000", b"1" * 40)}, {p: (b"160000", b"2" * 40)})
+    _want(lrun(r), "drift", 1)
+
+
+@case("KE14", "an explicit folder closure keeps a path through a folder named *.md")
+def ke14(root):
+    p = "src/x_test.d/y.md/z.py"
+    _want(lrun(_ke(root, {p: b"1\n"}, {p: b"2\n"}), "--closure", "src/x_test.d/**"), "drift", 1)
+
+
+@case("KE15", "a component's closure keeps a folder-named path")
+def ke15(root):
+    def f(n):
+        return {"py/pyproject.toml": b'[project]\nname = "p"\nversion = "1.0"\n', "py/a.py": b"A=1\n",
+                "py/x_test.d/real.py": b"R=%d\n" % n}
+    r = _hist(root, [("py-1.0", f(1)), ("py-1.0.1", f(2))])
+    _kcfg(r, {"components": {"python": PYC}})
+    res = lrun(r, timeout=K_LIMIT)
+    _kwant(res, "drift", 1)
+    need(_kcomp(res, "python") == "drift", _kseen(res))
+
+
 # --------------------------------------------------------------------------- driver
 def main():
     global DETECTOR
