@@ -1,0 +1,52 @@
+name: regression
+
+# The regression corpus of tests/PREREGISTRATION.md §12. `snapshot` records the 100 repositories
+# once; `check` measures them again at the recorded state. By hand only.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "snapshot or check"
+        required: true
+        default: "check"
+      detector:
+        description: "a tag whose closure_drift.py to check instead of this branch's (e.g. v0.9.1)"
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    name: ${{ inputs.mode }} · shard ${{ matrix.shard }} of 10
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Another detector
+        if: inputs.detector != ''
+        run: git fetch --depth=1 origin tag "${{ inputs.detector }}" && git show "${{ inputs.detector }}:closure_drift.py" > "$RUNNER_TEMP/other.py"
+      - name: Snapshot
+        if: inputs.mode == 'snapshot'
+        run: python3 tools/regression/regress.py snapshot "$RUNNER_TEMP/work" --shard ${{ matrix.shard }}/10
+      - name: Check
+        if: inputs.mode == 'check'
+        run: |
+          set +e
+          python3 tools/regression/regress.py check "$RUNNER_TEMP/work" --shard ${{ matrix.shard }}/10 \
+            --out "check-${{ matrix.shard }}.json" ${{ inputs.detector != '' && format('--detector {0}/other.py', runner.temp) || '' }}
+          echo "exit $?"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: regression-${{ inputs.mode }}-${{ matrix.shard }}
+          path: |
+            tools/regression/corpus
+            check-*.json
+          if-no-files-found: ignore

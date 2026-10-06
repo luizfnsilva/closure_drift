@@ -734,3 +734,8 @@ Required of the check itself, on its first run against the detector that took th
 checkable repository matches. Required of its controls: run with 0.9.1, `coveragepy`, `idna`,
 `scipy` and `tqdm` must be reported as differing (`clean` against `incomplete`) and nothing else
 in those fields — the four that study run 3 found.
+
+### Note to §12, 2026-10-06, before the first snapshot
+
+A field that the older of two reports does not carry is not compared (0.9.1 has no
+`points_label_contradicted`). Nothing else changes.
