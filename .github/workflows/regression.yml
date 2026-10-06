@@ -1,8 +1,11 @@
 name: regression
 
 # The regression corpus of tests/PREREGISTRATION.md §12. `snapshot` records the 100 repositories
-# once; `check` measures them again at the recorded state. By hand only.
+# once; `check` measures them again at the recorded state. By hand, or by pushing a branch named
+# regression-snapshot/*, regression-check/* or regression-check-v0.9.1/* (the last checks 0.9.1).
 on:
+  push:
+    branches: ['regression-snapshot/**', 'regression-check/**', 'regression-check-v0.9.1/**']
   workflow_dispatch:
     inputs:
       mode:
@@ -16,9 +19,13 @@ on:
 permissions:
   contents: read
 
+env:
+  MODE: ${{ inputs.mode || (startsWith(github.ref_name, 'regression-snapshot/') && 'snapshot' || 'check') }}
+  OTHER: ${{ inputs.detector || (startsWith(github.ref_name, 'regression-check-v0.9.1/') && 'v0.9.1' || '') }}
+
 jobs:
   run:
-    name: ${{ inputs.mode }} · shard ${{ matrix.shard }} of 10
+    name: ${{ env.MODE }} · shard ${{ matrix.shard }} of 10
     runs-on: ubuntu-24.04
     timeout-minutes: 300
     strategy:
@@ -31,21 +38,21 @@ jobs:
         with:
           python-version: '3.13'
       - name: Another detector
-        if: inputs.detector != ''
-        run: git fetch --depth=1 origin tag "${{ inputs.detector }}" && git show "${{ inputs.detector }}:closure_drift.py" > "$RUNNER_TEMP/other.py"
+        if: env.OTHER != ''
+        run: git fetch --depth=1 origin tag "$OTHER" && git show "$OTHER:closure_drift.py" > "$RUNNER_TEMP/other.py"
       - name: Snapshot
-        if: inputs.mode == 'snapshot'
+        if: env.MODE == 'snapshot'
         run: python3 tools/regression/regress.py snapshot "$RUNNER_TEMP/work" --shard ${{ matrix.shard }}/10
       - name: Check
-        if: inputs.mode == 'check'
+        if: env.MODE == 'check'
         run: |
           set +e
           python3 tools/regression/regress.py check "$RUNNER_TEMP/work" --shard ${{ matrix.shard }}/10 \
-            --out "check-${{ matrix.shard }}.json" ${{ inputs.detector != '' && format('--detector {0}/other.py', runner.temp) || '' }}
+            --out "check-${{ matrix.shard }}.json" $([ -n "$OTHER" ] && echo --detector "$RUNNER_TEMP/other.py")
           echo "exit $?"
       - uses: actions/upload-artifact@v4
         with:
-          name: regression-${{ inputs.mode }}-${{ matrix.shard }}
+          name: regression-${{ env.MODE }}-${{ matrix.shard }}
           path: |
             tools/regression/corpus
             check-*.json
