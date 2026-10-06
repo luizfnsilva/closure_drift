@@ -704,3 +704,33 @@ what R5 asks for); a guarantee for the label rules without `--version-file` (the
 contradiction, and are best effort otherwise — R4 writes that down).
 
 The proofs, mutants and cases for R3–R6 are written in sections 12 onward, each before its code.
+
+## 12. Added 2026-10-06, before any of it was written — the regression corpus (R3)
+
+The 100 repositories of the study become a regression corpus. The study answers "what is out
+there"; the corpus answers "does this release still say what the last one said, on the same
+bytes".
+
+**Snapshot.** For each repository of `tools/study/selection.tsv`: a full bare clone; its HEAD
+commit; every tag with the object it points to (`for-each-ref refs/tags`); and the report of
+the detector that took the snapshot, at its defaults. Stored as `tools/regression/corpus/<repo>.json`
+with the detector's sha256. Taken once, on GitHub's runners, with 0.10.0.
+
+**Check.** Clone again; if the recorded HEAD commit is missing, or a recorded tag is missing or
+points elsewhere, the repository is *not checkable* and is reported by name with the cause. Tags
+added since are deleted from the clone; HEAD is set to the recorded commit. Then the detector runs
+at its defaults and these fields are compared with the snapshot: `verdict`, exit code, `labels`,
+`labels_covering_multiple_closures`, `publication_points_scanned`, `publication_points_compared`,
+`points_without_label`, `points_with_empty_closure`, `points_label_contradicted`, and, for every
+label in drift, the set of full closure ids.
+
+**Rule for a release.** Every checkable repository matches, or the difference is one this
+pre-registration predicted for that release, by repository and field, before the check ran. An
+unpredicted difference is a regression; the release does not ship with it. After a release whose
+predicted differences were confirmed, the snapshot's expected values are updated by a separate,
+named commit.
+
+Required of the check itself, on its first run against the detector that took the snapshot: every
+checkable repository matches. Required of its controls: run with 0.9.1, `coveragepy`, `idna`,
+`scipy` and `tqdm` must be reported as differing (`clean` against `incomplete`) and nothing else
+in those fields — the four that study run 3 found.
