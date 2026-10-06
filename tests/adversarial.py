@@ -2450,7 +2450,8 @@ def dg09(root):
     res = run(r, "--diagnose")
     exit_in(res, (1,))
     d = (res["doc"] or {}).get("diagnostics") or {}
-    want = {"detector_version", "detector_closure", "python", "platform", "git", "options", "repository"}
+    want = {"detector_version", "detector_closure", "python", "platform", "git", "options", "repository",
+            "objects_read"}   # amended after extension 4: objects_read added by §15, documented in REPORT.md
     need(set(d) == want, "diagnostics keys %r" % sorted(d))
     need(d.get("detector_version") == _detector_version(), "detector_version %r" % d.get("detector_version"))
 

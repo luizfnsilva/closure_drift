@@ -50,7 +50,8 @@ before a refusal — that is what it is for.)
 
 Present only when relevant: `tag_families` (prefix → count, when the tags in drift carry two or
 more prefixes), `diagnostics` (with `--diagnose`, in every kind of report: `detector_version`,
-`detector_closure`, `python`, `platform`, `git`, `options`, `repository`), `tag_globs` and `tags_filtered_out` (with `--tags`), `explain` (with
+`detector_closure`, `python`, `platform`, `git`, `options`, `repository`, and from 1.0.0 `objects_read`,
+the number of git objects the run read), `component` (with `--component`), `tag_globs` and `tags_filtered_out` (with `--tags`), `explain` (with
 `--explain`: `label`, `first`, and `others[]` each with `changed`, `only_in_first`,
 `only_in_other`).
 
@@ -94,3 +95,12 @@ They are not measurements and carry no verdict.
 - New verdicts may be added within a format, always at exit `2`. A consumer should treat an
   unknown verdict as "not determined".
 - The 16-hex closure is computed by the formula of 0.3.0 and will not change within format 2.
+
+## Components (1.0.0)
+
+With `components` in `.closure-drift.json` and no `--component`: `report_format`, `mode`
+(`"components"`), `repo`, `measured_at_head`, `verdict` (`drift` if any component is in drift,
+`clean` if every one is clean, otherwise `incomplete`), and `components`: name → that component's
+report, with its own `exit`; a component that was refused is `{"verdict": "refused", "exit": 2,
+"note"}`. With `--component NAME`, the ordinary report of that component with `"component": NAME`;
+a flag on the command line overrides that component's setting, as it does at the top level.

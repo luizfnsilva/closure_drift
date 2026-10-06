@@ -151,17 +151,23 @@ def matches(path: str, globs: list[str]) -> bool:
                or (g.endswith("/**") and path.startswith(g[:-3] + "/")) for g in globs)
 
 
-def excluded(path: str) -> bool:
-    """Never part of a closure. `**/name` patterns are matched against the file's own name, so a
-    folder called `x_test.d` does not take its contents out; folder patterns match the path."""
+def excluded(path: str, is_file: bool = True) -> bool:
+    """Never part of a closure. `**/name` patterns are matched against a file's own name, so a
+    folder called `x_test.d` does not take its contents out; a submodule pointer is a folder, and
+    only folder patterns apply to it. Folder patterns match the path."""
     name = path.rsplit("/", 1)[-1]
-    return any(fnmatch.fnmatchcase(name, g[3:]) if g.startswith("**/") and "/" not in g[3:]
+    return any((is_file and fnmatch.fnmatchcase(name, g[3:])) if g.startswith("**/") and "/" not in g[3:]
                else matches(path, [g]) for g in CLOSURE_EXCLUDE)
 
 
 def check_globs(globs: list[str], what: str) -> None:
-    """Refuse, by name, a glob that cannot be compiled."""
+    """Refuse, by name, a glob that cannot be compiled, or that holds a range written backwards
+    (`[z-a]`), which some Pythons compile into a pattern that matches nothing."""
     for g in globs:
+        for body in re.findall(r"\[!?(\]?[^\]]*)\]", g):
+            for lo, hi in re.findall(r"(.)-([^\]])", body):
+                if lo > hi:
+                    raise Refusal(f"invalid {what} glob {g!r}: the range {lo}-{hi} is written backwards")
         for form in (g, g.replace("**/", "*/")):
             try:
                 re.compile(fnmatch.translate(form))
@@ -307,15 +313,15 @@ class Closure:
         self.include = include
         self.known: dict[str, bool] = {}
 
-    def holds(self, path: str) -> bool:
-        got = self.known.get(path)
+    def holds(self, path: str, is_file: bool = True) -> bool:
+        got = self.known.get((path, is_file))
         if got is None:
-            got = matches(path, self.include) and not excluded(path)
-            self.known[path] = got
+            got = matches(path, self.include) and not excluded(path, is_file)
+            self.known[(path, is_file)] = got
         return got
 
     def members(self, entries: list[tuple[str, str, str]]) -> list[tuple[str, str, str]]:
-        return [e for e in entries if e[1] in ("blob", "commit") and self.holds(e[0])]
+        return [e for e in entries if e[1] in ("blob", "commit") and self.holds(e[0], e[1] == "blob")]
 
     def ids(self, entries: list[tuple[str, str, str]]) -> tuple[str, str, int]:
         """(short id, full id, number of files). The short id is the 16-hex value of every version
@@ -804,13 +810,23 @@ CONFIG_KEYS = {"at": str, "version_file": str, "version_regex": str, "closure": 
 COMPONENT_KEYS = {"tags": list, "version_file": str, "version_regex": str, "closure": list}
 
 
+def unique_keys(pairs):
+    """A JSON object, refused when a key appears twice: the last one would win in silence."""
+    seen = {}
+    for key, value in pairs:
+        if key in seen:
+            raise ValueError(f"the key {key!r} appears twice")
+        seen[key] = value
+    return seen
+
+
 def read_config(repo: str) -> dict:
     """`.closure-drift.json`, checked. A broken file, a wrong type or an unknown key is a refusal."""
     cfg_path = Path(repo) / ".closure-drift.json"
     if not cfg_path.exists():
         return {}
     try:
-        cfg = json.loads(cfg_path.read_bytes().decode("utf-8"))
+        cfg = json.loads(cfg_path.read_bytes().decode("utf-8"), object_pairs_hook=unique_keys)
     except (ValueError, OSError, RecursionError) as e:
         raise Refusal(f"broken {printable(cfg_path)}: {printable(e)}")
     if not isinstance(cfg, dict):
@@ -950,6 +966,9 @@ def run() -> int:
     # settings committed in the repository; command-line flags override them
     cfg = read_config(a.repo)
     comps = cfg.get("components")
+    if comps and (a.at or cfg.get("at") or "tags") != "tags":
+        raise Refusal("components are sets of tags; they cannot be combined with --at "
+                      f"{printable(a.at or cfg.get('at'))}")
     if a.component is not None and not comps:
         raise Refusal("--component needs 'components' in .closure-drift.json; none is declared")
     if comps and a.component is not None:
@@ -967,8 +986,6 @@ def run() -> int:
         if a.tags or a.closure or a.version_file or a.version_regex:
             raise Refusal("--tags, --closure, --version-file and --version-regex would apply to every component "
                           "at once; pass --component NAME, or change .closure-drift.json")
-        if (a.at or cfg.get("at")) == "commits":
-            raise Refusal("components are sets of tags; they cannot be combined with --at commits")
         return components(a, head_sha, cfg, comps)
 
     at = a.at or cfg.get("at") or "tags"
@@ -1056,12 +1073,13 @@ def components(a, head_sha: str, cfg: dict, comps: dict) -> int:
         return code
     print(f"repository        {printable(a.repo)}")
     print(f"components        {len(reports)}, declared in .closure-drift.json\n")
-    print(f"{'component':20s} {'verdict':14s} {'compared':>14s} {'labels in drift':>16s}")
-    print("-" * 68)
+    width = max([9] + [len(printable(n)) for n in reports])
+    print(f"{'component':{width}s}  {'verdict':14s} {'compared':>14s} {'labels in drift':>16s}")
+    print("-" * (width + 48))
     for name, r in reports.items():
         cov = (f"{r['publication_points_compared']} of {r['publication_points_scanned']}"
                if "publication_points_scanned" in r else "")
-        print(f"{printable(name)[:20]:20s} {r['verdict']:14s} {cov:>14s} "
+        print(f"{printable(name):{width}s}  {r['verdict']:14s} {cov:>14s} "
               f"{str(r.get('labels_covering_multiple_closures', '')):>16s}")
     print("\n" + "=" * 62)
     if verdict == "drift":

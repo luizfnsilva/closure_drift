@@ -861,3 +861,14 @@ a finding about the rule, not a contract breach.
 | KE13 | *(hardening)* A submodule pointer at `src/lib_test.d` changes between `v1` and `v2`; nothing else. | `drift`, exit 1: a submodule is a folder, and a closure must not lose it because of its name. |
 | KE14 | Only `src/x_test.d/y.md/z.py` differs; `--closure 'src/x_test.d/**'`. | `drift`, exit 1. |
 | KE15 | A component whose closure is `py/**`; only `py/x_test.d/real.py` differs between two `py-*` tags under one label. | aggregate `drift`, exit 1; `components.python.verdict` `drift`. |
+
+### Amendment by the maintainer after extension 4, 2026-10-06
+
+Extension 4 was committed as delivered (11 loose, DG09 among them) before any fix. Fixed in the
+detector: KC01 (a range written backwards is refused), KC07–KC09 (`at` other than `tags` with
+components is refused, with or without `--component`), KC11 (a key repeated in
+`.closure-drift.json` is refused), KC14 (component names are never cut in the text table), KE13
+(the file-name rule applies to files only; a submodule pointer is a folder). DG09 required the
+diagnostics keys of 0.10.0; §15 added `objects_read` and `docs/REPORT.md` now documents it, so the
+case requires it. KC19 stands as written: with `--component`, a flag on the command line overrides
+that component's setting, as it does at the top level; `docs/REPORT.md` and `README.md` say so.
