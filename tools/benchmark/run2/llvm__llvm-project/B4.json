@@ -1,0 +1,39 @@
+{
+ "report_format": 2,
+ "stamp": {
+  "measured_at_head": "06e692c2e8fb",
+  "working_tree_dirty": null,
+  "detector_closure": "08ceb754eb8c376f",
+  "working_tree_dirty_note": "not checked: this repository has no working tree"
+ },
+ "mode": "would_tag",
+ "repo": "/home/runner/work/_temp/llvm__llvm-project.git",
+ "version_file": null,
+ "closure_globs": [
+  "src/**",
+  "lib/**",
+  "app/**",
+  "*.py",
+  "*.js",
+  "*.ts",
+  "*.rs",
+  "*.go",
+  "*.java"
+ ],
+ "published_at": "tags",
+ "verdict": "no_label_at_head",
+ "label_at_head": null,
+ "label_source": null,
+ "closure_at_head": "36c368cc6e3e21b8",
+ "closure_id_at_head": "a0e92973f263d2896e1b13525d18f5652258f81e01c8ec4b0463c6a185a2bad1",
+ "collides_with": [],
+ "existing_drift_labels": 0,
+ "publication_points_scanned": 327,
+ "publication_points_compared": 0,
+ "points_without_label": 321,
+ "points_with_empty_closure": 6,
+ "points_not_commits": 0,
+ "range_truncated": false,
+ "points_with_conflicting_sources": 0,
+ "points_label_contradicted": 0
+}

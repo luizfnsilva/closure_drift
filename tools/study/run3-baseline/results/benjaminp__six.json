@@ -1,0 +1,47 @@
+{
+ "exit": 0,
+ "head": "c8e394065cd541a16c040515dc0afb85cf22a7c3",
+ "outcome": "clean",
+ "report": {
+  "closure_changes_between_points": 25,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {},
+  "drift": {},
+  "label_sources": {
+   "six.py": 26
+  },
+  "labels": 26,
+  "labels_covering_multiple_closures": 0,
+  "max_closures_per_label": 1,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points": 26,
+  "publication_points_compared": 26,
+  "publication_points_scanned": 26,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "benjaminp/six",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "89b5349928eba22b",
+   "measured_at_head": "c8e394065cd5",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "clean",
+  "version_file": "six.py"
+ },
+ "repository": "benjaminp/six"
+}

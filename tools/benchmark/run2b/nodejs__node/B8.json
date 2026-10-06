@@ -1,0 +1,112 @@
+{
+ "report_format": 2,
+ "stamp": {
+  "measured_at_head": "9a85290d86d8",
+  "working_tree_dirty": null,
+  "detector_closure": "91ecd5d1437632b3",
+  "working_tree_dirty_note": "not checked: this repository has no working tree"
+ },
+ "repo": "/home/runner/work/_temp/nodejs__node.git",
+ "version_file": "src/node_version.h",
+ "closure_globs": [
+  "src/**",
+  "lib/**",
+  "app/**",
+  "*.py",
+  "*.js",
+  "*.ts",
+  "*.rs",
+  "*.go",
+  "*.java"
+ ],
+ "published_at": "tags",
+ "publication_points": 961,
+ "labels": 880,
+ "labels_covering_multiple_closures": 8,
+ "max_closures_per_label": 8,
+ "verdict": "drift",
+ "drift": {
+  "3.0.0": {
+   "3b4916d9c94e7c9a": "v3.0.0-rc1 (2015-06-30)",
+   "240d9f3d8f22acb7": "v3.0.0-rc2 (2015-07-02)",
+   "18e24b2e70654955": "v3.0.0-rc.3 (2015-07-13)",
+   "2594871383b1d52c": "v3.0.0-rc.4 (2015-07-22)",
+   "0a5c6d2ef62920b4": "v3.0.0-rc.5 (2015-07-24)",
+   "fce2c323c1522de9": "v3.0.0-rc.6 (2015-07-30)",
+   "0e7dae4ccc5c9890": "v3.0.0-rc.7 (2015-08-03)",
+   "08db758877de361b": "v3.0.0 (2015-08-04)"
+  },
+  "4.0.0": {
+   "6907f1fc0a54b0fa": "v4.0.0-rc.1 (2015-09-06)",
+   "8b119aa2784a7bb8": "v4.0.0-rc.2 (2015-09-07)",
+   "d29b63577ab0ee68": "v4.0.0-rc.3 (2015-09-08)",
+   "ac736b38b6150466": "v4.0.0-rc.4 (2015-09-08)",
+   "dd672c98d4a3a429": "v4.0.0 (2015-09-09)"
+  },
+  "5.0.0": {
+   "75534196e2462ec2": "v5.0.0-rc.1 (2015-10-27)",
+   "bd0dffa8b034399a": "v5.0.0-rc.2 (2015-10-29)"
+  },
+  "4.2.2": {
+   "f0c096e019765f8c": "v4.2.2-rc.1 (2015-10-29)",
+   "ab5e74f4812e7ab6": "v4.2.2-rc.2 (2015-11-02)"
+  },
+  "0.12.8": {
+   "a9378ae0b14dd6d3": "v0.12.8-rc.1 (2015-11-19)",
+   "b073a12b13223b75": "v0.12.8 (2015-11-25)"
+  },
+  "0.10.41": {
+   "624e3cb337769c09": "v0.10.41-rc.1 (2015-11-23)",
+   "152da1ab146a3d39": "v0.10.41 (2015-12-04)"
+  },
+  "4.3.1": {
+   "a7c3661e8340fd8f": "v4.3.1-rc.1 (2016-02-11)",
+   "5761a576d9380821": "v4.3.1-rc.2 (2016-02-15)"
+  },
+  "4.4.0": {
+   "5233e3c43833d566": "v4.4.0-rc.1 (2016-02-18)",
+   "0e2e44243e8ce670": "v4.4.0-rc.2 (2016-02-22)",
+   "fe1b69de5c472b5f": "v4.4.0-rc.4 (2016-03-03)"
+  }
+ },
+ "closure_ids": {
+  "3b4916d9c94e7c9a": "7b5b856267deb12c57a585bc337fc6ab789dbb368f382a055c545cb11e654f6d",
+  "240d9f3d8f22acb7": "7c98a00d8556cae20ddf38fbcdc3aee6c3dc21dc1b2ad10cc77546dd4ca5e617",
+  "18e24b2e70654955": "4d484be0ac769e107b1438d2994e003a0c280c424c056a0e175b2f4ae44a0023",
+  "2594871383b1d52c": "659ea9c6430509edb0162dcdfa9b2d4116aa70345cfee68d4e3f1d79c45787d4",
+  "0a5c6d2ef62920b4": "f5a20de8883fca83642ba7072cc29346f21c0bb31ec40e05d1734c395ab5fa69",
+  "fce2c323c1522de9": "a2865b0f3bc610f08e076f23ab63bce1972b89b8155c6f2b9a3f5b73030e0749",
+  "0e7dae4ccc5c9890": "1822c16879e96938f60ff1a6e538dc37b69f5cc1b5ab76adfaf3116c0966d917",
+  "08db758877de361b": "f7550506270bdec634b875395b532a0f638535ed52feef845affcb5bd4a61294",
+  "6907f1fc0a54b0fa": "92a1124906f3e7d21bbd22cd0495b3319ec0ce82187e1f0f1777644ad8a50255",
+  "8b119aa2784a7bb8": "5fb429663c83c5fd66accbb9e49c08ceb457f70fb8eee81622a951c6098abd0a",
+  "d29b63577ab0ee68": "1833f4ad7cbcc4dee2fbc5747393f6a15d06e1a05f03ac6c51ae24fd21d12e38",
+  "ac736b38b6150466": "c091d44ea5c91da3de5b4b249c589fa2b56bdb2331626e420b84fb9c2f4dd533",
+  "dd672c98d4a3a429": "9124ae33a95e95af7d8178eac20e6b0c921ba0343049e16c30fdc4104ebe5a51",
+  "75534196e2462ec2": "689b8a83914c0e687fade01155ed6e3297190f1057b87054ca46bd5466ee190a",
+  "bd0dffa8b034399a": "d7333c936324f1aa1fa04cc182f3c9c5df5869f43c9a05ba11a554d9d3c77b93",
+  "f0c096e019765f8c": "6dc8250614e150750b1935cca9b32d4ba270c5d71b44243bd366ea97c6483a03",
+  "ab5e74f4812e7ab6": "fa91c599e41d2e53290b77a71a7a0440b509fe5f48b9e475b177ccde21e9fd41",
+  "a9378ae0b14dd6d3": "b51ffc8ad4813c5c556c2f28107971bb0a6018c22dfe28ef50cc50fbfc4fc3ba",
+  "b073a12b13223b75": "be7123c4cb9222830867e715f4a01637fa5bc92bc5daef85acd3fb9e1087f26b",
+  "624e3cb337769c09": "fcadaac0e25dada24e3e8dd4b077ecff2f1882c67d1184a8529120abeb8cbcc3",
+  "152da1ab146a3d39": "b54a597ab4f9fd5fa9d353ac3220657cb74684da167aa494a441bd6a309abd70",
+  "a7c3661e8340fd8f": "b6429b164fa17fbc0ba3c36234bfc34b5b9e350104f75ed99d5503071e09a932",
+  "5761a576d9380821": "7a36e12319f0ff606dc0415529fb8530f35f2cee09ea7f79e9884b1c8b790dc4",
+  "5233e3c43833d566": "9f2587b9041c50b60acb7a1c2a79c79a3d542bbf339230d525a3db4bb1ba39a9",
+  "0e2e44243e8ce670": "8f6e8e11db437c69b55d9cbf436c17e4929cbb7234a3ad72eb04b1c1149e39a9",
+  "fe1b69de5c472b5f": "dd8d9f17eff1f1a259c005d9c79dc85941475d90b7e4ea97ababeeb427c7f585"
+ },
+ "closure_changes_between_points": 953,
+ "label_sources": {
+  "src/node_version.h": 910
+ },
+ "publication_points_scanned": 962,
+ "publication_points_compared": 910,
+ "points_without_label": 51,
+ "points_with_empty_closure": 1,
+ "points_not_commits": 0,
+ "range_truncated": false,
+ "points_with_conflicting_sources": 0,
+ "points_label_contradicted": 0
+}

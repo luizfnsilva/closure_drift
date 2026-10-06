@@ -1,0 +1,51 @@
+{
+ "_note": "Written 2026-10-05 before any of these was run, from the files as they are on each default branch. Used by run 2 of the benchmark (B8). Amended 2026-10-05 after run 2: the named groups of linux, llvm and node were renamed part1\u2013part4, the only names amendment 2 to \u00a710 joins; as first written they read the major version only. B8 is re-run for those three. The git/git recipe (DEF_VER in GIT-VERSION-GEN) was removed after run 2: DEF_VER is not git's version.",
+ "torvalds/linux": [
+  "--version-file",
+  "Makefile",
+  "--version-regex",
+  "(?m)^VERSION = (?P<part1>\\d+)\\nPATCHLEVEL = (?P<part2>\\d+)\\nSUBLEVEL = (?P<part3>\\d+)\\nEXTRAVERSION =[ \\t]*(?P<part4>\\S*)",
+  "--closure",
+  "*.c",
+  "--closure",
+  "*.h"
+ ],
+ "llvm/llvm-project": [
+  "--version-file",
+  "cmake/Modules/LLVMVersion.cmake",
+  "--version-regex",
+  "set\\(LLVM_VERSION_MAJOR (?P<part1>\\d+)\\)[\\s\\S]*?set\\(LLVM_VERSION_MINOR (?P<part2>\\d+)\\)[\\s\\S]*?set\\(LLVM_VERSION_PATCH (?P<part3>\\d+)\\)",
+  "--closure",
+  "llvm/lib/**",
+  "--closure",
+  "llvm/include/**"
+ ],
+ "rust-lang/rust": [
+  "--version-file",
+  "src/version",
+  "--closure",
+  "compiler/**",
+  "--closure",
+  "library/**"
+ ],
+ "python/cpython": [
+  "--version-file",
+  "Include/patchlevel.h",
+  "--version-regex",
+  "#define PY_VERSION\\s+\"([^\"]+)\"",
+  "--closure",
+  "Python/**",
+  "--closure",
+  "Objects/**",
+  "--closure",
+  "Include/**",
+  "--closure",
+  "Lib/**"
+ ],
+ "nodejs/node": [
+  "--version-file",
+  "src/node_version.h",
+  "--version-regex",
+  "#define NODE_MAJOR_VERSION (?P<part1>\\d+)\\s*\\n#define NODE_MINOR_VERSION (?P<part2>\\d+)\\s*\\n#define NODE_PATCH_VERSION (?P<part3>\\d+)"
+ ]
+}

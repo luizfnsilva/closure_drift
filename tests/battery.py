@@ -1085,7 +1085,7 @@ def cmp07(root):
 
 @proof("DG01")
 def dg01(root):
-    r = two_tags(root, "dg01", "7.7.7-label", "7.7.7-label")
+    r = two_tags(root, "dg01", "1.7.7-label", "1.7.7-label")
     rc0, _, out0, _ = run(r, text=True)
     rc, _, out, err = run(r, "--diagnose", text=True)
     check(rc == rc0 == 1, "exit %d with --diagnose, %d without" % (rc, rc0))
@@ -1094,7 +1094,7 @@ def dg01(root):
     digest = hashlib.sha256(Path(DETECTOR).read_bytes()).hexdigest()[:16]
     for needle in ("closure_drift " + module.__version__, digest, "Python " + sys.version.split()[0], "git version"):
         check(needle in block, "the block does not name %r" % needle)
-    for secret in ("7.7.7-label", "src/a.py", "keep.py", str(r.path), r.path.name):
+    for secret in ("1.7.7-label", "src/a.py", "keep.py", str(r.path), r.path.name):
         check(secret not in block, "the block holds %r" % secret)
     check(out.split("\nrepository   ", 1)[1].split("Measured at HEAD")[0]
           == out0.split("repository   ", 1)[1].split("Measured at HEAD")[0], "the report itself changed")
@@ -1499,6 +1499,276 @@ def remove(path):
         os.chmod(p, stat.S_IWRITE | stat.S_IREAD)
         fn(p)
     shutil.rmtree(path, onerror=force)
+
+
+# ---------------------------------------------------------------- §10 — the four open failures of 0.9.1
+
+def labelled_and_not(root, name, labelled, unlabelled, empty=False):
+    """`unlabelled` tags first (no version file, or no file in the closure), then `labelled` ones."""
+    r = Repo(root, name)
+    for i in range(unlabelled):
+        r.write("README.txt" if empty else "src/a.py", "u%d\n" % i)
+        r.commit()
+        r.tag("v%d" % (i + 1))
+    for j, (version, code) in enumerate(labelled):
+        r.release("v%d" % (unlabelled + j + 1), version, {"src/a.py": code})
+    return r
+
+
+@proof("CV01")
+def cv01(root):
+    r = labelled_and_not(root, "cv01", [("4.0.0", "a\n"), ("5.0.0", "b\n")], 3)
+    expect(r, "incomplete", 2, "--closure", "src/**", publication_points_compared=2, points_without_label=3)
+
+
+@proof("CV02")
+def cv02(root):
+    r = labelled_and_not(root, "cv02", [("4.0.0", "a\n"), ("5.0.0", "b\n"), ("6.0.0", "c\n")], 3)
+    expect(r, "clean", 0, "--closure", "src/**", publication_points_compared=3, points_without_label=3)
+
+
+@proof("CV03")
+def cv03(root):
+    r = labelled_and_not(root, "cv03", [("6.0.0", "a\n"), ("6.0.0", "b\n")], 5)
+    expect(r, "drift", 1, "--closure", "src/**", publication_points_compared=2)
+
+
+@proof("CV04")
+def cv04(root):
+    r = labelled_and_not(root, "cv04", [("4.0.0", "a\n"), ("5.0.0", "b\n")], 3, empty=True)
+    expect(r, "incomplete", 2, "--closure", "src/**", points_with_empty_closure=3)
+
+
+@proof("CV05")
+def cv05(root):
+    r = labelled_and_not(root, "cv05", [("4.0.0", "a\n"), ("5.0.0", "b\n")], 3)
+    rc, _, out, _ = run(r, "--closure", "src/**", text=True)
+    check(rc == 2, "exit %d" % rc)
+    check("at least as many compared as not" in out, "the text does not name the rule")
+    check("over the 2 points compared" in out and "3 could not be compared" in out, "the text does not give the counts")
+
+
+def cargo_history(root, name, tags, version="0.1.0", head=False):
+    r = Repo(root, name)
+    for i, tag in enumerate(tags):
+        r.write("Cargo.toml", '[package]\nname = "helper"\nversion = "%s"\n' % version)
+        r.write("src/a.rs", "// %d\n" % i)
+        r.commit()
+        r.tag(tag)
+    if head:
+        r.write("src/a.rs", "// head\n")
+        r.commit()
+    return r
+
+
+@proof("AG01")
+def ag01(root):
+    expect(cargo_history(root, "ag01", ["v2.1.0", "v2.2.0"]), "incomplete", 2,
+           points_label_contradicted=2, contradicted_sources=["Cargo.toml"], publication_points_compared=0,
+           points_without_label=2)
+
+
+@proof("AG02")
+def ag02(root):
+    r = Repo(root, "ag02")
+    for tag, version in (("v1.0", "1.0.0"), ("v1.1", "1.1.0")):
+        r.write("pyproject.toml", '[project]\nname = "pkg"\nversion = "%s"\n' % version)
+        r.write("pkg/a.py", "# %s\n" % version)
+        r.commit()
+        r.tag(tag)
+    expect(r, "clean", 0, labels=2, points_label_contradicted=0)
+
+
+@proof("AG03")
+def ag03(root):
+    r = Repo(root, "ag03")
+    for tag, version in (("v1.0.0", "1.0.0"), ("v1.1.0", "1.1.0"), ("v1.2.0", "1.1.0")):
+        r.release(tag, version, {"src/a.py": "# %s\n" % tag})
+    expect(r, "drift", 1, points_label_contradicted=0)
+
+
+@proof("AG04")
+def ag04(root):
+    expect(cargo_history(root, "ag04", ["v2.1.0", "v2.2.0"]), "drift", 1, "--version-file", "Cargo.toml",
+           points_label_contradicted=0)
+
+
+@proof("AG05")
+def ag05(root):
+    expect(cargo_history(root, "ag05", ["nightly", "stable"]), "drift", 1, points_label_contradicted=0)
+
+
+@proof("AG06")
+def ag06(root):
+    doc = expect(cargo_history(root, "ag06", ["v2.1.0", "v2.2.0"], head=True), "no_label_at_head", 2,
+                 "--would-tag")
+    check(doc.get("label_at_head_rejected") == {"label": "0.1.0", "source": "Cargo.toml"},
+          "the rejected label is not named: %r" % doc.get("label_at_head_rejected"))
+
+
+@proof("AG07")
+def ag07(root):
+    r = Repo(root, "ag07")
+    for tag, version in (("v2.52.0-rc0", "2.52.0"), ("v2.53.0", "2.53.0")):
+        r.release(tag, version, {"src/a.py": "# %s\n" % tag})
+    expect(r, "clean", 0, points_label_contradicted=0)
+
+
+MAKEFILE = "VERSION = 6\nPATCHLEVEL = 1\nSUBLEVEL = 0\nEXTRAVERSION =%s\n"
+NAMED = r"(?m)^VERSION = (?P<part1>\d+)\nPATCHLEVEL = (?P<part2>\d+)\nSUBLEVEL = (?P<part3>\d+)"
+
+
+def label_at_head(root, name, makefile, pattern):
+    r = Repo(root, name)
+    r.write("Makefile", makefile)
+    r.write("src/a.c", "int a;\n")
+    r.commit()
+    r.tag("v5.0")
+    r.write("src/a.c", "int b;\n")
+    r.commit()
+    _rc, doc, out, err = run(r, "--would-tag", "--version-file", "Makefile", "--version-regex", pattern)
+    check(doc is not None, "no report: %s" % err[:160])
+    return doc["label_at_head"]
+
+
+@proof("NG01")
+def ng01(root):
+    got = label_at_head(root, "ng01", MAKEFILE % "", NAMED)
+    check(got == "6.1.0", "label %r" % got)
+
+
+@proof("NG02")
+def ng02(root):
+    got = label_at_head(root, "ng02", MAKEFILE % " -rc1", NAMED + r"\nEXTRAVERSION =[ \t]*(?P<part4>\S*)")
+    check(got == "6.1.0-rc1", "label %r" % got)
+
+
+@proof("NG03")
+def ng03(root):
+    got = label_at_head(root, "ng03", MAKEFILE % "", NAMED + r"\nEXTRAVERSION =[ \t]*(?P<part4>\S*)")
+    check(got == "6.1.0", "label %r" % got)
+
+
+@proof("NG04")
+def ng04(root):
+    got = label_at_head(root, "ng04", 'version = "6.1"\n', r'version = "(\d+)\.(\d+)"')
+    check(got == "6", "label %r" % got)
+
+
+@proof("NG05")
+def ng05(root):
+    r = Repo(root, "ng05")
+    r.write("src/a.c", "int a;\n")
+    r.commit()
+    r.tag("v1")
+    rc, _, out, err = run(r, text=True)
+    refusal(rc, out, err, "--version-file")
+    for needle in ("(?P<part1>", "docs/LABELS.md", "version is the tag"):
+        check(needle in err, "the refusal does not mention %r" % needle)
+
+
+@proof("AG08")
+def ag08(root):
+    r = Repo(root, "ag08")
+    for tag, version in (("v1.0", "1.0"), ("v1.1", "1.1"), ("v1.2", "1.2")):
+        r.write("setup.py", 'from setuptools import setup\nsetup(name="pkg", version="%s")\n' % version)
+        r.write("pkg/a.py", "# %s\n" % tag)
+        r.commit()
+        r.tag(tag)
+    r.remove("setup.py")
+    for tag in ("2024.1", "2024.2"):
+        r.write("pyproject.toml", '[project]\nname = "pkg"\nversion = "5.0.0"\n')
+        r.write("pkg/a.py", "# %s\n" % tag)
+        r.commit()
+        r.tag(tag)
+    rc, doc, _out, err = run(r)
+    check(doc is not None and rc != 0 and doc.get("verdict") != "clean",
+          "a collision under a contradicted source ended at %r, exit %d" % (doc and doc.get("verdict"), rc))
+
+
+@proof("AG09")
+def ag09(root):
+    r = Repo(root, "ag09")
+    for tag in ("v1.1", "v1.2", "v1.3"):
+        r.release(tag, "1.0.0", {"src/a.py": "# %s\n" % tag})
+    expect(r, "drift", 1, points_label_contradicted=0)
+
+
+@proof("AG10")
+def ag10(root):
+    r = Repo(root, "ag10")
+    for tag in ("0.1.450", "0.1.451"):
+        r.write("package.json", '{"private": true, "name": "x", "version": "0.0.3"}\n')
+        r.write("src/a.js", "// %s\n" % tag)
+        r.commit()
+        r.tag(tag)
+    rc, _doc, out, err = run(r)
+    check(rc == 2, "exit %d: a private package.json was read as the version" % rc)
+
+
+@proof("AG11")
+def ag11(root):
+    r = Repo(root, "ag11")
+    for tag, line in (("v1", 'version = "1.0"\n'), ("v2", "version = '1.0'\n")):
+        r.write("ver.cfg", line)
+        r.write("src/a.py", "# %s\n" % tag)
+        r.commit()
+        r.tag(tag)
+    rc, doc, _out, err = run(r, "--version-file", "ver.cfg", "--version-regex", "version = ([\"'])")
+    check(rc != 0, "a pattern capturing a quote gave %r, exit 0" % (doc and doc.get("verdict")))
+
+
+@proof("AG12")
+def ag12(root):
+    r = Repo(root, "ag12")
+    for tag, version in (("v1.0", "0.9.0"), ("v1.1", "1.0.0"), ("v1.1.1", "1.0.0")):
+        r.release(tag, version, {"src/a.py": "# %s\n" % tag})
+    expect(r, "drift", 1, points_label_contradicted=0)
+
+
+def many_trees(root, name, n=8):
+    r = Repo(root, name)
+    for i in range(n):
+        r.release("v%d.0.0" % (i + 1), "%d.0.0" % (i + 1), {"src/m%d/a%d.py" % (i % 7, i): "%d\n" % i})
+    return r
+
+
+@proof("MM01")
+def mm01(root):
+    r = many_trees(root, "mm01")
+    _rc, _d, plain, _e = run(r, "--max-commits", "1000")
+    _rc, _d, small, _e = run(r, "--max-commits", "1000", env=dict(ENV, CLOSURE_DRIFT_TREE_CACHE="50"))
+    check(plain == small, "the report changed with the cache bounded at 50 entries")
+
+
+@proof("MM02")
+def mm02(root):
+    r = many_trees(root, "mm02")
+    _rc, _d, plain, _e = run(r, "--max-commits", "1000")
+    _rc, _d, small, _e = run(r, "--max-commits", "1000", env=dict(ENV, CLOSURE_DRIFT_TREE_CACHE="1"))
+    check(plain == small, "the report changed with the cache bounded at 1 entry")
+
+
+@proof("MM03")
+def mm03(root):
+    r = many_trees(root, "mm03")
+    os.environ["CLOSURE_DRIFT_TREE_CACHE"] = "50"
+    try:
+        module = load_detector()
+        objects = module.Objects(str(r.path))
+        largest = 0
+        try:
+            for sha in r.git("rev-list", "--all").split():
+                for _p, _k, _o in objects.entries(sha):
+                    pass
+                largest = max([largest] + [len(v) + 1 for v in objects.trees.values()])
+                held = sum(len(v) + 1 for v in objects.trees.values())
+                check(held <= 50 + largest, "the cache holds %d entries over a bound of 50" % held)
+                check(held == objects.held, "the cache counts %d entries and holds %d" % (objects.held, held))
+        finally:
+            objects.close()
+    finally:
+        del os.environ["CLOSURE_DRIFT_TREE_CACHE"]
 
 
 def main() -> int:

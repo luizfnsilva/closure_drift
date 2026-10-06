@@ -38,6 +38,8 @@ before a refusal — that is what it is for.)
 | `closure_changes_between_points` | integer | development churn; not drift |
 | `label_sources` | object | where labels were read from → number of points; `"(the tag)"` when the version is derived from the tag |
 | `points_with_conflicting_sources` | integer | points where the source changed and the earlier file still declares another version; never `clean` when above zero |
+| `points_label_contradicted` | integer | (0.10.0) points whose label came from a file no tag named for a version agrees with; counted in `points_without_label`; never `clean` when above zero |
+| `contradicted_sources` | list of strings | (0.10.0) those files; present only when not empty. They are left out of `label_sources` |
 | `publication_points` | integer | points with a non-empty closure |
 | `publication_points_scanned` | integer | |
 | `publication_points_compared` | integer | points that had both a label and a closure |
@@ -56,7 +58,8 @@ more prefixes), `diagnostics` (with `--diagnose`, in every kind of report: `dete
 
 `report_format`, `stamp`, `mode` (`"would_tag"`), `repo`, `version_file`, `closure_globs`,
 `published_at`, `verdict`, `label_at_head`, `closure_at_head`, `closure_id_at_head`,
-`label_source`, `collides_with` (list of "tag (date)"), `existing_drift_labels`, and the six coverage fields above;
+`label_source`, `collides_with` (list of "tag (date)"), `existing_drift_labels`, `label_at_head_rejected`
+(0.10.0, present when the label at HEAD came from a contradicted file: `{"label", "source"}`), and the coverage fields above;
 with `--tags`, also `tag_globs` and `tags_filtered_out`. `--would-tag` looks at every tag, so its
 `range_truncated` is always `false`.
 

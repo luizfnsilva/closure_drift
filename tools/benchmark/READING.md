@@ -45,9 +45,58 @@ The result files are kept as produced.
 5. **`DefinitelyTyped`: one tag.** `--would-tag` says `would_drift` on the root `package.json`
    version `0.0.3`, which nobody releases.
 
-Items 2, 3 and 5 are exit codes a gate would act on. They are in `docs/FAILURES.md` as open.
+Items 2, 3 and 5 are exit codes a gate would act on. They are in `docs/FAILURES.md` as open. (Fixed in 0.10.0: see Run 2 below.)
 
 ## What this does not show
 
 One platform, one run, ten repositories chosen by the author. No file system other than the
 runner's. No repository beyond 190,000 files. Nothing about Windows at this size.
+
+## Run 2 — 0.10.0, written 2026-10-06 after the results
+
+Protocol: `PREREGISTRATION.md`, "Run 2". Results as produced: `run2/` (CI run 37393129869, script
+`08ceb754…`) and `run2b/` (CI run 37405325277, the released script `91ecd5d1…`, for the three
+repositories whose recipes were wrong and to measure memory again). B3 of 0.9.1 ran on the same
+clone each time.
+
+| repository | B3, 0.9.1 | B3, 0.10.0 | B4, 0.10.0 |
+|---|---|---|---|
+| `torvalds/linux` | refusal · 96 s · 3285 MB | refusal · 132 s · 535 MB | no_label_at_head · 129 s · 536 MB |
+| `llvm/llvm-project` | refusal · 51 s · 1342 MB | refusal · 68 s · 373 MB | no_label_at_head · 68 s · 373 MB |
+| `rust-lang/rust` | refusal · 9 s · 656 MB | refusal · 9 s · 606 MB | no_label_at_head · 9 s · 606 MB |
+| `python/cpython` | refusal · 9 s · 547 MB | refusal · 9 s · 547 MB | no_label_at_head · 9 s · 548 MB |
+| `nodejs/node` | refusal · 39 s · 1048 MB | refusal · 48 s · 173 MB | no_label_at_head · 48 s · 173 MB |
+| `kubernetes/kubernetes` | refusal · 50 s · 781 MB | refusal · 50 s · 781 MB | no_label_at_head · 52 s · 781 MB |
+| `git/git` | drift · 6 s · 351 MB | incomplete · 6 s · 241 MB | no_label_at_head · 6 s · 242 MB |
+| `Azure/azure-sdk-for-python` | clean · 561 s · 771 MB | incomplete · 588 s · 590 MB | no_label_at_head · 574 s · 590 MB |
+| `googleapis/google-cloud-python` | drift · 457 s · 580 MB | drift · 476 s · 580 MB | no_label_at_head · 489 s · 580 MB |
+| `DefinitelyTyped/DefinitelyTyped` | inconclusive · 2 s · 100 MB | refusal · 2 s · 100 MB | no_label_at_head · 3 s · 100 MB |
+
+| repository | B8, declared version file, every tag |
+|---|---|
+| `torvalds/linux` | clean, 947 of 947 compared, 0 labels in drift |
+| `llvm/llvm-project` | drift, 59 of 327 compared, 5 labels in drift |
+| `rust-lang/rust` | incomplete, 74 of 164 compared, 0 labels in drift |
+| `python/cpython` | drift, 646 of 674 compared, 2 labels in drift |
+| `nodejs/node` | drift, 910 of 962 compared, 8 labels in drift |
+| `git/git` | drift, 917 of 1011 compared, 39 labels in drift |
+
+Rows for `linux`, `llvm` and `node` are from `run2b/`; the others from `run2/`, measured before
+amendment 5 bounded git's pack mapping and lowered the tree cache, so their memory is higher than
+the released script's. On CPython, measured on the author's machine, amendment 5 took the detector
+from 277 to 114 MB and its git process from 375 to 198 MB, with the same report (the git
+limit alone, measured for amendment 5 with the earlier cache bound: 375 to 217 MB).
+
+What it shows:
+
+- **Memory.** The first form of the fix missed the pre-registered target (the kernel still took
+  3.3 GB); the second meets it: 535 MB, 1.38 times the time of 0.9.1 on the same clone.
+- **The three wrong answers of run 1 are gone.** `git/git` and the Azure SDK are `incomplete`,
+  `DefinitelyTyped` is refused (its only `package.json` is private).
+- **Recipes.** With a declared version file the kernel is `clean` over all 947 tags. In LLVM and
+  Node the `drift` comes from release candidates: `19.1.0-rc1` … `19.1.0` share `19.1.0` in the file,
+  the suffix sits elsewhere, and the recipe does not read it — a limit of the recipe, not a finding
+  about either project. CPython: 2 labels in drift on two odd tags (`v2.2`, 2002; `3.2`, 2017).
+  The `git/git` recipe read `DEF_VER`, which is not git's version, and is withdrawn
+  (`docs/LABELS.md`); its 39 "labels in drift" are not findings.
+- F5 at two pairs, as in run 1: the harness compares the ids of two empty closures.

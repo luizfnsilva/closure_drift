@@ -1,0 +1,204 @@
+{
+ "repository": "llvm/llvm-project",
+ "detector_sha256": "91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990",
+ "baseline_sha256": "89b5349928eba22b0394d01940ed3d4aa989d6820f48fdddf189ad521689c51c",
+ "oracle_sha256": "2a0afd84146a352ee4d6d6308b2da11b7daf9d80723bcd29bb0e469fb32e02b6",
+ "machine": {
+  "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "cpus": 4,
+  "python": "3.13.15",
+  "git": "git version 2.55.0",
+  "runner": "ubuntu24 20260927.320.1",
+  "memory_mb": 15989
+ },
+ "limit_seconds": 2400,
+ "runs": {
+  "B1": {
+   "exit": 2,
+   "seconds": 68.73,
+   "peak_mb": 373.3,
+   "stderr_first": "could not find a version label. Pass --version-file / --version-regex.",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stdout_bytes": 0,
+   "command": "closure_drift.py CLONE --json"
+  },
+  "B2": {
+   "exit": 2,
+   "seconds": 68.46,
+   "peak_mb": 373.4,
+   "stderr_first": "could not find a version label. Pass --version-file / --version-regex.",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stdout_bytes": 0,
+   "command": "closure_drift.py CLONE --json"
+  },
+  "B3": {
+   "exit": 2,
+   "seconds": 68.06,
+   "peak_mb": 373.1,
+   "stderr_first": "could not find a version label. Pass --version-file / --version-regex.",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stdout_bytes": 0,
+   "command": "closure_drift.py CLONE --json --max-commits 1000000"
+  },
+  "B4": {
+   "exit": 2,
+   "seconds": 67.81,
+   "peak_mb": 373.0,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "dc4592c43953173ed2229a643117e1b67b9275c2e344f9b481d26014b355813b",
+   "stdout_bytes": 1000,
+   "command": "closure_drift.py CLONE --would-tag --json",
+   "verdict": "no_label_at_head",
+   "publication_points_scanned": 327,
+   "publication_points_compared": 0,
+   "points_without_label": 321,
+   "points_with_empty_closure": 6,
+   "range_truncated": false,
+   "version_file": null,
+   "label_at_head": null,
+   "detector_closure": "91ecd5d1437632b3"
+  },
+  "B5": {
+   "exit": 2,
+   "seconds": 109.14,
+   "peak_mb": 582.3,
+   "stderr_first": "could not find a version label. Pass --version-file / --version-regex.",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stdout_bytes": 0,
+   "command": "closure_drift.py CLONE --at commits --json"
+  },
+  "B3_baseline": {
+   "exit": 2,
+   "seconds": 51.43,
+   "peak_mb": 1341.8,
+   "stderr_first": "could not find a version label. Pass --version-file / --version-regex.",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stdout_bytes": 0,
+   "command": "/home/runner/work/_temp/closure_drift_0.9.1.py CLONE --json --max-commits 1000000"
+  },
+  "B8": {
+   "exit": 1,
+   "seconds": 62.84,
+   "peak_mb": 373.1,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "4b7593d715878bbe540c3be992af13accf8a89c6af711570b690106b2a7f0684",
+   "stdout_bytes": 3996,
+   "command": "closure_drift.py CLONE --json --max-commits 1000000 --version-file cmake/Modules/LLVMVersion.cmake --version-regex set\\(LLVM_VERSION_MAJOR (?P<part1>\\d+)\\)[\\s\\S]*?set\\(LLVM_VERSION_MINOR (?P<part2>\\d+)\\)[\\s\\S]*?set\\(LLVM_VERSION_PATCH (?P<part3>\\d+)\\) --closure llvm/lib/** --closure llvm/include/**",
+   "verdict": "drift",
+   "labels": 43,
+   "labels_covering_multiple_closures": 5,
+   "max_closures_per_label": 5,
+   "publication_points_scanned": 327,
+   "publication_points_compared": 59,
+   "points_without_label": 268,
+   "points_with_empty_closure": 0,
+   "range_truncated": false,
+   "version_file": "cmake/Modules/LLVMVersion.cmake",
+   "detector_closure": "91ecd5d1437632b3"
+  },
+  "B6_oldest_newest": {
+   "exit": 2,
+   "seconds": 3.46,
+   "peak_mb": 268.0,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "4185843f3e770e90809b8a5d5fa1c4b89227769fe167a48b55957f80bdc01e97",
+   "stdout_bytes": 39594,
+   "command": "closure_drift.py CLONE --compare llvmorg-1.0.0 llvmorg-23.1.2 --json",
+   "verdict": "not_comparable",
+   "version_file": null,
+   "detector_closure": "91ecd5d1437632b3"
+  },
+  "B7_oldest_newest": {
+   "exit": 0,
+   "seconds": 1.2,
+   "peak_mb": 355.4,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "e8f37bfb426846f0334babe0e1a54940cac51dd75d79a63ed4c2489062d03b6a",
+   "stdout_bytes": 37521,
+   "command": "tests/oracle.py CLONE --compare llvmorg-1.0.0 llvmorg-23.1.2"
+  },
+  "B6_median_newest": {
+   "exit": 2,
+   "seconds": 4.46,
+   "peak_mb": 296.3,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "a9760ab0d7a0d5be1f20d2aab6715ce4d6d0a804d76fd49d95e57712dad539dd",
+   "stdout_bytes": 124721,
+   "command": "closure_drift.py CLONE --compare llvmorg-10.0.0 llvmorg-23.1.2 --json",
+   "verdict": "not_comparable",
+   "version_file": null,
+   "detector_closure": "91ecd5d1437632b3"
+  },
+  "B7_median_newest": {
+   "exit": 0,
+   "seconds": 1.7,
+   "peak_mb": 355.5,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "50784af76112ed9ab078969bc72c1dda5e2b77a8539a7cb1b67c54a3ef202033",
+   "stdout_bytes": 119773,
+   "command": "tests/oracle.py CLONE --compare llvmorg-10.0.0 llvmorg-23.1.2"
+  }
+ },
+ "failures": [
+  "F5 oldest_newest"
+ ],
+ "clone": {
+  "exit": 0,
+  "seconds": 387.7,
+  "disk_mb": 4210,
+  "tags": 327,
+  "tags_at_commits": 327,
+  "commits_from_head": 600789,
+  "files_at_head": 186300,
+  "head": "af2d76922b54fc347faac9727b0748387fea043f"
+ },
+ "tags_picked": {
+  "oldest": "llvmorg-1.0.0",
+  "median": "llvmorg-10.0.0",
+  "newest": "llvmorg-23.1.2"
+ },
+ "oracle": {
+  "oldest_newest": {
+   "compared": true,
+   "ids_and_counts_agree": false,
+   "path_lists_agree": true,
+   "files": [
+    0,
+    752
+   ],
+   "paths_differing": 752
+  },
+  "median_newest": {
+   "compared": true,
+   "ids_and_counts_agree": true,
+   "path_lists_agree": true,
+   "files": [
+    1668,
+    752
+   ],
+   "paths_differing": 2148
+  }
+ }
+}

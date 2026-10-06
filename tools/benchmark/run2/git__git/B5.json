@@ -1,0 +1,56 @@
+{
+ "report_format": 2,
+ "stamp": {
+  "measured_at_head": "5a7d1e8045ce",
+  "working_tree_dirty": null,
+  "detector_closure": "08ceb754eb8c376f",
+  "working_tree_dirty_note": "not checked: this repository has no working tree"
+ },
+ "repo": "/home/runner/work/_temp/git__git.git",
+ "version_file": "Cargo.toml",
+ "closure_globs": [
+  "src/**",
+  "lib/**",
+  "app/**",
+  "*.py",
+  "*.js",
+  "*.ts",
+  "*.rs",
+  "*.go",
+  "*.java"
+ ],
+ "published_at": "commits",
+ "publication_points": 398,
+ "labels": 1,
+ "labels_covering_multiple_closures": 1,
+ "max_closures_per_label": 5,
+ "verdict": "drift",
+ "drift": {
+  "0.1.0": {
+   "c22460ac958093d4": "mailmap: map Elijah Newren's current and previous work addresses (2026-08-12)",
+   "2fe0ca07b241751a": "diff-delta: widen `struct delta_index`' size fields to `size_t` (2026-08-13)",
+   "3b89b82c7eb9bca8": "pathspec: match and original in pathspec_item are const (2026-09-03)",
+   "8e703a24f9382930": "rust: respect CARGO_BUILD_TARGET when locating build output (2026-09-10)",
+   "70b241d9890b47c5": "revision: avoid reporting known options as unknown on error (2026-09-25)"
+  }
+ },
+ "closure_ids": {
+  "c22460ac958093d4": "09298db7b9df1954128b18bf139ba8b532ade94c9eda4aab300f61bdc3b40c80",
+  "2fe0ca07b241751a": "861f708bf8e60ee5e18d51fc53bf16abf8c5ea1cf8296884233c9cfb11ebb922",
+  "3b89b82c7eb9bca8": "4523ca7b129fd8009fdd79cb0fc83dfb24dc42c24b0157b0dd0fc3b920859f6e",
+  "8e703a24f9382930": "b0755aaf67dda14b4fc2689597062dda54f970b5689571565e353fd42bdadde8",
+  "70b241d9890b47c5": "506ed72936c49c495ac976b0a96fbbf69be5995cfb038f6878b01b45af4e53be"
+ },
+ "closure_changes_between_points": 60,
+ "label_sources": {
+  "Cargo.toml": 396
+ },
+ "publication_points_scanned": 400,
+ "publication_points_compared": 396,
+ "points_without_label": 2,
+ "points_with_empty_closure": 2,
+ "points_not_commits": 0,
+ "range_truncated": true,
+ "points_with_conflicting_sources": 0,
+ "points_label_contradicted": 0
+}

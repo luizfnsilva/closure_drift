@@ -1,0 +1,56 @@
+{
+ "exit": 1,
+ "head": "ff5b4df55ac4ac625582ecc446c850200c91ae64",
+ "outcome": "drift",
+ "report": {
+  "closure_changes_between_points": 198,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {
+   "3ab684e9bd2861f1": "98d2e72033b9929b0a60e201501e5c968abbbea0b9241e8f0846ee02119fea34",
+   "80e85d091d9f29d9": "d0ea3a6d085dc983d14586256c9e90462e3de21ddcb2039e9c395f2d050155b6"
+  },
+  "drift": {
+   "0.2.1": {
+    "3ab684e9bd2861f1": "0.2.1 (2018-08-30)",
+    "80e85d091d9f29d9": "0.2.2 (2018-08-30)"
+   }
+  },
+  "label_sources": {
+   "starlette/__init__.py": 199
+  },
+  "labels": 197,
+  "labels_covering_multiple_closures": 1,
+  "max_closures_per_label": 2,
+  "points_label_contradicted": 0,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points": 199,
+  "publication_points_compared": 199,
+  "publication_points_scanned": 199,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "Kludex/starlette",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "08ceb754eb8c376f",
+   "measured_at_head": "ff5b4df55ac4",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "drift",
+  "version_file": "starlette/__init__.py"
+ },
+ "repository": "Kludex/starlette"
+}

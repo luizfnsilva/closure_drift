@@ -1,0 +1,278 @@
+{
+ "exit": 1,
+ "head": "7c26ebeaf8b83f5f0374a2545bb15e36c87db0d0",
+ "outcome": "drift",
+ "report": {
+  "closure_changes_between_points": 145,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {
+   "02f6071251bfbd44": "33dec8d9c97a8ffad8da975d18082084176d2fd11d9671c9158a9e49b2ae7806",
+   "06714e9bfd7dc6cd": "196d7b5b72e8fe4d4d258ba5af80c1dd4b5052a7a268ec8269827089acff374b",
+   "0caf01138f6e26f7": "ff9a1301fe25bc4c3b5aadc5a06ece9b947b88f2aeb98c67c9c03a4fec0d71d0",
+   "0df3f375f4837d81": "1cfe7c88d94aed1d086cb3dbc5cece6ab8256b4c14b90066bd8947575cdb01f8",
+   "12011715233c0470": "13bd69dd76f9b1ea270d489d094b501aba4e0ff05cd52f4b5095334de30e9c5c",
+   "138ae54859d9306b": "c70c2087f82bd12a0938f7253ecc471be5d3aac7f156af15c01f2c4c947c3820",
+   "15aea732d9584e55": "553af0311caa9b0280bf7093728f7d595246580d10f0029ea3225cd9a2e7f5db",
+   "167b90599ac94725": "4ab3e49a1fb3c1d8eaadaf9da938fa7d36d9c3c788d4c3864458f34f04d61662",
+   "16ee15a5fa67bc4d": "68cda5595d206efe629c5121eda4a3a7cbf20043ef9a46850ab6750eede75b8b",
+   "1c3a894d752b1391": "e1a4a45df4868b52384e0d3c43fcde6e74e1f5ad0164dc9ef763228fe76d8738",
+   "1cd040f9c6b7911e": "662f32a59361850b4f04b90ae428c09a7e9db665a997acc65004dd9a0da5e2b8",
+   "1cf232e5613f8aca": "a1c02a6f5cc7472ec6573aff7c312555ab4836bd4ac3f849c3323970dc241251",
+   "1e1b62b8436372b0": "c0fec52b346bb39a8e348942e5cb26a8a7b00a61d96a57efd50eb980fa134136",
+   "22964bbaf0afe24e": "35eb8a9349b93db53f0bec20844f341eec445543eea253cdc8500dd603129305",
+   "25d9cef910301ce5": "b4990e26f2925e8402a79cc45b8368ef5fd427b6d858620b8a18cd3a14d632b5",
+   "26eee24fac04bc12": "e294aa984becb05686d79fa3e32dc46c5dc092d903e723ce0cc59d560d800625",
+   "289af5e2e82f6cfe": "adeb865052e59a6fc5daa1f3efe977f71110dc9518ad7134cce05bc8bff4a775",
+   "28c826cf0a360998": "e7e784c40c75fb9bb1e2be5d4a3de2b0c7e8b058f0ad38b6fd0fde04b401176c",
+   "31d9c256c612d01e": "7d6b88b714e9258c1c01cdae3709e25e64219a76f9ad3d4d3ae18af674e63b88",
+   "34552230d2111ac5": "004908d5b3b21eba5c064c322672497a2a1a9953f220f499590b489fe5df2f54",
+   "35128a08e17014c5": "1294c43c1a83e7030613fc74146df854f07150884db44d64a8be5d52b7b58785",
+   "3531a5e9e6c98b33": "70e04e29cc4978c929144cca9b27665d3d0bda2d1b3303ece547c1446ace931e",
+   "3a1b7b959cf0273c": "81a404b8ff938dc0bdb78a298bf710ad3f35b6e21a9ec64e657b28910f2d4a27",
+   "3b5ec79866113a55": "af23673d768882e261b6dfa92168cce771be1bbc0e9e50491c28ab5dea05ebe2",
+   "3bfd73bc58be7757": "ccc8b691f7fd1cbc7349f0f335535dc44cd7fb3f0972da3419c9750f31629903",
+   "3d697ffceca49ed1": "9737444926b9adbfad3ba23ed61f495027f0983d7b65902893be9fc62e208bb6",
+   "40ea90c65f813397": "ac701c3065de3cbf32f56bb1b47489c6947e3f0d0098a87ddd75897afa8d498c",
+   "47125d58486cbf83": "01ddb109df85039665af7d2cc4070f556af094057e9e7270522b87431f6b8a66",
+   "48b8bfaa3d46b144": "7c785ae2db75bb82e2a902916a946e3b2f33bf9d11d730a7d8e9c285d6516b7f",
+   "4af3d0f000370c0e": "1532c7c472c09cc8f10d3962ae5548e5aad48e8f76c134aabb3876b0aa79961a",
+   "4e8ac1e4e7d054a5": "8e57f63802b17b293a46bda27acca65c75b41b87facab0246d076a5a2c75ee0c",
+   "5580580d444cf4c1": "175f5df2636d5f28813711fa5aa6a5dfcb2644af6d4daf31f923592fc85b0e88",
+   "599a80eee20edccf": "64abdcf321757b20e9205c85aa7ed15a4a3ca2de8d960f3f8c93a15140970361",
+   "5b631736f5957566": "e2cb7f0892eb7b69844aa282c4f5bb730e0f990ded2d5be72cd3d511c8781c4c",
+   "5c6739939fc21b79": "d2748b253e582734f888939992ad1490ec77c36e08d3ccc93474bc5adcaaa386",
+   "64342c2f527e8330": "f831848dc686cf3146cf986b013360ad984ac66adcbcc073f708008be66c849d",
+   "6c27de145db02caf": "fe22a1b9ee1f36d5d2e28005abd9b9c1aa495c7ca159f061323283d24545b7eb",
+   "6dacfd478f92b38f": "4dce4dcfbaded5e4d5c7c55a12d407f6d1bf2ffc673773d5d1c2000f1470b635",
+   "6e56787103785396": "d2721e0e752f8253a00d5a4354e908498b0bd61c87730c7f82686542d6a6d347",
+   "7654b38df15d67e4": "c1d1ebf45b17de3ae508de21c9b8d7217d06b33e758bf296aa1316f8f7f7707f",
+   "78d314a24220e8e5": "c707656a3a7713f88ea336f1b7ba939981da6b975a53578116fd6eb7fc6e7338",
+   "78fa5ffbd7319468": "25e36b72a41646bd31fac75c1d0fb27e4edfc411bf4aa91ff5dfb516b14557df",
+   "7addb1fa1518a6fc": "3424602792791587c7aa755090670cb3a3ae6534833ba46ddf3142225660ef40",
+   "7cbfcd52b3e61289": "a45f80d41b9fd3fb00d55b213f4b50fbae2abf34175652ebd029b86dfae3631a",
+   "822aaac8b8e9e4df": "c56441b770670bf485338dfdb30f1ef15927ffb0126aecb2d7e471dd66a11c58",
+   "879f15ceea1a1eb6": "987a1b5c4cc4d6ecac4c6c51ca40afa837f9b623399a808b7f91fcd2fbf7b933",
+   "87faa81030120a1b": "552c3356664017ab65375ee086de26f9e44723fc240ea1b33fe6ec3445acf772",
+   "8a145d42d894a3b9": "b89f25f645d16374b427e543b15266f33d1c347f98b38d3767788cf734a44af7",
+   "8a9bb349417bbd9a": "09b9968e117e3c2c4aa3b61dd50ec3c058cefbe68e73c6df9f7af754f6e028e8",
+   "8d1e58d04763595a": "d894850d26534dc610d4d7f7c778b2d3783fbf8f974c6dd407a1c75cc944c63f",
+   "8f4bcfb8d2d6ce5f": "0059d00cc71e0c2c24b0768d3d757092ac87af132b61dfe0cf0465eb38e48859",
+   "96965a2802a09e2a": "1cd652610806606a98798ce37508dfb7103ecdcf873e93d8656d4e24d98cd878",
+   "979d6b36fdb646af": "65037894ce8efb090806ae7a03696d139fa69f6e44e439e69db7e78a865b7e15",
+   "97ddffa10969cbeb": "582eb5271568586280264249f42b0c47c973f99d5fc707cd5bd838f6a150fd18",
+   "9d9cfad9a8ceb998": "b6589ed8816e97619a8576dcf3b0321adbfa8e20274914fbc4c42ac9e3085b3b",
+   "9e3d8c7077f4e268": "7645a3495d6b55c911aada5ab7195f1be1ea2a1603e13a1ecdc0837aceceb634",
+   "9ec9926679ab93b0": "32adb73aa3f60eb58ac0fee1e9ce9646e62d16a82cc2b03da4ee620eb5064e5d",
+   "a135cdee3990eb92": "de2b8581968e210e035ed084bb3c62f185ddf8c678b2d657b393b91ddf1beb06",
+   "a35f85bfa7e3f6c9": "a027bd819137000041deda065dbd681b24785126f0b77742c7d8317ad06c2a8a",
+   "a4d4a35b97d79ea5": "b676248b6fc35f66accfa638e3d7075046e50e4f3d8283a0c674edbb02f1b0a2",
+   "a8c0d8a20083af8d": "4a054e31ce921ac6b9183cfcfb4fd63f4c42712418b347fea57991ef69ae3bc4",
+   "a91b39cb3205417f": "135813840000cdfae25e7db75832ed1cf9ea494b8e9c5006767d0d2474fb38f9",
+   "aef2ce6c945ac3db": "0f23401418fdecb306a6c724799dd079cbd3a177253da0873fb664de86a0c18b",
+   "b8ab52e50ff161cb": "8de1979e65fa4ba55750692ffb549b6fcd314ec585ed575a7e204eb3c8839a21",
+   "b90d1bc8a2f533dd": "c279c841f9532b98371c69cebc6a067774c9e6e3b5577c85cd072c5ec183dd8b",
+   "c16f9b5ade963d31": "34b9ef0667da41c79d6601301797d663fe1b4f090c1e95c32ece6ee42faf6879",
+   "c838bd6a7fd7c136": "958105b02692d1a960fc794ffd3667bd59e8b95c4e1e7f9e3ce20c6e6cd9df98",
+   "cb13998917aa076c": "0b9af173ad9007259134e35a8af2cb80ecad3752780041442ac63fdf58da70d5",
+   "cb536f4aa520e80f": "5321220621a31f6d2128bcc293d721adf81f6b455c57da62517f01348dbb9db0",
+   "cc61746e09630d58": "5e8ab9701ea7c618486749234c879be47e1d48f86e7c07e02bb74931a240c518",
+   "d16e63768537239d": "bef9b888a32650429e2c446112e5703a1574ac26e02ed961c53a0696dad82cea",
+   "d1f6215d41e1f973": "b6acebc0ada50fc79c725d315fbbc81a67dc0055f19dfb924bc6c9f88a71b888",
+   "deb48ecca941c3e9": "21a6540e9f652c3fa3978626ae6231c0da53685227baec03f9671bbcfdb84f03",
+   "dfd2e8a6e3e406e1": "b77c991c2fdfadc4c8351db15fa96ddf819fab7d66e51fa3c861babf1c5bd429",
+   "e3bf5a6337915d3a": "f8abcd1159aa07bb9942b72831df649ef31daf1103189f65a9c9bb0b83133155",
+   "e752aaf17f590989": "38f38ba4eaa146579c5d06f05d75bded8eb92500df1b7405ed2588eb17c58ada",
+   "f01c1e4f8a262a5a": "59ecf1585704be8f6c355b0654b8cee5011b0cb0a3f6ae9b7302f1cd5d49fdaf",
+   "f12f9db3d7a8cde4": "ec4499dbd772792540ecb65a19aed83561beb7b227e7a36698b81c4f92b71de3",
+   "f3ecd1df4e7ece63": "695e6575b75e2f03ca1444e9b4fa09128990c551e5f97154c075b557acc2851f",
+   "f886129e4e11d673": "1827546684853a796946f1a54fa1268c4084d6dc60c5960000021dc4c7b81b04",
+   "f9aa9360f57f0616": "590352cc8f80d3dc1a5e6b1504fc219c823c0f69d2b50d8e3907ddf0c2617982",
+   "f9b0610472f22d40": "58bebc5c7a09eb962ffa8ad78371b079de2f4823d2732b0d573217600e8e677c",
+   "fd9e0ea20f6b8fec": "cf594ca1987e6e771deddabaab1be6020b84d3ddf76d61ca717790dca4140217",
+   "fe83cd0d8b46446c": "4d171a61b07479d22db4fbf8a6c6be9cee7b00cb5c56927d5dbc3552718f1ed5",
+   "ff0d8d5fce84dd3d": "742d7b12ff17e145b096ffa8b02e53d8424296c750314533c665145015eba530"
+  },
+  "drift": {
+   "1.0.0rc10": {
+    "22964bbaf0afe24e": "hatch-v1.0.0rc10 (2022-01-19)",
+    "f12f9db3d7a8cde4": "hatchling-v0.10.0 (2022-01-20)"
+   },
+   "1.0.0rc11": {
+    "9e3d8c7077f4e268": "hatch-v1.0.0rc11 (2022-01-23)",
+    "b8ab52e50ff161cb": "hatchling-v0.11.0 (2022-02-04)"
+   },
+   "1.0.0rc12": {
+    "40ea90c65f813397": "hatchling-v0.11.3 (2022-02-13)",
+    "6dacfd478f92b38f": "hatchling-v0.11.1 (2022-02-05)",
+    "979d6b36fdb646af": "hatchling-v0.11.2 (2022-02-05)",
+    "ff0d8d5fce84dd3d": "hatch-v1.0.0rc12 (2022-02-05)"
+   },
+   "1.0.0rc13": {
+    "1cd040f9c6b7911e": "hatch-v1.0.0rc13 (2022-02-13)",
+    "1e1b62b8436372b0": "hatchling-v0.15.0 (2022-02-23)",
+    "25d9cef910301ce5": "hatchling-v0.18.0 (2022-02-27)",
+    "31d9c256c612d01e": "hatchling-v0.12.0 (2022-02-13)",
+    "34552230d2111ac5": "hatchling-v0.17.0 (2022-02-26)",
+    "5580580d444cf4c1": "hatchling-v0.13.0 (2022-02-16)",
+    "599a80eee20edccf": "hatchling-v0.19.0 (2022-03-06)",
+    "64342c2f527e8330": "hatchling-v0.14.0 (2022-02-16)",
+    "a135cdee3990eb92": "hatchling-v0.16.0 (2022-02-26)"
+   },
+   "1.0.0rc14": {
+    "3b5ec79866113a55": "hatchling-v0.20.1 (2022-03-07)",
+    "c16f9b5ade963d31": "hatchling-v0.21.0 (2022-03-17)",
+    "deb48ecca941c3e9": "hatch-v1.0.0rc14 (2022-03-06)",
+    "e3bf5a6337915d3a": "hatchling-v0.20.0 (2022-03-07)"
+   },
+   "1.0.0rc16": {
+    "4e8ac1e4e7d054a5": "hatchling-v0.22.0 (2022-03-26)",
+    "6c27de145db02caf": "hatchling-v0.21.1 (2022-03-22)",
+    "fe83cd0d8b46446c": "hatch-v1.0.0rc16 (2022-03-20)"
+   },
+   "1.0.0rc17": {
+    "7addb1fa1518a6fc": "hatch-v1.0.0rc17 (2022-04-18)",
+    "a35f85bfa7e3f6c9": "hatchling-v0.23.0 (2022-04-28)"
+   },
+   "1.0.0rc8": {
+    "48b8bfaa3d46b144": "hatchling-v0.8.0 (2022-01-09)",
+    "4af3d0f000370c0e": "hatch-v1.0.0rc8 (2022-01-08)",
+    "7cbfcd52b3e61289": "hatchling-v0.8.1 (2022-01-14)",
+    "9d9cfad9a8ceb998": "hatchling-v0.9.0 (2022-01-18)",
+    "f01c1e4f8a262a5a": "hatchling-v0.8.2 (2022-01-16)"
+   },
+   "1.1.1": {
+    "06714e9bfd7dc6cd": "hatchling-v0.25.0 (2022-05-15)",
+    "6e56787103785396": "hatchling-v1.0.0 (2022-05-17)",
+    "96965a2802a09e2a": "hatchling-v1.2.0 (2022-05-20)",
+    "9ec9926679ab93b0": "hatchling-v0.25.1 (2022-06-14)",
+    "d1f6215d41e1f973": "hatch-v1.1.1 (2022-05-12)",
+    "dfd2e8a6e3e406e1": "hatchling-v1.1.0 (2022-05-19)"
+   },
+   "1.1.2": {
+    "8a9bb349417bbd9a": "hatchling-v1.3.0 (2022-05-22)",
+    "cb536f4aa520e80f": "hatch-v1.1.2 (2022-05-20)"
+   },
+   "1.18.0": {
+    "c838bd6a7fd7c136": "hatch-v1.18.0 (2026-08-10)",
+    "cb13998917aa076c": "hatchling-v1.18.0 (2023-06-12)"
+   },
+   "1.2.0": {
+    "78fa5ffbd7319468": "hatch-v1.2.0 (2022-05-22)",
+    "f3ecd1df4e7ece63": "hatchling-v1.3.1 (2022-05-30)"
+   },
+   "1.2.1": {
+    "0df3f375f4837d81": "hatchling-v1.4.0 (2022-07-03)",
+    "78d314a24220e8e5": "hatch-v1.2.1 (2022-05-30)",
+    "f9aa9360f57f0616": "hatchling-v1.4.1 (2022-07-04)"
+   },
+   "1.3.0": {
+    "822aaac8b8e9e4df": "hatch-v1.3.0 (2022-07-10)",
+    "8d1e58d04763595a": "hatchling-v1.5.0 (2022-07-11)"
+   },
+   "1.3.1": {
+    "5c6739939fc21b79": "hatch-v1.3.1 (2022-07-11)",
+    "f9b0610472f22d40": "hatchling-v1.6.0 (2022-07-23)"
+   },
+   "1.4.0": {
+    "26eee24fac04bc12": "hatchling-v1.7.0 (2022-08-12)",
+    "3531a5e9e6c98b33": "hatchling-v1.7.1 (2022-08-13)",
+    "e752aaf17f590989": "hatch-v1.4.0 (2022-08-06)"
+   },
+   "1.4.1": {
+    "16ee15a5fa67bc4d": "hatchling-v1.8.0 (2022-08-16)",
+    "1c3a894d752b1391": "hatch-v1.4.1 (2022-08-13)"
+   },
+   "1.4.2": {
+    "879f15ceea1a1eb6": "hatchling-v1.8.1 (2022-08-25)",
+    "8a145d42d894a3b9": "hatch-v1.4.2 (2022-08-16)"
+   },
+   "1.5.0": {
+    "289af5e2e82f6cfe": "hatch-v1.5.0 (2022-08-28)",
+    "7654b38df15d67e4": "hatchling-v1.10.0 (2022-09-18)",
+    "a91b39cb3205417f": "hatchling-v1.9.0 (2022-09-09)",
+    "fd9e0ea20f6b8fec": "hatchling-v1.11.0 (2022-10-08)"
+   },
+   "1.6.1": {
+    "87faa81030120a1b": "hatchling-v1.11.1 (2022-10-19)",
+    "aef2ce6c945ac3db": "hatch-v1.6.1 (2022-10-16)"
+   },
+   "1.6.3": {
+    "15aea732d9584e55": "hatchling-v1.13.0 (2023-02-09)",
+    "1cf232e5613f8aca": "hatchling-v1.12.0 (2022-12-30)",
+    "3bfd73bc58be7757": "hatchling-v1.14.0 (2023-04-02)",
+    "47125d58486cbf83": "hatchling-v1.12.2 (2023-01-04)",
+    "a8c0d8a20083af8d": "hatch-v1.6.3 (2022-10-24)",
+    "d16e63768537239d": "hatchling-v1.12.1 (2022-12-31)"
+   },
+   "1.7.0": {
+    "12011715233c0470": "hatchling-v1.15.0 (2023-05-09)",
+    "138ae54859d9306b": "hatchling-v1.14.1 (2023-04-23)",
+    "167b90599ac94725": "hatchling-v1.16.1 (2023-05-11)",
+    "97ddffa10969cbeb": "hatch-v1.7.0 (2023-04-02)",
+    "a4d4a35b97d79ea5": "hatchling-v1.17.1 (2023-06-03)",
+    "b90d1bc8a2f533dd": "hatchling-v1.16.0 (2023-05-10)",
+    "cc61746e09630d58": "hatchling-v1.17.0 (2023-05-12)"
+   },
+   "1rc2": {
+    "3d697ffceca49ed1": "hatchling-v0.4 (2021-12-30)",
+    "8f4bcfb8d2d6ce5f": "hatch-v1rc2 (2021-12-29)",
+    "f886129e4e11d673": "hatchling-v0.3.1 (2021-12-30)"
+   },
+   "1rc3": {
+    "35128a08e17014c5": "hatch-v1rc3 (2021-12-30)",
+    "5b631736f5957566": "hatchling-v0.5 (2022-01-01)"
+   },
+   "1rc5": {
+    "0caf01138f6e26f7": "hatchling-v0.6 (2022-01-06)",
+    "28c826cf0a360998": "hatch-v1rc5 (2022-01-02)"
+   },
+   "1rc6": {
+    "02f6071251bfbd44": "hatchling-v0.7.0 (2022-01-08)",
+    "3a1b7b959cf0273c": "hatch-v1rc6 (2022-01-06)"
+   }
+  },
+  "label_sources": {
+   "(the tag)": 58,
+   "hatch/__about__.py": 21,
+   "hatch/__init__.py": 2,
+   "src/hatch/__about__.py": 73
+  },
+  "labels": 94,
+  "labels_covering_multiple_closures": 26,
+  "max_closures_per_label": 9,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points": 154,
+  "publication_points_compared": 154,
+  "publication_points_scanned": 154,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "pypa/hatch",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "89b5349928eba22b",
+   "measured_at_head": "7c26ebeaf8b8",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "tag_families": {
+   "hatch-": 26,
+   "hatchling-": 59
+  },
+  "verdict": "drift",
+  "version_file": "(the tag)"
+ },
+ "repository": "pypa/hatch"
+}

@@ -1,0 +1,69 @@
+{
+ "exit": 1,
+ "head": "34a9bf82357f4952d8f194a5a31f1c39743652d0",
+ "outcome": "drift",
+ "report": {
+  "closure_changes_between_points": 44,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {
+   "35c2648ff503da83": "eda5a972b68b13b93fc60857548b78d476434368886d78ebc80be3402db806ed",
+   "5f8c37295f88f677": "9ca6e0a0f5d1aec3b9743a0d6c4e6275fbe6f360acab9e55975808f5dd1a5a6b",
+   "634db4a8189583ea": "b47ba50f102c0023c370f82e456b9a94a1aa879207172044afc43d2ea1215993",
+   "75f2abd105db15ff": "47a9983dbbe699e512c99db720d5b1c62b7266d64907271556fe1e82775f84b4",
+   "f3d50cc2fafdf37e": "bc7402353a1ad78a1af6775676aa404b8b420e5e1e88596bdfa379cb4efc8804",
+   "fdf4e887e0aefabf": "5451a7efb8cad29be1a9d268ab43bd3fceeccce7dac53c14cd357ec5e4b60c88"
+  },
+  "drift": {
+   "3.02": {
+    "75f2abd105db15ff": "3.02 (2006-05-15)",
+    "f3d50cc2fafdf37e": "3.03 (2006-06-18)"
+   },
+   "3.09": {
+    "35c2648ff503da83": "3.10 (2011-05-29)",
+    "fdf4e887e0aefabf": "3.09 (2009-08-30)"
+   },
+   "4.2": {
+    "5f8c37295f88f677": "4.2b2 (2018-06-29)",
+    "634db4a8189583ea": "4.2b1 (2018-06-28)"
+   }
+  },
+  "label_sources": {
+   "lib/yaml/__init__.py": 2,
+   "setup.py": 44
+  },
+  "labels": 41,
+  "labels_covering_multiple_closures": 3,
+  "max_closures_per_label": 2,
+  "points_label_contradicted": 0,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points": 46,
+  "publication_points_compared": 46,
+  "publication_points_scanned": 46,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "yaml/pyyaml",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "08ceb754eb8c376f",
+   "measured_at_head": "34a9bf82357f",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "drift",
+  "version_file": "setup.py"
+ },
+ "repository": "yaml/pyyaml"
+}

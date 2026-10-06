@@ -1,0 +1,47 @@
+{
+ "exit": 0,
+ "head": "6848faec3dc9a6f8383b9d785d5db600443b21f3",
+ "outcome": "clean",
+ "report": {
+  "closure_changes_between_points": 128,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {},
+  "drift": {},
+  "label_sources": {
+   "(the tag)": 108
+  },
+  "labels": 108,
+  "labels_covering_multiple_closures": 0,
+  "max_closures_per_label": 1,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 29,
+  "publication_points": 137,
+  "publication_points_compared": 108,
+  "publication_points_scanned": 137,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "tox-dev/py-filelock",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "89b5349928eba22b",
+   "measured_at_head": "6848faec3dc9",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "clean",
+  "version_file": "(the tag)"
+ },
+ "repository": "tox-dev/py-filelock"
+}

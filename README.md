@@ -16,11 +16,11 @@ One command checks it. Read-only, one file, no dependencies, no network.
 ## Run it
 
 ```bash
-curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v0.9.1/closure_drift.py
+curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v0.10.0/closure_drift.py
 python3 closure_drift.py            # inside any git repository
 ```
 
-or `pipx run --spec git+https://github.com/luizfnsilva/closure_drift@v0.9.1 closure-drift`.
+or `pipx run --spec git+https://github.com/luizfnsilva/closure_drift@v0.10.0 closure-drift`.
 Needs Python 3.9+ and git. To see the three possible answers first: `python3 examples/demo.py`, or read [`docs/DEMOS.md`](docs/DEMOS.md).
 
 ## Check before you tag
@@ -31,13 +31,13 @@ Needs Python 3.9+ and git. To see the three possible answers first: `python3 exa
 # GitHub Actions
 - uses: actions/checkout@v4
   with: { fetch-depth: 0 }
-- uses: luizfnsilva/closure_drift@v0.9.1
+- uses: luizfnsilva/closure_drift@v0.10.0
 ```
 
 ```yaml
 # pre-commit, on git push
 - repo: https://github.com/luizfnsilva/closure_drift
-  rev: v0.9.1
+  rev: v0.10.0
   hooks: [{ id: closure-drift-would-tag }]
 ```
 
@@ -47,7 +47,7 @@ Other pipelines: [`docs/CI.md`](docs/CI.md).
 
 | verdict | exit | |
 |---|---|---|
-| `clean` | 0 | every label names one closure, over the points compared |
+| `clean` | 0 | every label names one closure, over at least as many points compared as not |
 | `drift` | 1 | a label names more than one closure |
 | `inconclusive`, `incomplete`, `no_labels`, `empty_closure`, `no_publication_points` | 2 | not enough to tell; the report says why |
 | refusal | 2 | cause on stderr |
@@ -78,16 +78,18 @@ Settings can be committed in `.closure-drift.json`. Flags override it; a broken 
 
 ## What it found
 
-**The 100 most-downloaded PyPI projects, at the defaults**, measured with 0.9.0 — rule and method
+**The 100 most-downloaded PyPI projects, at the defaults**, measured with a build of 0.10.0 that prints
+the same reports as the release — rule and method
 fixed before the first run; no repository tuned ([full table and every collision](tools/study/STUDY.md)):
 
 | | repositories |
 |---|---|
-| `clean` | 63 |
+| `clean` | 59 |
 | `drift` | 29 |
+| `incomplete` — fewer tags compared than not | 4 |
 | no version label found, or inconclusive | 8 |
 
-A version label names two different code states in **29 of the 92** decided, 29 of all 100. Each
+A version label names two different code states in **29 of the 88** decided, 29 of all 100. Each
 of the 87 labels is in `collisions.tsv`, one line per tag involved, reproducible by hand:
 
 ```
@@ -128,8 +130,8 @@ first, `--tags` the second.
 - Labels are compared as written: `1.0` and `1.0.0` are two labels.
 - How the label is found is a set of rules, not a build: [`docs/LABELS.md`](docs/LABELS.md).
 
-- In a gate, pass `--strict` and `--version-file`: without them `clean` can rest on a few tags,
-  and a wrong version file can be believed. Both happened on large repositories.
+- In a gate, pass `--version-file`: the rules can still read the wrong file when one tag happens to
+  agree with it.
 
 Every failure found so far: [`docs/FAILURES.md`](docs/FAILURES.md). More: [`SCOPE.md`](SCOPE.md),
 [`docs/WHY.md`](docs/WHY.md).
@@ -146,9 +148,9 @@ Four suites, each pre-registered before the code. Scores are never added togethe
 
 | suite | macOS, Python 3.14 |
 |---|---|
-| `tests/battery.py` — acceptance proofs | 120 declared · 119 green · 0 red · 1 not run |
-| `tests/negative_controls.py` — the battery must fail on a broken detector | 26 mutants · 26 caught · 0 not caught |
-| `tests/adversarial.py` — written by a reviewer who did not write the fixes | 235 attacks · 229 as required · 0 loose · 6 not run |
+| `tests/battery.py` — acceptance proofs | 145 declared · 144 green · 0 red · 1 not run |
+| `tests/negative_controls.py` — the battery must fail on a broken detector | 35 mutants · 35 caught · 0 not caught |
+| `tests/adversarial.py` — written by reviewers who did not write the fixes | 275 attacks · 263 as required · 3 loose · 9 not run; the 3 loose are published limits ([`docs/FAILURES.md`](docs/FAILURES.md) O2a–O2c) |
 | `tests/properties.py` — 60 generated repositories against `tests/oracle.py`, a second implementation written from a specification by someone who did not read this one | 17 properties · 17 green · 0 red · 10 controls · 10 caught |
 
 CI runs the same four on Linux, macOS and Windows; what each platform could not run is in
@@ -156,9 +158,10 @@ CI runs the same four on Linux, macOS and Windows; what each platform could not 
 tried. `./reproduce.sh` runs all of it.
 
 **Ten large repositories** (the Linux kernel, LLVM, CPython and seven more), protocol written
-first: scanning every tag of the kernel takes 90 s and 3.4 GB; the oracle agrees at every pair
-with files; in six of ten the default rules find no version label, and three answers a gate would
-act on are wrong, or rest on almost nothing, for want of `--strict` or `--version-file`. [`tools/benchmark/BENCHMARK.md`](tools/benchmark/BENCHMARK.md).
+first. 0.9.1 needed 3.3 GB for every tag of the kernel and gave three wrong or near-empty answers;
+0.10.0 needs 535 MB and gives none of those three. With a declared version file
+([`docs/LABELS.md`](docs/LABELS.md)) every tag of the kernel is compared: `clean`, 947 of 947.
+[`tools/benchmark/READING.md`](tools/benchmark/READING.md).
 
 ## Send a result
 
@@ -169,11 +172,11 @@ or write to lfnsilva.invest@gmail.com. A result showing the tool is wrong is the
 
 ## Version
 
-**0.9.1.** Script sha256 `89b5349928eba22b0394d01940ed3d4aa989d6820f48fdddf189ad521689c51c`.
-One change to the detector since 0.9.0: closure globs are matched with case on every platform. On
-Windows 0.9.0 folded case, so one commit could have two closures; found by the property suite.
-On Linux and macOS nothing changes. Measure again what you measured on Windows.
-[`CHANGELOG.md`](CHANGELOG.md).
+**0.10.0.** Script sha256 `91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990`.
+It fixes the four failures the large-repository benchmark found: `clean` now needs at least as
+many tags compared as not; a version file that no tag agrees with decides nothing; a version
+spread over several lines can be read with named groups; memory no longer grows with history.
+A `clean` or `drift` from 0.9.x can now be `incomplete`. [`CHANGELOG.md`](CHANGELOG.md).
 
 Apache-2.0. Cite the version DOI, under concept DOI `10.5281/zenodo.21763931`
 ([`CITATION.cff`](CITATION.cff)). Planned next: [`ROADMAP.md`](ROADMAP.md).

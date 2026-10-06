@@ -290,9 +290,26 @@ def _label(r, commit, version_file, rx):
             m = rx.search(text)
             if not m:
                 return None
-            g = m.group(1)
-            return g if g else None
+            return label_from_match(m)
     return None
+
+
+def label_from_match(m):
+    """Section 5 + Amendment 2: named groups (by group number) joined, else group 1."""
+    gi = m.re.groupindex
+    if gi:
+        out = ""
+        for _name, num in sorted(gi.items(), key=lambda kv: kv[1]):
+            v = m.group(num)
+            if v is None or v == "":
+                continue
+            if out == "" or v[0] in "-+":
+                out += v
+            else:
+                out += "." + v
+        return out if out else None
+    g = m.group(1)
+    return g if g else None
 
 
 # ---------------------------------------------------------------------------
@@ -336,6 +353,8 @@ def full_run(repo, version_file, version_regex, closure=None, tags=None, strict=
     elif len(label_ids) == 1:
         verdict, code = "inconclusive", 2
     elif strict and (n_empty or n_nolabel):
+        verdict, code = "incomplete", 2
+    elif n_compared < n_empty + n_nolabel:
         verdict, code = "incomplete", 2
     else:
         verdict, code = "clean", 0
@@ -624,6 +643,27 @@ def self_test():
         check("incomplete (empty)", (inc["verdict"], inc["exit"]), ("incomplete", 2))
         inc2 = run(tags=["v1.0", "r2", "n5"], strict=True)
         check("incomplete (without label)", (inc2["verdict"], inc2["exit"]), ("incomplete", 2))
+        # Amendment 2 row: compared (2) < empty (1) + without label (2) -> incomplete, no --strict
+        am = run(tags=["v1.0", "r2", "e3", "n5", "m6"])
+        check("A2 incomplete compared<empty+nolabel",
+              (am["verdict"], am["exit"], am["publication_points_compared"],
+               am["points_with_empty_closure"], am["points_without_label"]),
+              ("incomplete", 2, 2, 1, 2))
+        # boundary: compared (2) == empty (1) + without label (1) -> clean
+        bd = run(tags=["v1.0", "r2", "e3", "n5"])
+        check("A2 boundary compared==empty+nolabel -> clean",
+              (bd["verdict"], bd["exit"], bd["publication_points_compared"],
+               bd["points_with_empty_closure"], bd["points_without_label"]),
+              ("clean", 0, 2, 1, 1))
+        # boundary with --strict is still incomplete via the strict row
+        bds = run(tags=["v1.0", "r2", "e3", "n5"], strict=True)
+        check("A2 boundary with --strict", bds["verdict"], "incomplete")
+        # compared (2) < without label (3), no empty -> incomplete
+        am2 = run(tags=["v1.0", "r2", "n5", "m6", "x8"])
+        check("A2 incomplete only without-label", (am2["verdict"], am2["exit"]), ("incomplete", 2))
+        # drift still wins over the new row
+        am3 = run(tags=["v1.0", "v1.0-again", "e3", "n5", "m6", "x8"])
+        check("A2 drift before new row", am3["verdict"], "drift")
         # no points
         z = run(tags=["zzz"])
         check("no_publication_points (filtered)", (z["verdict"], z["exit"], z["tags_filtered_out"],
@@ -643,6 +683,34 @@ def self_test():
         # --closure narrows: with *.txt both c1 and c3 differ -> 1.0 vs 2.0 distinct closures, clean
         t = run(tags=["v1.0", "r2"], closure=["*.txt"])
         check("--closure *.txt clean", (t["verdict"], t["points"]["v1.0"]["files"]), ("clean", 1))
+        # Amendment 2: named-group labels, the four examples, through a repository
+        NRX = r"^V=(?P<a>[^|\n]*)\|(?P<b>[^|\n]*)\|(?P<c>[^|\n]*)\|(?P<d>[^|\n]*)$"
+        nv = [("k1", b"V=6|1|0|\n"), ("k2", b"V=6|1|0|-rc1\n"), ("k3", b"V=6|+local||\n"),
+              ("k4", b"V=|||\n"), ("k5", b"V=|1|0|\n"), ("k6", b"V=+x|1||\n"),
+              ("k7", b"V=6|1|0|\n")]
+        repo2 = os.path.join(tmp, "named.git")
+        km = _build_repo(repo2, [(k, {b"a.py": ("100644", k.encode()), b"VERSION": ("100644", v)})
+                                 for k, v in nv])
+        for k in km:
+            _sh(["-C", repo2, "update-ref", "refs/tags/t" + k, km[k]])
+        nr = full_run(repo2, "VERSION", NRX)
+        got = dict((k, nr["points"]["t" + k]["label"]) for k in km)
+        check("A2 named labels", got, {"k1": "6.1.0", "k2": "6.1.0-rc1", "k3": "6+local", "k4": None,
+                                       "k5": "1.0", "k6": "+x.1", "k7": "6.1.0"})
+        check("A2 named labels verdict", (nr["verdict"], nr["drifting"].keys() == {"6.1.0"}),
+              ("drift", True))
+        # direct, by hand, on the regex engine
+        L = lambda pat, text: label_from_match(re.search(pat, text, re.MULTILINE))
+        check("A2 ex 6,1,0", L(r"(?P<x>\d+)\.(?P<y>\d+)\.(?P<z>\d+)", "6.1.0"), "6.1.0")
+        check("A2 ex 6,1,0,-rc1", L(r"(?P<x>\d+)\.(?P<y>\d+)\.(?P<z>\d+)(?P<p>\S*)", "6.1.0-rc1"),
+              "6.1.0-rc1")
+        check("A2 ex 6,1,0,''", L(r"(?P<x>\d+)\.(?P<y>\d+)\.(?P<z>\d+)(?P<p>\S*)", "6.1.0"), "6.1.0")
+        check("A2 ex 6,+local", L(r"(?P<x>\d+)(?P<p>\S*)", "6+local"), "6+local")
+        check("A2 order by group number not name", L(r"(?P<z>\d)(?P<a>\d)", "98"), "9.8")
+        check("A2 None skipped", L(r"(?P<a>\d+)(?:-(?P<b>x))?", "7"), "7")
+        check("A2 unnamed groups ignored", L(r"(\w+)-(?P<n>\d+)", "abc-5"), "5")
+        check("A2 all empty -> no label", L(r"v(?P<a>\d*)(?P<b>\d*)", "v"), None)
+        check("no named groups: group 1", L(r"v(\d+)(\d)", "v123"), "12")
         # symlink-only and gitlink-only closures are members
         s = closure_of(repo, "c1", ["link.py"])
         check("symlink member", s, dict(zip(("closure", "closure_id"),

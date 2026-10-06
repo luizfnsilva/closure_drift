@@ -133,11 +133,44 @@ def main():
             rank, project, repo, outcome(one[repo]), outcome(two[repo]), cov, rep.get("labels", ""),
             rep.get("labels_covering_multiple_closures", ""),
             ", ".join("`%s`" % s for s in sorted(rep.get("label_sources", {}))[:3])))
+    if (HERE / "run3" / "results").is_dir():
+        md += [""] + run3_section(picked)
     later = HERE / "posthoc.md"            # a later, exploratory reading: appended, never mixed in
     if later.exists():
         md += ["", later.read_text(encoding="utf-8").rstrip()]
     (HERE / "STUDY.md").write_bytes(("\n".join(md) + "\n").encode("utf-8"))
     print("run 1:", dict(c1), "| run 2:", dict(c2), "| collisions:", labels_in_drift, "labels,", len(lines) - 1, "lines")
+
+
+def run3_section(picked):
+    """Run 3: each clone measured with 0.10.0 and with 0.9.1 (PREREGISTRATION.md, "Run 3")."""
+    new, old = load(HERE / "run3"), load(HERE / "run3-baseline")
+    cn, co = Counter(outcome(r) for r in new.values()), Counter(outcome(r) for r in old.values())
+    order = ["clean", "drift", "incomplete", "no label found", "inconclusive", "no_labels"]
+    out = ["## Run 3 — detector 0.10.0 against 0.9.1, on the same clones", "",
+           "Run on GitHub's runners on 2026-10-05; each repository was cloned once and measured with both",
+           "detectors, so what differs between the two columns is the detector, not the repositories.", "",
+           "| outcome | 0.9.1 | 0.10.0 |", "|---|---|---|"]
+    for o in order:
+        if cn[o] or co[o]:
+            out.append("| %s | %d | %d |" % ("`%s`" % o if o != "no label found" else o, co[o], cn[o]))
+    decided = cn["clean"] + cn["drift"]
+    out += ["", "**0.10.0: a version label names more than one code state in %d of the %d repositories where"
+            % (cn["drift"], decided), "a determination was reached, and in %d of all 100.**" % cn["drift"], "",
+            "Repositories whose outcome differs between the two detectors:", ""]
+    moved = [(repo, outcome(old[repo]), outcome(new[repo]), new[repo].get("report") or {})
+             for _, _, repo in picked if outcome(old[repo]) != outcome(new[repo])]
+    for repo, a, b, rep in moved:
+        out.append("- `%s`: %s → %s (%s of %s tags compared)" % (
+            repo, a, b, rep.get("publication_points_compared"), rep.get("publication_points_scanned")))
+    if not moved:
+        out.append("- none")
+    out += ["", "Detectors: 0.10.0 sha256 `%s`, 0.9.1 `%s`."
+            % (sha_of(HERE / "run3"), sha_of(HERE / "run3-baseline")),
+            "The released 0.10.0 script differs from the one that measured this run in the text of one refusal",
+            "and in how much memory it keeps (`tests/PREREGISTRATION.md` §10, amendments 4 and 5); on the 60",
+            "generated repositories of the property suite and six public ones, the two print the same report."]
+    return out
 
 
 if __name__ == "__main__":

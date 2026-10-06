@@ -69,3 +69,17 @@ failure of scale; it is reported as the answer. Nothing is tuned per repository.
 
 One row per repository and run, every failure by id, and the raw result files. If a failure is
 found, 0.9.0 is not changed for it in this round: it is written in `docs/FAILURES.md` as open.
+
+## Run 2 — added 2026-10-05, before run 2
+
+Run 1 is kept. Run 2: the same ten repositories, the same runs B1–B7, with release 0.10.0, plus
+
+| id | command |
+|---|---|
+| B3_baseline | B3 with 0.9.1, on the same clone, for time and memory |
+| B8 | every tag, with the version file and pattern written in `recipes.json` before this run |
+
+Required (§10 of `tests/PREREGISTRATION.md`): B3 of `torvalds/linux` under 1.5 GB peak; no B3 more
+than 1.5 times slower than its B3_baseline; `git/git` B3 not `drift` and B4 not `would_drift`;
+`DefinitelyTyped` B4 not `would_drift`; `Azure/azure-sdk-for-python` B3 not `clean`. B8 is reported
+as it comes out.

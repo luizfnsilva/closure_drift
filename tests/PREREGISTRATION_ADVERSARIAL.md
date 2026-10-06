@@ -660,3 +660,120 @@ counted the `\r` as a raw control character from the repository. Neither is repo
 harness now reads `\r\n` as a line end; a `\r` on its own is still counted. No expectation changed
 and the detector was not touched (sha256 `6548f891a826034c…`).
 
+
+## Extension 3, 2026-10-05 — the rules of 0.10.0
+
+Written 2026-10-05 by an independent reviewer who did not write the detector, the proofs CV/AG/NG/MM,
+the mutants M27–M33 or any case above, **before any case below was run** (and before the existing
+campaign was run against this detector). Nothing above is changed. The detector under attack is
+`closure_drift.py` 0.10.0 at commit `dc6994e` on branch `fix-open-failures`, sha256
+`37da974414d8b9def38412d8e824481fd8fcee60d17ffb01cba16272e93c3c9f`. The part under attack is the
+four rules of `PREREGISTRATION.md` §10 and its amendment: `tree_cache_bound`, `Objects.children`,
+`label_of` (with `bounded_search` / `match_on_stdin`), `release_numbers`, the agreement tally in
+`Labels.at`, `Labels.contradicted`, the second pass of `measure`, the `compared < no_label + empty`
+verdict line and the `rejected` path of `would_tag`.
+
+**Id prefixes.** `ZV` coverage (CV) · `ZA` agreement (AG) · `ZN` named groups (NG) · `ZM` the tree
+cache (MM) · `ZX` interactions with label resolution, `--compare`, `--at commits`, `--max-commits`,
+`--explain`, `.closure-drift.json` and the report.
+
+**The contract under attack**, from README "The answer", docs/REPORT.md and §10: exit 0 only for
+`clean` / `would_be_clean` / `identical` / `differs_under_two_labels`; exit 1 only for `drift` /
+`would_drift` / `differs_under_one_label`; everything else exit 2; never a traceback, and the
+catch-all `internal error` is a defect, as in extension 2. `clean` needs compared ≥ uncompared
+(uncompared = no label or empty closure, rejected points counted as without label). A source the
+rules found that agrees with no tag carrying a version is not believed; agreement = the tag's
+numbers, trailing zeros dropped, are the beginning of the file's numbers, trailing zeros dropped,
+where the numbers are "the leading run of numbers". A `--version-file` source, from the flag or from
+`.closure-drift.json`, is never second-guessed. Named groups join with `.` (a value starting with
+`-`/`+` attached without it). The tree-cache bound changes no output.
+
+`(hardening)` marks a requirement that is not a clause of that contract — mostly places where §10
+as written permits an answer that hides or invents a drift. A loose result there is reported as a
+finding about the rule, not as a contract breach. "Different code" = `src/a.py` differs. Time
+limit 20 s per detector run unless stated.
+
+### ZV — coverage
+
+| id | attacker controls / does | required outcome |
+|---|---|---|
+| ZV01 | 3 labelled tags `v1.0` `v1.1` `v1.2` (pyproject 1.0 / 1.1 / 1.2), 4 tags whose closure is empty (only `pyproject.toml` and `README.md`). | `incomplete`, exit 2: empty points count as uncompared. |
+| ZV02 | 3 agreeing labelled tags; 1 tag `v9.0` whose only version source is a `Cargo.toml` declaring `0.1.0` (contradicted); 2 tags `nightly-a`, `nightly-b` with no version anywhere. | uncompared = 2 + 1 = 3 = compared: `clean`, exit 0; `points_label_contradicted` 1, `points_without_label` 3; `scanned = compared + without_label + empty`; `publication_points = compared + without_label`. |
+| ZV03 | ZV02 plus a third unlabelled tag `nightly-c`. | `incomplete`, exit 2: rejected points are counted as uncompared. |
+| ZV04 | `--at commits`: two commits declaring 1.0 and 2.0, three later commits declaring nothing. | `incomplete`, exit 2. |
+| ZV05 | Two tags `v1.0` and `v1.0.1` declaring 1.0 over different code, two Cargo-only tags (rejected), three unlabelled tags. | `drift`, exit 1: a collision is a fact whatever the coverage. |
+| ZV06 | 10 older unlabelled tags, then 3 labelled tags with distinct versions; `--max-commits 3`. | `clean`, exit 0, `range_truncated` true: points outside the scan are not uncompared. |
+| ZV07 | 2 labelled tags with distinct versions, 3 tags pointing at a tree object. | `clean`, exit 0, `points_not_commits` 3: a tag that is not a commit is not a scanned point. |
+
+### ZA — agreement
+
+| id | attacker controls / does | required outcome |
+|---|---|---|
+| ZA01 | CalVer with dashes in the tag: tags `2024-01-05`, `2024-02-10`, `2024-03-15`; pyproject `2024.1.5`, `2024.2.10`, `2024.2.10`, different code at the last two. The leading run of numbers of each tag (`2024`) begins the file's. | `drift`, exit 1, label `2024.2.10` in drift. |
+| ZA02 | *(hardening)* Build-number tags `release-1`, `release-2`, `release-3`; pyproject `5.0.0`, `5.1.0`, `5.1.0`, different code at the last two. | `drift`, exit 1 (both artefacts carry 5.1.0). |
+| ZA03 | *(hardening)* A project that tags before it bumps: `v1.0` declares `0.9.0`, `v1.1` declares `1.0.0`, `v1.1.1` declares `1.0.0`, different code. | `drift`, exit 1 (two artefacts carry 1.0.0). |
+| ZA04 | *(hardening)* A root `Cargo.toml` of a helper crate declares `0.1.0` at tags `v0.1`, `v2.1.0`, `v2.2.0`, `v2.3.0`, different code. One coincidental agreement against three disagreements. | not exit 1 (the file is not the version of `v2.x`). |
+| ZA05 | `package.json` versions `1.0.` + 5,000 sevens and `2.0.` + 5,000 sevens at tags `v1.0`, `v2.0` (a number past Python's 4,300-digit `int()` limit). | no traceback, no `internal error`; `clean`, exit 0 (both agree, two labels). |
+| ZA06 | A tag named `v` + 5,000 sevens (reftable repository) and a tag `v1.0`; pyproject `2.0` and `1.0`, different code. | no traceback, no `internal error`; `clean`, exit 0. Not run if the ref cannot be stored. |
+| ZA07 | Tags `v١.٠` (Arabic-Indic digits) and `v²` (a superscript, `isdigit()` but not `\d`); pyproject 1.0 and 2.0, different code. | no traceback, no `internal error`; exit 0 or 2 matching the verdict, never 1. |
+| ZA08 | Amendment check: tags `v2.52`, `v2.53`; the file declares `2.0.0` at both, different code. | `no_labels`, exit 2, `points_label_contradicted` 2 (the file may not be the shorter one). |
+| ZA09 | Tags `v1`, `v1.5`; the file declares `10.0` at both, different code (a text-prefix comparison would agree). | `no_labels`, exit 2, `points_label_contradicted` 2. |
+| ZA10 | *(hardening)* Two eras. `v1.0`, `v1.1`, `v1.2` read from `setup.py` (1.0/1.1/1.2, agreeing); then CalVer-named tags `2024.1`, `2024.2` read from `pyproject.toml`, which declares `5.0.0` at both over different code (a real collision; the source disagrees with the tag names). | not exit 0: the second pass must not discard the only collision and leave a `clean` over the rest. |
+| ZA11 | *(hardening)* The version is never bumped: `v1.1`, `v1.2`, `v1.3` all declare `1.0.0`, different code (the textbook drift). | `drift`, exit 1. |
+| ZA12 | Monorepo: tags `py-1.2.0`, `rs-0.5.0`, `py-1.3.0`, `rs-0.6.0`; one `pyproject.toml` declares the Python version at all of them; `--tags 'rs-*'`. | not exit 1; `no_labels`, exit 2 (the Python file is not the Rust artefact's version). |
+
+### ZN — named groups
+
+| id | attacker controls / does | required outcome |
+|---|---|---|
+| ZN01 | `--version-file version.py --version-regex 'version = (?P<q>["\'])(?P<v>[^"\']+)(?P=q)'`; the file holds `version = "1.0"` at `v1` and `version = '1.0'` at `v2`, different code. | not exit 0: both tags declare 1.0 over different code. |
+| ZN02 | *(hardening)* An existing 0.9.1 configuration with one named group after group 1: `version = "(\d+\.\d+\.\d+)(?P<pre>-rc\d+)?"`; the file declares `1.2.3-rc1` at one tag and `1.3.0-rc1` at another. §10 says no existing configuration changes. | not exit 1. |
+| ZN03 | A pattern naming one group twice, `(?P<a>\d+)\.(?P<a>\d+)`. | refusal, exit 2, no traceback, no `internal error`. |
+| ZN04 | The Linux `Makefile` (`VERSION`, `PATCHLEVEL`, `SUBLEVEL`, `EXTRAVERSION`) with a four-named-group pattern given in `.closure-drift.json`, against the same given as flags. | the same verdict, exit code, labels and drift. |
+| ZN05 | The same Makefile shape: tags at `-rc1` and `-rc2`, HEAD untagged at `-rc2` with different code. | the measurement's labels are `6.1.0-rc1`, `6.1.0-rc2`; `--compare` shows the same two labels; `--would-tag` reads `6.1.0-rc2` at HEAD and answers `would_drift`, exit 1. |
+
+### ZM — the tree cache
+
+| id | attacker controls / does | required outcome |
+|---|---|---|
+| ZM01 | `CLOSURE_DRIFT_TREE_CACHE` set to `0`, `-3`, `abc`, `1.5`, ` 2 `, `٢`, `1_0`, `1e3`, 5,000 nines, and `1` + 400 zeros. | for every value: no traceback, and the `--json` report byte-identical to the one with the variable unset. |
+| ZM02 | 25 tags over nested folders, a subtree repeated at two paths, a drift; bound `1` against the default. | byte-identical stdout and equal exit code for: text, `--json`, `--explain`, `--compare`, `--would-tag --json`, `--at commits --json`. |
+| ZM03 | White box: `Objects` with bound 50 walks every tag of a repository whose trees range from 2 to 200 entries. | after every walk, `held` equals the sum of `len(entries) + 1` over the trees cached, and `held <= bound` unless a single tree is cached. |
+| ZM04 | White box: `Objects.entries` with bounds 1 and 3, on trees that contain the same subtree object at several paths and depths. | equal, at every tag, to `git ls-tree -r -z` (paths, kinds, ids, order). |
+| ZM05 | *(hardening)* One folder holding 10,000 subfolders of one file each; bound 50. | returns within 20 s (the default bound returns well within it). |
+| ZM06 | *(hardening)* "Memory does not grow with history": 20 tags, each with a different 8 MiB `pyproject.toml` (over the 1 MiB read limit, never parsed), against 2 such tags. POSIX only. | the peak resident size of the 20-tag run is under 1.5× that of the 2-tag run. |
+
+### ZX — interactions
+
+| id | attacker controls / does | required outcome |
+|---|---|---|
+| ZX01 | AG01's repository (`Cargo.toml` `0.1.0` at `v2.1.0`, `v2.2.0`, different code) with `version_file: Cargo.toml` in `.closure-drift.json`. | `drift`, exit 1: a declared source is not second-guessed wherever it is declared. |
+| ZX02 | *(hardening)* `--compare v2.1.0 v2.2.0` on AG01's repository. | not exit 1: the measurement does not believe that source, and `--compare` must not answer the opposite. |
+| ZX03 | *(hardening)* `--at commits` on AG01's repository (the tags that contradict the file exist). | not exit 1. |
+| ZX04 | ZV02's repository. | `label_sources` sums to `publication_points_compared` (LC08's property). |
+| ZX05 | *(hardening)* The measurement report of ZV02 and the `--would-tag` report of AG06's shape. | every top-level key emitted is named in `docs/REPORT.md`. |
+| ZX06 | `--would-tag` on ZA01's tags with HEAD declaring `2024.2.10` over different code. | `would_drift`, exit 1. |
+| ZX07 | *(hardening)* `v1.0`, `v1.1`, `v1.2` all declare `1.0.0`, different code; `--max-commits 2`. | `drift`, exit 1 (the window holds a collision; the full run is `drift`). |
+| ZX08 | `--explain 0.1.0` on AG01's repository. | refusal, exit 2; never exit 1. |
+| ZX09 | `--would-tag` on ZV02's repository plus an empty-closure tag, HEAD declaring a new version. | `would_be_clean`, exit 0; `publication_points_scanned` = compared + without label + empty; `points_label_contradicted` 1. |
+| ZX10 | `--strict` on ZV02's repository. | `incomplete`, exit 2. |
+
+### Amendment by the maintainer after extension 3, 2026-10-05
+
+Extension 3 was committed as delivered (19 loose, LR02 and LR03 among them) before any fix. The
+rules it attacked were rewritten twice (`tests/PREREGISTRATION.md`, §10 amendments 2 and 3). Six of
+its cases had a required outcome that only made sense under the first form of a rule; their intent
+stands and the outcome they now require is the amended rule's:
+
+| case | first requirement | now | why |
+|---|---|---|---|
+| ZV02 | `clean` | `incomplete`, exit 2 | a contradicted source never leaves `clean` (ZA10) |
+| ZA08 | `no_labels` | `drift`, exit 1 | agreement is on the first number; `2.0.0` against `v2.52` agrees, the file is believed |
+| ZA09 | `no_labels` | `incomplete`, exit 2 | a contradicted source is refused with its name, not dropped |
+| ZA12 | `no_labels` | `incomplete`, exit 2 | the same |
+| ZN04, ZN05 | groups named `a`–`d` | named `part1`–`part4` | only `part<N>` groups are joined (ZN02) |
+
+LR02 and LR03 are **superseded**: by AG the automatic run refuses a source no tag agrees with, so it
+no longer equals the `--version-file` run on a fixture whose tags `v1`, `v2` disagree with
+`0.1.0`, `0.2.0`. Every other case keeps its requirement, the hardening ones included; those still
+loose are listed in `docs/FAILURES.md`.

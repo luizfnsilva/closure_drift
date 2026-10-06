@@ -1,0 +1,51 @@
+{
+ "report_format": 2,
+ "stamp": {
+  "measured_at_head": "85c03d47a240",
+  "working_tree_dirty": null,
+  "detector_closure": "08ceb754eb8c376f",
+  "working_tree_dirty_note": "not checked: this repository has no working tree"
+ },
+ "repo": "/home/runner/work/_temp/python__cpython.git",
+ "version_file": "Include/patchlevel.h",
+ "closure_globs": [
+  "Python/**",
+  "Objects/**",
+  "Include/**",
+  "Lib/**"
+ ],
+ "published_at": "tags",
+ "publication_points": 674,
+ "labels": 635,
+ "labels_covering_multiple_closures": 2,
+ "max_closures_per_label": 2,
+ "verdict": "drift",
+ "drift": {
+  "2.2.1c2": {
+   "77584bdcd04a720d": "v2.2.1c2 (2002-03-26)",
+   "2a49e5a22172df35": "v2.2 (2002-03-29)"
+  },
+  "3.2.6": {
+   "d05c9ac57248f9f5": "v3.2.6 (2014-10-12)",
+   "6cd1dbae2a4fee5f": "3.2 (2017-06-18)"
+  }
+ },
+ "closure_ids": {
+  "77584bdcd04a720d": "9d6ddaa45f8b6b541cc1d2137a28fee537883c0c8ff5dd0247b55cb885ee6c00",
+  "2a49e5a22172df35": "e33f537e8f14e6557b6c8c648f67a1d3004be694be4940060054b4e924f7d1fb",
+  "d05c9ac57248f9f5": "9216cd821bc15b6c46b33ebb1e2fac9a88f992934288a991e726e99fd9bc599d",
+  "6cd1dbae2a4fee5f": "f4356ea98508290f12018487580df03cc582711a41e735ad8c738468b949de4d"
+ },
+ "closure_changes_between_points": 672,
+ "label_sources": {
+  "Include/patchlevel.h": 646
+ },
+ "publication_points_scanned": 674,
+ "publication_points_compared": 646,
+ "points_without_label": 28,
+ "points_with_empty_closure": 0,
+ "points_not_commits": 0,
+ "range_truncated": false,
+ "points_with_conflicting_sources": 0,
+ "points_label_contradicted": 0
+}

@@ -1,0 +1,37 @@
+name: study
+
+# Run 3 of the study in tools/study/, as its PREREGISTRATION.md says: the same 100 repositories,
+# each cloned once and measured with this detector and with the previous release. By hand only.
+on:
+  workflow_dispatch:
+  push:
+    branches: ['study-run/**']
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    name: shard ${{ matrix.shard }} of 10
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: The previous release
+        run: git fetch --depth=1 origin tag v0.9.1 && git show v0.9.1:closure_drift.py > "$RUNNER_TEMP/closure_drift_0.9.1.py"
+      - name: Measure
+        run: python3 tools/study/run_study.py "$RUNNER_TEMP/work" --into run3 --shard ${{ matrix.shard }}/10 --baseline "$RUNNER_TEMP/closure_drift_0.9.1.py" --baseline-into run3-baseline
+      - uses: actions/upload-artifact@v4
+        with:
+          name: study-shard-${{ matrix.shard }}
+          path: |
+            tools/study/run3/results
+            tools/study/run3-baseline/results
+          if-no-files-found: error

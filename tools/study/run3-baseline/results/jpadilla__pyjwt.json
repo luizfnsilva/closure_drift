@@ -1,0 +1,48 @@
+{
+ "exit": 0,
+ "head": "b5bd6fe6d7ac0370ba90557c7a1e3d50a9414572",
+ "outcome": "clean",
+ "report": {
+  "closure_changes_between_points": 51,
+  "closure_globs": [
+   "src/**",
+   "lib/**",
+   "app/**",
+   "*.py",
+   "*.js",
+   "*.ts",
+   "*.rs",
+   "*.go",
+   "*.java"
+  ],
+  "closure_ids": {},
+  "drift": {},
+  "label_sources": {
+   "jwt/__init__.py": 48,
+   "setup.py": 4
+  },
+  "labels": 52,
+  "labels_covering_multiple_closures": 0,
+  "max_closures_per_label": 1,
+  "points_not_commits": 0,
+  "points_with_conflicting_sources": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points": 52,
+  "publication_points_compared": 52,
+  "publication_points_scanned": 52,
+  "published_at": "tags",
+  "range_truncated": false,
+  "repo": "jpadilla/pyjwt",
+  "report_format": 2,
+  "stamp": {
+   "detector_closure": "89b5349928eba22b",
+   "measured_at_head": "b5bd6fe6d7ac",
+   "working_tree_dirty": null,
+   "working_tree_dirty_note": "not checked: this repository has no working tree"
+  },
+  "verdict": "clean",
+  "version_file": "jwt/__init__.py"
+ },
+ "repository": "jpadilla/pyjwt"
+}

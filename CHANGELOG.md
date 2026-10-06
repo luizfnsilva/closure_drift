@@ -3,6 +3,62 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 0.10.0 — 2026-10-06
+
+The four failures found by the benchmark of ten large repositories (run 1, with 0.9.0; 0.9.1 gives the
+same reports there). The script is sha256
+`91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990`. Each change was pre-registered before the code (`tests/PREREGISTRATION.md` §10).
+
+### Changed — a result of 0.9.x can change
+
+- **`clean` needs at least as many tags compared as not.** 0.9.1 answered `clean`, exit 0, on
+  `Azure/azure-sdk-for-python` with 9 of 5,508 tags compared. That is now `incomplete`, exit 2.
+  `drift` is unaffected.
+- **A version file found by the rules, that no tag named for a version agrees with, decides
+  nothing.** "Agrees": same first number (`v1.1` and `1.0.0` agree; `v2.52` and `0.1.0` do not).
+  The verdict is then `drift` if another source shows one, otherwise `incomplete`, never `clean`;
+  the file is named in `contradicted_sources`. Under `--would-tag` its label at HEAD is not
+  believed. A `package.json` with `"private": true` is not read. `--version-file` is never
+  second-guessed.
+
+### Fixed
+
+- **Memory grew with history**: every tree and every version file read was kept (3.4 GB for every
+  tag of the Linux kernel). Both caches are now bounded; no output changes.
+- A declared version file whose pattern captures only punctuation (a quote) gave two "labels" and
+  a `clean`; that is now no label.
+
+### Added
+
+- **Named groups `part1`, `part2`, …** in `--version-regex` are joined with `.` (a value starting
+  with `-` or `+` is attached as it is), so `VERSION`, `PATCHLEVEL`, `SUBLEVEL` read as `6.1.0`.
+  Recipes for Linux, LLVM, Rust, CPython and Node.js in `docs/LABELS.md`.
+- The refusal for want of a label says where to look.
+- Report fields `points_label_contradicted`, `contradicted_sources`, `label_at_head_rejected`
+  (`docs/REPORT.md`).
+
+### How it was tested
+
+The first form of the second rule dropped the points of a contradicted file. An adversarial pass,
+by a reviewer who did not write it, showed that this hid real drift and in one case produced a
+`clean`, exit 0. The rule was rewritten twice; both amendments are dated in the pre-registration,
+and the 40 attacks are kept as delivered. Results on Linux, macOS and Windows, script
+`91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990`: battery 145 proofs (145, 144 and 140 green; the rest not runnable on that platform; none
+red), 35 of 35 mutants caught, campaign 275 attacks with 3 loose that are published limits
+(`docs/FAILURES.md` O2a–O2c), 17 of 17 properties against the independent oracle with 10 of 10
+controls. The memory fix missed its pre-registered target at first (the kernel still took 3.3 GB;
+measured on CPython, a large part was git mapping pack files, and the cache bound was set too
+high); the second form meets it — every tag of the kernel in 535 MB against 3,285 MB for 0.9.1 on the same clone.
+
+### Comparability
+
+Measured, not assumed: study run 3 cloned each of the 100 repositories once and measured it with
+0.9.1 and with a build of 0.10.0 that differs from the release only in one refusal's text and in
+memory bounds, and prints the same reports (`tests/RECORD.md`). Four moved, all from `clean` to `incomplete` (`coveragepy`, `idna`, `scipy`,
+`tqdm`, each with fewer tags compared than not), as predicted from the stored reports before the
+run; nothing else moved. Drift: 29 of the 88 decided, 29 of 100. On the benchmark, `git/git` no longer
+answers `drift`, `DefinitelyTyped` no longer `would_drift`, and the Azure SDK is `incomplete`.
+
 ## 0.9.1 — 2026-10-05
 
 Evidence, and one fix it led to. The script is sha256 `89b5349928eba22b0394d01940ed3d4aa989d6820f48fdddf189ad521689c51c`.

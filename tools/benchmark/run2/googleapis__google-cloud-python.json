@@ -1,0 +1,202 @@
+{
+ "repository": "googleapis/google-cloud-python",
+ "detector_sha256": "08ceb754eb8c376f62ccd5472f69d3de3070371b190d066614ab4e565a6d6749",
+ "baseline_sha256": "89b5349928eba22b0394d01940ed3d4aa989d6820f48fdddf189ad521689c51c",
+ "oracle_sha256": "2a0afd84146a352ee4d6d6308b2da11b7daf9d80723bcd29bb0e469fb32e02b6",
+ "machine": {
+  "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "cpus": 4,
+  "python": "3.13.15",
+  "git": "git version 2.55.0",
+  "runner": "ubuntu24 20260927.320.1",
+  "memory_mb": 15989
+ },
+ "limit_seconds": 2400,
+ "runs": {
+  "B1": {
+   "exit": 2,
+   "seconds": 52.86,
+   "peak_mb": 109.4,
+   "stderr_first": "could not find a version label. Pass --version-file / --version-regex.",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stdout_bytes": 0,
+   "command": "closure_drift.py CLONE --json"
+  },
+  "B2": {
+   "exit": 2,
+   "seconds": 52.79,
+   "peak_mb": 109.4,
+   "stderr_first": "could not find a version label. Pass --version-file / --version-regex.",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stdout_bytes": 0,
+   "command": "closure_drift.py CLONE --json"
+  },
+  "B3": {
+   "exit": 1,
+   "seconds": 476.37,
+   "peak_mb": 580.4,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "710ac94cfad4cec6d210d91fced2be06e3d93530fdde28ee7c802df50fedbb6b",
+   "stdout_bytes": 21879,
+   "command": "closure_drift.py CLONE --json --max-commits 1000000",
+   "verdict": "drift",
+   "labels": 48,
+   "labels_covering_multiple_closures": 11,
+   "max_closures_per_label": 52,
+   "publication_points_scanned": 6559,
+   "publication_points_compared": 311,
+   "points_without_label": 6248,
+   "points_with_empty_closure": 0,
+   "range_truncated": false,
+   "version_file": null,
+   "detector_closure": "08ceb754eb8c376f"
+  },
+  "B4": {
+   "exit": 2,
+   "seconds": 488.9,
+   "peak_mb": 580.3,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "011566d7653fb710a3c80a74a248f8e632226560d7722faac04a8a2d4578d9e0",
+   "stdout_bytes": 1018,
+   "command": "closure_drift.py CLONE --would-tag --json",
+   "verdict": "no_label_at_head",
+   "publication_points_scanned": 6559,
+   "publication_points_compared": 311,
+   "points_without_label": 6248,
+   "points_with_empty_closure": 0,
+   "range_truncated": false,
+   "version_file": null,
+   "label_at_head": null,
+   "detector_closure": "08ceb754eb8c376f"
+  },
+  "B5": {
+   "exit": 2,
+   "seconds": 44.98,
+   "peak_mb": 160.7,
+   "stderr_first": "could not find a version label. Pass --version-file / --version-regex.",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stdout_bytes": 0,
+   "command": "closure_drift.py CLONE --at commits --json"
+  },
+  "B3_baseline": {
+   "exit": 1,
+   "seconds": 456.55,
+   "peak_mb": 580.4,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "2f4b0c734654bf7a17add20cc5ef6cf71df0633e5b0211bff175cbc3a0aeeee9",
+   "stdout_bytes": 21846,
+   "command": "/home/runner/work/_temp/closure_drift_0.9.1.py CLONE --json --max-commits 1000000",
+   "verdict": "drift",
+   "labels": 48,
+   "labels_covering_multiple_closures": 11,
+   "max_closures_per_label": 52,
+   "publication_points_scanned": 6559,
+   "publication_points_compared": 311,
+   "points_without_label": 6248,
+   "points_with_empty_closure": 0,
+   "range_truncated": false,
+   "version_file": null,
+   "detector_closure": "89b5349928eba22b"
+  },
+  "B6_oldest_newest": {
+   "exit": 2,
+   "seconds": 2.56,
+   "peak_mb": 82.6,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "fb218f505faf449d43bf2285106e7fff30559d46afbb663b5f4234d65479cf94",
+   "stdout_bytes": 4818087,
+   "command": "closure_drift.py CLONE --compare 0.3.0 release-please-18551 --json",
+   "verdict": "not_comparable",
+   "version_file": null,
+   "detector_closure": "08ceb754eb8c376f"
+  },
+  "B7_oldest_newest": {
+   "exit": 0,
+   "seconds": 1.25,
+   "peak_mb": 87.8,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "a5fd150925d1a533d6268accd3ce9a64089376fea2fde8ad4dee30759a4a3c35",
+   "stdout_bytes": 4737577,
+   "command": "tests/oracle.py CLONE --compare 0.3.0 release-please-18551"
+  },
+  "B6_median_newest": {
+   "exit": 2,
+   "seconds": 3.01,
+   "peak_mb": 135.9,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "c5d2146ac8a795f0f4f749b9db75fb51d46fd86be0f5b6936766cd1d17da6c6f",
+   "stdout_bytes": 4897906,
+   "command": "closure_drift.py CLONE --compare google-cloud-securesourcemanager-v0.1.11 release-please-18551 --json",
+   "verdict": "not_comparable",
+   "version_file": null,
+   "detector_closure": "08ceb754eb8c376f"
+  },
+  "B7_median_newest": {
+   "exit": 0,
+   "seconds": 2.06,
+   "peak_mb": 102.1,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "4b39ed237c07c0053a2efe7da6320c27172a8c204b4e9d79e20440645efda792",
+   "stdout_bytes": 4815823,
+   "command": "tests/oracle.py CLONE --compare google-cloud-securesourcemanager-v0.1.11 release-please-18551"
+  }
+ },
+ "failures": [],
+ "clone": {
+  "exit": 0,
+  "seconds": 61.3,
+  "disk_mb": 1014,
+  "tags": 6559,
+  "tags_at_commits": 6559,
+  "commits_from_head": 63667,
+  "files_at_head": 58265,
+  "head": "8792da2d4f67ddcf7370007eb742164754e90b6e"
+ },
+ "tags_picked": {
+  "oldest": "0.3.0",
+  "median": "google-cloud-securesourcemanager-v0.1.11",
+  "newest": "release-please-18551"
+ },
+ "oracle": {
+  "oldest_newest": {
+   "compared": true,
+   "ids_and_counts_agree": true,
+   "path_lists_agree": true,
+   "files": [
+    55,
+    39866
+   ],
+   "paths_differing": 39921
+  },
+  "median_newest": {
+   "compared": true,
+   "ids_and_counts_agree": true,
+   "path_lists_agree": true,
+   "files": [
+    22578,
+    39866
+   ],
+   "paths_differing": 40693
+  }
+ }
+}
