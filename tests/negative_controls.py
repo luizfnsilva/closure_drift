@@ -28,8 +28,7 @@ DETECTOR = HERE.parent / "closure_drift.py"
 MUTANTS = [
     ("M01", "A03", [('code = {"clean": 0, "drift": 1}.get(verdict, 2)',
                      'code = {"clean": 0, "drift": 1, "inconclusive": 0}.get(verdict, 2)')]),
-    ("M02", "C01", [('if e[1] in ("blob", "commit") and self.holds(e[0])]',
-                     'if e[1] in ("blob", "commit") and self.holds(e[0]) and e[0].isascii()]')]),
+    ("M02", "C01", [('if e[1] in ("blob", "commit") and self.holds(e[0], e[1] == "blob")]', 'if e[1] in ("blob", "commit") and self.holds(e[0], e[1] == "blob") and e[0].isascii()]')]),
     ("M03", "D14", [('                raise Refusal(f"git cat-file could not read {want} {printable(name[:60])}: {printable(said)}")',
                      '                return b""')]),
     ("M04", "E01", [('    out = []\n    for ch in str(text):',
@@ -74,7 +73,7 @@ MUTANTS = [
     ("M32", "NG02", [('out += value if (not out or value[0] in "-+") else "." + value', 'out += value if not out else "." + value')]),
     ("M34", "AG08", [('    elif contradicted:\n        verdict = "incomplete"\n', '')]),
     ("M35", "AG10", [('and doc.get("private") is True:', 'and doc.get("private") is None:')]),
-    ("M36", "EX10", [('    return any(fnmatch.fnmatchcase(name, g[3:]) if g.startswith("**/") and "/" not in g[3:]\n', '    return any(False if False\n')]),
+    ("M36", "EX10", [('return any((is_file and fnmatch.fnmatchcase(name, g[3:])) if g.startswith("**/") and "/" not in g[3:]\n', 'return any(False if False\n')]),
     ("M37", "EX01", [('if g.startswith("**/") and "/" not in g[3:]\n', 'if g.startswith("**/")\n')]),
     ("M38", "CM03", [('else "clean" if all(v == "clean" for v in verdicts)', 'else "clean" if all(v in ("clean", "refused", "no_labels") for v in verdicts)')]),
     ("M39", "CM04", [('    if comps and a.component is not None:\n', '    if False:\n')]),

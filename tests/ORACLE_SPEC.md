@@ -141,3 +141,11 @@ So `clean` needs `compared >= empty + without label`.
 the path after its last `/` — with section 2's language applied to that name alone, not to the
 path. Every other exclude glob is matched against the path, as before. Example: `src/x_test.d/real.py`
 is not excluded (its name is `real.py`); `src/foo_test.py` is.
+
+## Amendment 4 — 2026-10-06, before the oracle is changed
+
+**Section 3, exclusions, for submodule pointers.** An entry of type `commit` (a submodule pointer)
+is a folder, not a file: the file-name rule of amendment 3 does not apply to it. Only the other
+exclude globs, matched against its path, can exclude it. Example: a submodule pointer at
+`util/readme.md` is a member under the default include globs only if some include glob matches it;
+`**/*.md` does not exclude it. A submodule pointer at `tests/x` is excluded by `**/tests/**`.

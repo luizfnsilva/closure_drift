@@ -32,7 +32,7 @@ import warnings
 from collections import OrderedDict, defaultdict
 from pathlib import Path
 
-__version__ = "0.10.0"
+__version__ = "1.0.0"
 REPORT_FORMAT = 2
 
 # Where a version can be declared. Python build files are read first; a repository that has

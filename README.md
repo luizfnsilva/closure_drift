@@ -16,11 +16,11 @@ One command checks it. Read-only, one file, no dependencies, no network.
 ## Run it
 
 ```bash
-curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v0.10.0/closure_drift.py
+curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.0.0/closure_drift.py
 python3 closure_drift.py            # inside any git repository
 ```
 
-or `pipx run --spec git+https://github.com/luizfnsilva/closure_drift@v0.10.0 closure-drift`.
+or `pipx run --spec git+https://github.com/luizfnsilva/closure_drift@v1.0.0 closure-drift`.
 Needs Python 3.9+ and git. To see the three possible answers first: `python3 examples/demo.py`, or read [`docs/DEMOS.md`](docs/DEMOS.md).
 
 ## Check before you tag
@@ -31,13 +31,13 @@ Needs Python 3.9+ and git. To see the three possible answers first: `python3 exa
 # GitHub Actions
 - uses: actions/checkout@v4
   with: { fetch-depth: 0 }
-- uses: luizfnsilva/closure_drift@v0.10.0
+- uses: luizfnsilva/closure_drift@v1.0.0
 ```
 
 ```yaml
 # pre-commit, on git push
 - repo: https://github.com/luizfnsilva/closure_drift
-  rev: v0.10.0
+  rev: v1.0.0
   hooks: [{ id: closure-drift-would-tag }]
 ```
 
@@ -72,9 +72,22 @@ The report also says how many tags it could **not** compare.
 | `--explain LABEL` | which paths differ under a label in drift |
 | `--compare A B` | two tags side by side |
 | `--version-file`, `--version-regex` | where the label is |
+| `--component NAME` | one component of a monorepo (below) |
 | `--json`, `--badge`, `--diagnose` | report ([contract](docs/REPORT.md)), README badge, bug-report block |
 
 Settings can be committed in `.closure-drift.json`. Flags override it; a broken file is refused.
+
+A monorepo declares its components, and gets one verdict each:
+
+```json
+{"components": {
+  "python": {"tags": ["py-*"], "version_file": "py/pyproject.toml", "closure": ["py/**"]},
+  "rust":   {"tags": ["rs-*"], "version_file": "rs/Cargo.toml",     "closure": ["rs/**"]}
+}}
+```
+
+The answer is `drift` if any component is in drift, `clean` if all are clean, otherwise
+`incomplete`. Components are declared, never guessed.
 
 ## What it found
 

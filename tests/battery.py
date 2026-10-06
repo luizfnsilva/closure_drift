@@ -1842,7 +1842,8 @@ def cm05(root):
 def cm06(root):
     r = monorepo(root, "cm06")
     rc, _d, out, err = run(r, "--would-tag", text=True)
-    refusal(rc, out, err, "--component")
+    refusal(rc, out, err, "answer about one component")
+    check(not out.strip(), "a report was printed instead of the refusal")
     rc, doc, _o, err = run(r, "--would-tag", "--component", "rust")
     check(doc is not None and doc.get("mode") == "would_tag" and doc.get("component") == "rust",
           "no would-tag answer for rust: %s" % err[:160])

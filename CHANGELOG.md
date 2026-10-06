@@ -3,6 +3,39 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 1.0.0 — @@DATE@@
+
+What 1.0 had to meet was written down before any of it was done (`tests/PREREGISTRATION.md` §11):
+eight requirements, each checked by a command or a file. The script is sha256 `@@SHA@@`.
+
+### Changed — a result of 0.10.0 can change
+
+- **File-name exclusions match file names only.** `**/*_test.*`, `**/*.test.*` and `**/*.md` used
+  to take out whole folders such as `src/x_test.d/`; code under them is now in the closure. A
+  submodule pointer is a folder, and only folder exclusions apply to it.
+- A glob with a range written backwards (`[z-a]`) is refused; some Pythons compiled it into a
+  pattern that matches nothing. A key repeated in `.closure-drift.json` is refused.
+
+### Added
+
+- **Components**: a monorepo declares them in `.closure-drift.json`, each with its own tags,
+  version file and closure; one verdict each, and `--component NAME`.
+- `--diagnose` reports `objects_read`.
+- **A regression corpus**: the 100 projects of the study, each pinned to a recorded HEAD and set of
+  tags (`tools/regression/`). @@REGRESSION@@
+- The scale benchmark runs on the 2nd of every month. @@BENCH@@
+- Python 3.9 to 3.14 in CI.
+
+### Declared, not fixed
+
+`SCOPE.md` now says where the label rules can be fooled without `--version-file`, and that a tag is
+a publication point whether or not it was ever released (found by a participant in the `ruff`
+repository: `v0.0.268` was tagged and never published).
+
+### How it was tested
+
+@@TESTS@@
+
 ## 0.10.0 — 2026-10-06
 
 The four failures found by the benchmark of ten large repositories (run 1, with 0.9.0; 0.9.1 gives the
