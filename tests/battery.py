@@ -1726,6 +1726,53 @@ def ag12(root):
     expect(r, "drift", 1, points_label_contradicted=0)
 
 
+def one_path_changes(root, name, path):
+    r = Repo(root, name)
+    for tag in ("v1.0", "v1.1"):
+        r.release(tag, "1.0.0", {"src/keep.py": "k\n", path: "# %s\n" % tag})
+    return r
+
+
+@proof("EX10")
+def ex10(root):
+    expect(one_path_changes(root, "ex10", "src/x_test.d/real.py"), "drift", 1)
+
+
+@proof("EX11")
+def ex11(root):
+    expect(one_path_changes(root, "ex11", "src/a.test.utils/core.js"), "drift", 1)
+
+
+@proof("EX12")
+def ex12(root):
+    expect(one_path_changes(root, "ex12", "pkg/notes.md/run.py"), "drift", 1)
+
+
+@proof("EX13")
+def ex13(root):
+    rc, doc, _o, _e = run(one_path_changes(root, "ex13", "src/foo_test.py"))
+    check(doc is not None and doc.get("verdict") != "drift", "a change confined to src/foo_test.py was drift")
+
+
+@proof("SP01")
+def sp01(root):
+    r = Repo(root, "sp01")
+    marker = root / "setup-py-ran"
+    body = ("import pathlib\npathlib.Path(%r).write_text('ran')\n"
+            "from setuptools import setup\nsetup(name='pkg', version='%%s')\n" % str(marker))
+    for tag, version in (("v1.0", "1.0"), ("v1.1", "1.1")):
+        r.write("setup.py", body % version)
+        r.write("pkg/a.py", "# %s\n" % tag)
+        r.commit()
+        r.tag(tag)
+    rc, doc, _o, err = run(r)
+    check(doc is not None, "no report: %s" % err[:160])
+    check(not marker.exists(), "the detector ran setup.py")
+    subprocess.run([sys.executable, str(r.path / "setup.py")], capture_output=True, stdin=subprocess.DEVNULL,
+                   cwd=str(r.path))
+    check(marker.exists(), "positive control failed: running setup.py did not create the marker")
+
+
 def many_trees(root, name, n=8):
     r = Repo(root, name)
     for i in range(n):

@@ -147,6 +147,14 @@ def matches(path: str, globs: list[str]) -> bool:
                or (g.endswith("/**") and path.startswith(g[:-3] + "/")) for g in globs)
 
 
+def excluded(path: str) -> bool:
+    """Never part of a closure. `**/name` patterns are matched against the file's own name, so a
+    folder called `x_test.d` does not take its contents out; folder patterns match the path."""
+    name = path.rsplit("/", 1)[-1]
+    return any(fnmatch.fnmatchcase(name, g[3:]) if g.startswith("**/") and "/" not in g[3:]
+               else matches(path, [g]) for g in CLOSURE_EXCLUDE)
+
+
 def check_globs(globs: list[str], what: str) -> None:
     """Refuse, by name, a glob that cannot be compiled."""
     for g in globs:
@@ -297,7 +305,7 @@ class Closure:
     def holds(self, path: str) -> bool:
         got = self.known.get(path)
         if got is None:
-            got = matches(path, self.include) and not matches(path, CLOSURE_EXCLUDE)
+            got = matches(path, self.include) and not excluded(path)
             self.known[path] = got
         return got
 
@@ -660,7 +668,7 @@ class Sources:
                  if p in blobs]
         if not files and anywhere:
             files = depth_first(p for p in blobs if p.endswith(("/" + tail + ".py", "/" + tail + "/__init__.py"))
-                                and not matches(p, CLOSURE_EXCLUDE))
+                                and not excluded(p))
         for path in files:
             if self.read(blobs, path, ("attr", attr)):
                 return path, ("attr", attr)

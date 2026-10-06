@@ -45,6 +45,16 @@ These are not gaps waiting to be filled. They are the boundary, and the boundary
   git's own object ids are, and no stronger.
 - **It is not a proof of anything.** `clean` means clean over the range scanned, at the points you
   told it about.
+- **Without `--version-file`, finding the label is best effort.** The rules read the files a
+  build declares and refuse a file that no tag named for a version agrees with. They can still be
+  fooled: a helper file that agrees with one old tag by chance is believed; build-number tags
+  (`release-41`) can make a correct file look contradicted, which ends at exit 2; `--at commits`
+  has no tag to check against. A file given with `--version-file` is never second-guessed. **In a
+  gate, pass it.**
+- **A publication point is a tag.** Whether a tag was ever released is recorded in a package
+  index, not in the repository, and this tool reads only the repository. A tag never released is
+  still compared (`astral-sh/ruff` `v0.0.268`). Pass `--tags` to select the tags that are
+  releases.
 
 ## The distinction that governs all of the above
 

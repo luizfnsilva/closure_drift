@@ -74,6 +74,8 @@ MUTANTS = [
     ("M32", "NG02", [('out += value if (not out or value[0] in "-+") else "." + value', 'out += value if not out else "." + value')]),
     ("M34", "AG08", [('    elif contradicted:\n        verdict = "incomplete"\n', '')]),
     ("M35", "AG10", [('and doc.get("private") is True:', 'and doc.get("private") is None:')]),
+    ("M36", "EX10", [('    return any(fnmatch.fnmatchcase(name, g[3:]) if g.startswith("**/") and "/" not in g[3:]\n', '    return any(False if False\n')]),
+    ("M37", "EX01", [('if g.startswith("**/") and "/" not in g[3:]\n', 'if g.startswith("**/")\n')]),
     ("M33", "MM03", [('        self.held += len(out) + 1\n', '        self.held += 0\n')]),
 ]
 
