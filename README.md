@@ -78,7 +78,8 @@ Settings can be committed in `.closure-drift.json`. Flags override it; a broken 
 
 ## What it found
 
-**The 100 most-downloaded PyPI projects, at the defaults**, measured with 0.10.0 — rule and method
+**The 100 most-downloaded PyPI projects, at the defaults**, measured with a build of 0.10.0 that prints
+the same reports as the release — rule and method
 fixed before the first run; no repository tuned ([full table and every collision](tools/study/STUDY.md)):
 
 | | repositories |
@@ -147,9 +148,9 @@ Four suites, each pre-registered before the code. Scores are never added togethe
 
 | suite | macOS, Python 3.14 |
 |---|---|
-| `tests/battery.py` — acceptance proofs | 120 declared · 119 green · 0 red · 1 not run |
-| `tests/negative_controls.py` — the battery must fail on a broken detector | 26 mutants · 26 caught · 0 not caught |
-| `tests/adversarial.py` — written by a reviewer who did not write the fixes | 235 attacks · 229 as required · 0 loose · 6 not run |
+| `tests/battery.py` — acceptance proofs | 145 declared · 144 green · 0 red · 1 not run |
+| `tests/negative_controls.py` — the battery must fail on a broken detector | 35 mutants · 35 caught · 0 not caught |
+| `tests/adversarial.py` — written by reviewers who did not write the fixes | 275 attacks · 263 as required · 3 loose · 9 not run; the 3 loose are published limits ([`docs/FAILURES.md`](docs/FAILURES.md) O2a–O2c) |
 | `tests/properties.py` — 60 generated repositories against `tests/oracle.py`, a second implementation written from a specification by someone who did not read this one | 17 properties · 17 green · 0 red · 10 controls · 10 caught |
 
 CI runs the same four on Linux, macOS and Windows; what each platform could not run is in

@@ -35,7 +35,7 @@ A version spread over several lines: name the groups `part1`, `part2`, … Their
 with `.`, and a value starting with `-` or `+` is attached as it is. Otherwise group 1 is the label.
 
 Recipes for large projects, written before they were run (`tools/benchmark/recipes.json`; results
-in `tools/benchmark/BENCHMARK.md`):
+in `tools/benchmark/READING.md`, run 2):
 
 | project | version file | pattern |
 |---|---|---|

@@ -675,3 +675,8 @@ Required: benchmark B3 of `torvalds/linux` under 1.5 GB peak for the whole proce
 than 1.5 times slower than 0.9.1 on the same clone; every suite as before; the same reports as the
 script measured in study run 3 and benchmark run 2, apart from the stamp, on the six reference
 repositories and the 60 seeds of the property suite.
+
+### Note, 2026-10-06 — wording only
+
+Where §10 and its amendments say "the benchmark of 0.9.1", run 1 of the benchmark was measured with
+0.9.0; 0.9.1 gives the same reports there (it differs only on Windows). Nothing else changes.

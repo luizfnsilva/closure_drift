@@ -20,6 +20,11 @@ Detector 0.10.0: `closure_drift.py`, sha256 `91ecd5d1437632b3db65fe606b39b3c9243
 | macOS | 3.11, 3.13 | 145 · 144 green · 0 red · 1 not run | 35 of 35 | 275 · 263 · 3 loose · 9 not run | 17 of 17 · 10 of 10 |
 | Windows | 3.9, 3.13 | 145 · 140 green · 0 red · 5 not run | 35 of 35 | 275 · 242 · 3 loose · 30 not run | 17 of 17 · 10 of 10 |
 
+The released script and the build that measured study run 3 and benchmark run 2 (`08ceb754…`),
+2026-10-06, on macOS: the same JSON report, apart from `detector_closure`, for the 60 generated
+repositories of the property suite, and for `click`, `requests`, `packaging`, `httpx`,
+`impress.js` and `lodash` at the default range, at every tag and with `--would-tag` (18 of 18).
+
 The 3 loose are the same three on every platform. What does not run on each platform is listed
 under 0.9.0 below, plus, on Windows, the cases of extension 3 that need a POSIX shell or file names
 Windows refuses.

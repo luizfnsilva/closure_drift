@@ -62,7 +62,8 @@ redirect the measurement if set in your environment (`GIT_DIR`, `GIT_WORK_TREE` 
   verdict is never `clean`, but a single wrong source is believed. Pin `--version-file` in a gate.
 - **A `.closure-drift.json` committed by the attacker in a repository you gate.** It can narrow the
   closure or the tags. Review it like code, or pass the flags on the command line; flags override it.
-- **Resource exhaustion by size.** There is no memory limit; see `tools/benchmark/BENCHMARK.md`.
+- **Resource exhaustion by size.** Memory is bounded (535 MB for every tag of the Linux kernel), time
+  is not; see `tools/benchmark/READING.md`.
 - **Git versions and file systems not in `tests/RECORD.md`.**
 
 ## What a pass of the tests means

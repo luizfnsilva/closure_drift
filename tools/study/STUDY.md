@@ -243,7 +243,7 @@ Repositories whose outcome differs between the two detectors:
 - `scipy/scipy`: clean → incomplete (43 of 188 tags compared)
 - `coveragepy/coveragepy`: clean → incomplete (36 of 192 tags compared)
 
-Detectors: 0.10.0 sha256 `91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990`, 0.9.1 `91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990`.
+Detectors: 0.10.0 sha256 `08ceb754eb8c376f`, 0.9.1 `89b5349928eba22b`.
 The released 0.10.0 script differs from the one that measured this run in the text of one refusal
 and in how much memory it keeps (`tests/PREREGISTRATION.md` §10, amendments 4 and 5); on the 60
 generated repositories of the property suite and six public ones, the two print the same report.

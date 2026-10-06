@@ -105,8 +105,11 @@ def table():
                      rep.get("publication_points_scanned", ""), rep.get("publication_points_compared", ""),
                      rep.get("labels", ""), rep.get("labels_covering_multiple_closures", ""),
                      rep.get("max_closures_per_label", ""), row.get("cause", "")))
+    # the detector named is the one stamped in the reports, not the one present when the table is rebuilt
+    stamps = sorted({json.loads(f.read_text(encoding="utf-8")).get("report", {}).get("stamp", {}).get("detector_closure", "")
+                     for f in results.glob("*.json")} - {""})
     with open(HERE / option("--into", ".") / "results.tsv", "w", encoding="utf-8", newline="\n") as fh:
-        fh.write("# detector sha256 %s\n" % hashlib.sha256(DETECTOR.read_bytes()).hexdigest())
+        fh.write("# detector sha256, first 16 hex, as stamped in the reports %s\n" % ",".join(stamps))
         fh.write("# rank\tproject\trepository\toutcome\texit\tscanned\tcompared\tlabels\tlabels_in_drift\tworst\tcause\n")
         for r in rows:
             fh.write("\t".join(str(x) for x in r) + "\n")

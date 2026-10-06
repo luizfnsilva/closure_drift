@@ -3,9 +3,10 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
-## 0.10.0 — 2026-10-05
+## 0.10.0 — 2026-10-06
 
-The four failures found by the benchmark of 0.9.1 on ten large repositories. The script is sha256
+The four failures found by the benchmark of ten large repositories (run 1, with 0.9.0; 0.9.1 gives the
+same reports there). The script is sha256
 `91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990`. Each change was pre-registered before the code (`tests/PREREGISTRATION.md` §10).
 
 ### Changed — a result of 0.9.x can change
@@ -31,7 +32,7 @@ The four failures found by the benchmark of 0.9.1 on ten large repositories. The
 
 - **Named groups `part1`, `part2`, …** in `--version-regex` are joined with `.` (a value starting
   with `-` or `+` is attached as it is), so `VERSION`, `PATCHLEVEL`, `SUBLEVEL` read as `6.1.0`.
-  Recipes for Linux, LLVM, Rust, CPython, Node.js and git in `docs/LABELS.md`.
+  Recipes for Linux, LLVM, Rust, CPython and Node.js in `docs/LABELS.md`.
 - The refusal for want of a label says where to look.
 - Report fields `points_label_contradicted`, `contradicted_sources`, `label_at_head_rejected`
   (`docs/REPORT.md`).
@@ -45,17 +46,18 @@ and the 40 attacks are kept as delivered. Results on Linux, macOS and Windows, s
 `91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990`: battery 145 proofs (145, 144 and 140 green; the rest not runnable on that platform; none
 red), 35 of 35 mutants caught, campaign 275 attacks with 3 loose that are published limits
 (`docs/FAILURES.md` O2a–O2c), 17 of 17 properties against the independent oracle with 10 of 10
-controls. The memory fix missed its pre-registered target at first (the kernel still took 3.3 GB:
-most of it was git mapping pack files, and the cache bound was set too high); the second form
-meets it — every tag of the kernel in 535 MB against 3,285 MB for 0.9.1 on the same clone.
+controls. The memory fix missed its pre-registered target at first (the kernel still took 3.3 GB;
+measured on CPython, a large part was git mapping pack files, and the cache bound was set too
+high); the second form meets it — every tag of the kernel in 535 MB against 3,285 MB for 0.9.1 on the same clone.
 
 ### Comparability
 
 Measured, not assumed: study run 3 cloned each of the 100 repositories once and measured it with
-0.9.1 and with 0.10.0. Four moved, all from `clean` to `incomplete` (`coveragepy`, `idna`, `scipy`,
+0.9.1 and with a build of 0.10.0 that differs from the release only in one refusal's text and in
+memory bounds, and prints the same reports (`tests/RECORD.md`). Four moved, all from `clean` to `incomplete` (`coveragepy`, `idna`, `scipy`,
 `tqdm`, each with fewer tags compared than not), as predicted from the stored reports before the
-run; nothing else moved. Drift: 29 of the 88 decided, 29 of 100. On the benchmark, `git/git` and
-`DefinitelyTyped` no longer answer `drift`; the Azure SDK is `incomplete`.
+run; nothing else moved. Drift: 29 of the 88 decided, 29 of 100. On the benchmark, `git/git` no longer
+answers `drift`, `DefinitelyTyped` no longer `would_drift`, and the Azure SDK is `incomplete`.
 
 ## 0.9.1 — 2026-10-05
 

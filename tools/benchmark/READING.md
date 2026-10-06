@@ -45,7 +45,7 @@ The result files are kept as produced.
 5. **`DefinitelyTyped`: one tag.** `--would-tag` says `would_drift` on the root `package.json`
    version `0.0.3`, which nobody releases.
 
-Items 2, 3 and 5 are exit codes a gate would act on. They are in `docs/FAILURES.md` as open.
+Items 2, 3 and 5 are exit codes a gate would act on. They are in `docs/FAILURES.md` as open. (Fixed in 0.10.0: see Run 2 below.)
 
 ## What this does not show
 
@@ -84,7 +84,8 @@ clone each time.
 Rows for `linux`, `llvm` and `node` are from `run2b/`; the others from `run2/`, measured before
 amendment 5 bounded git's pack mapping and lowered the tree cache, so their memory is higher than
 the released script's. On CPython, measured on the author's machine, amendment 5 took the detector
-from 277 to 114 MB and its git process from 375 to 198 MB, with the same report.
+from 277 to 114 MB and its git process from 375 to 198 MB, with the same report (the git
+limit alone, measured for amendment 5 with the earlier cache bound: 375 to 217 MB).
 
 What it shows:
 

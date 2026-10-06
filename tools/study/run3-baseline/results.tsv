@@ -1,4 +1,4 @@
-# detector sha256 91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990
+# detector sha256, first 16 hex, as stamped in the reports 89b5349928eba22b
 # rank	project	repository	outcome	exit	scanned	compared	labels	labels_in_drift	worst	cause
 1	boto3	boto/boto3	clean	0	400	400	400	0	1	
 2	packaging	pypa/packaging	clean	0	53	50	50	0	1	
