@@ -93,3 +93,10 @@ coverage rule; the loop that files closures under a label moved out one level). 
 applied and were reported not caught, as they must be. Their anchors now name the new text; what
 each breaks and the property it must turn red are unchanged. The oracle was amended for 0.10.0 by
 its author (`tests/ORACLE_SPEC.md`, amendment 2; self-test 117 of 117).
+
+## Detector 1.0.0 — controls re-anchored, 2026-10-06
+
+K03 and K10 replaced text that 1.0.0 changed (exclusions now take the entry's kind, `excluded(path,
+is_file)`). Both no longer applied and were reported not caught. Re-anchored; what each breaks and
+the property it must turn red are unchanged. The oracle was amended for 1.0.0 by its author
+(`tests/ORACLE_SPEC.md`, amendments 3 and 4; self-test 147 of 147).
