@@ -18,7 +18,7 @@ reported from outside.
 | O2a | **A wrong file is still believed when one tag agrees by chance** with its first number (a helper crate's `0.1.0` and an old tag `v0.1`) | adversarial ZA04 | `--version-file` in any gate |
 | O2b | **Build-number tags (`release-41`) read as versions**: a correct file can be refused, exit 2 | adversarial ZA02 | `--version-file` |
 | O2c | **`--at commits` has no tag to check a version file against** | adversarial ZX03 | `--version-file` |
-| O10 | **A tag that was never released counts as a publication point.** `astral-sh/ruff` `v0.0.268` was tagged before the version bump and never published; the collision it makes names no second artefact | a participant in [ruff discussion 29122](https://github.com/astral-sh/ruff/discussions/29122), 2026-10-06 — the first failure reported from outside | `--tags` to the tags that are releases |
+| O10 | **A tag that was never released counts as a publication point.** `astral-sh/ruff` `v0.0.268` was tagged before the version bump and never published; the collision it makes names no second artefact | a participant in [ruff discussion 29122](https://github.com/astral-sh/ruff/discussions/29122), 2026-10-06 — the first failure reported from outside; the same shape in `openai-python` ([discussion 4031](https://github.com/openai/openai-python/discussions/4031)): the published `0.26.5` was built from the commit after the tag | `--tags` to the tags that are releases |
 | O7 | Labels are compared as text (`1.0` ≠ `1.0.0`); a mode-only change is not seen; a submodule's content is not read | declared since 0.9.0 | `SCOPE.md`, with what to do for each |
 
 ## Fixed
