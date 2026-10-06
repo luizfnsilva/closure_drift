@@ -837,7 +837,7 @@ def read_config(repo: str) -> dict:
                           f"known keys are {', '.join(sorted(CONFIG_KEYS))}")
         if not isinstance(value, CONFIG_KEYS[key]) or not value:
             raise Refusal(f"broken {printable(cfg_path)}: {key!r} must be a non-empty "
-                          f"{'list of globs' if CONFIG_KEYS[key] is list else 'string'}")
+                          + {list: "list of globs", dict: "JSON object"}.get(CONFIG_KEYS[key], "string"))
         if isinstance(value, list) and any(not isinstance(g, str) or not g for g in value):
             raise Refusal(f"broken {printable(cfg_path)}: every entry of {key!r} must be a non-empty string")
     comps = cfg.get("components")
@@ -1068,7 +1068,12 @@ def components(a, head_sha: str, cfg: dict, comps: dict) -> int:
         print(badge(verdict, head_sha[:12]))
         return code
     if a.json:
-        emit({"report_format": REPORT_FORMAT, "mode": "components", "repo": a.repo,
+        dirty, dirty_note = working_tree_state(a.repo)
+        stamp = {"measured_at_head": head_sha[:12], "working_tree_dirty": dirty,
+                 "detector_closure": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:16]}
+        if dirty_note:
+            stamp["working_tree_dirty_note"] = dirty_note
+        emit({"report_format": REPORT_FORMAT, "stamp": stamp, "mode": "components", "repo": a.repo,
               "measured_at_head": head_sha[:12], "verdict": verdict, "components": reports})
         return code
     print(f"repository        {printable(a.repo)}")

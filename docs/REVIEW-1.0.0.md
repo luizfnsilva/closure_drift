@@ -13,7 +13,7 @@ corrected; what was done is in the last column.
 | 5 | `reproduce.sh --study` called the study runner without a work directory | fixed |
 | 6 | `docs/CI.md` installed `closure-drift` from PyPI, where it is not published | installs from the release |
 | 7 | O7 (labels compared as text, mode-only changes, submodule content) open, not declared with a way to avoid it | declared in `SCOPE.md` with what to do |
-| 8 | "flags override the file" is false with components; a gate in a monorepo needs `--component` | `README`, `THREAT_MODEL`, the action and the hook say so; the action takes `component` |
+| 8 | "flags override the file" is false with components; a gate in a monorepo needs `--component` | `README`, `THREAT_MODEL` and the action say so; the action's `args` take `--component` |
 | 9 | the components report carried no `stamp` / `detector_closure` | added |
 | 10 | `docs/REPORT.md` said K02 checks every report; it does not check the components report | reworded, CM01–CM10 named |
 | 11 | no benchmark run 3 in the repository | run 3 measured and recorded |

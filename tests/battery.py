@@ -1810,6 +1810,7 @@ def monorepo(root, name, rs_versions=("0.1.0", "0.1.0"), py_versions=("1.0.0", "
 @proof("CM01")
 def cm01(root):
     doc = expect(monorepo(root, "cm01"), "drift", 1, mode="components")
+    check(doc.get("stamp", {}).get("detector_closure"), "the components report carries no detector_closure")
     check(doc["components"]["python"]["verdict"] == "clean", "python: %r" % doc["components"]["python"]["verdict"])
     check(doc["components"]["rust"]["verdict"] == "drift", "rust: %r" % doc["components"]["rust"]["verdict"])
 

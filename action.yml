@@ -15,7 +15,7 @@ inputs:
     required: false
     default: "."
   args:
-    description: "Extra arguments, e.g. --tags 'v*' --strict --closure 'src/**'."
+    description: "Extra arguments, e.g. --tags 'v*' --strict --closure 'src/**'. A monorepo with components in .closure-drift.json passes --component NAME for --would-tag."
     required: false
     default: ""
   allow-undetermined:

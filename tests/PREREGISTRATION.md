@@ -835,3 +835,12 @@ under this section, is the one 1.0 is judged on.
 | id | setup | required |
 |---|---|---|
 | DG04 | a repository of three tags, `--diagnose --json` | `diagnostics.objects_read` is a positive integer; the same on a second run; the rest of the report equals the run without `--diagnose` apart from `diagnostics` |
+
+### Amendment to §15, 2026-10-06 — after the review of the whole repository, before run 3
+
+The harness read the peak of the largest single process (`ru_maxrss` from `wait4`), not of the
+process tree that §10 amendment 5 and R6 name. It now also samples, every 50 ms on Linux, the
+resident memory of the detector and all its children together (`tree_peak_mb`). R6's "under 1 GB"
+is judged on `tree_peak_mb`. Sampling can miss a peak shorter than the interval; that is said with
+the result. Run 3 is the first run that records it. Also corrected: R5 names proofs "CP*"; they
+are CM01–CM10.
