@@ -160,19 +160,23 @@ Four suites, each pre-registered before the code. Scores are never added togethe
 
 | suite | macOS, Python 3.14 |
 |---|---|
-| `tests/battery.py` — acceptance proofs | 145 declared · 144 green · 0 red · 1 not run |
-| `tests/negative_controls.py` — the battery must fail on a broken detector | 35 mutants · 35 caught · 0 not caught |
-| `tests/adversarial.py` — written by reviewers who did not write the fixes | 275 attacks · 263 as required · 3 loose · 9 not run; the 3 loose are published limits ([`docs/FAILURES.md`](docs/FAILURES.md) O2a–O2c) |
+| `tests/battery.py` — acceptance proofs | 161 declared · 160 green · 0 red · 1 not run |
+| `tests/negative_controls.py` — the battery must fail on a broken detector | 40 mutants · 40 caught · 0 not caught |
+| `tests/adversarial.py` — written by reviewers who did not write the fixes | 315 attacks · 303 as required · 3 loose · 9 not run; the 3 loose are declared limits ([`docs/FAILURES.md`](docs/FAILURES.md) O2a–O2c) |
 | `tests/properties.py` — 60 generated repositories against `tests/oracle.py`, a second implementation written from a specification by someone who did not read this one | 17 properties · 17 green · 0 red · 10 controls · 10 caught |
 
-CI runs the same four on Linux, macOS and Windows; what each platform could not run is in
+CI runs the same four on Linux (Python 3.9 to 3.14), macOS and Windows; what each platform could not
+run is in
 [`tests/RECORD.md`](tests/RECORD.md). These scores describe the cases executed, not inputs nobody
-tried. `./reproduce.sh` runs all of it.
+tried. `./reproduce.sh` runs all of it. The 100 projects of the study are also a regression corpus,
+pinned to recorded commits: 1.0.0 gives the recorded answer on all 100
+([`tools/regression/`](tools/regression/)).
 
 **Ten large repositories** (the Linux kernel, LLVM, CPython and seven more), protocol written
-first. 0.9.1 needed 3.3 GB for every tag of the kernel and gave three wrong or near-empty answers;
-0.10.0 needs 535 MB and gives none of those three. With a declared version file
-([`docs/LABELS.md`](docs/LABELS.md)) every tag of the kernel is compared: `clean`, 947 of 947.
+first. Every tag of the kernel: 6.5 GB for the whole process tree with 0.9.1, 900 MB with 1.0.0.
+0.9.1 gave three wrong or near-empty answers there; 1.0.0 gives none of them. With a declared
+version file ([`docs/LABELS.md`](docs/LABELS.md)) every tag of the kernel is compared: `clean`,
+947 of 947, in four minutes.
 [`tools/benchmark/READING.md`](tools/benchmark/READING.md).
 
 ## Send a result
@@ -184,11 +188,11 @@ or write to lfnsilva.invest@gmail.com. A result showing the tool is wrong is the
 
 ## Version
 
-**0.10.0.** Script sha256 `91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990`.
-It fixes the four failures the large-repository benchmark found: `clean` now needs at least as
-many tags compared as not; a version file that no tag agrees with decides nothing; a version
-spread over several lines can be read with named groups; memory no longer grows with history.
-A `clean` or `drift` from 0.9.x can now be `incomplete`. [`CHANGELOG.md`](CHANGELOG.md).
+**1.0.0.** Script sha256 `74309fe6db463a53e2dce112596b425a596a1a38dce413054e2db32a23f99f0d`.
+1.0 adds nothing to impress: every open item that could give a wrong answer is fixed or declared
+in [`SCOPE.md`](SCOPE.md), which also says what stays stable until 2.0. What it had to meet was
+written first ([`tests/PREREGISTRATION.md`](tests/PREREGISTRATION.md) §11).
+[`CHANGELOG.md`](CHANGELOG.md).
 
 Apache-2.0. Cite the version DOI, under concept DOI `10.5281/zenodo.21763931`
 ([`CITATION.cff`](CITATION.cff)). Planned next: [`ROADMAP.md`](ROADMAP.md).

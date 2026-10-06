@@ -63,7 +63,7 @@ redirect the measurement if set in your environment (`GIT_DIR`, `GIT_WORK_TREE` 
 - **A `.closure-drift.json` committed by the attacker in a repository you gate.** It can narrow the
   closure or the tags. Review it like code, or pass the flags on the command line; flags override it
   — beside `components`, only together with `--component`.
-- **Resource exhaustion by size.** Memory is bounded (every tag of the Linux kernel: @@KERNELMB@@ for the
+- **Resource exhaustion by size.** Memory is bounded (every tag of the Linux kernel: 900 MB for the
   whole process tree), time is not; see `tools/benchmark/READING.md`.
 - **Git versions and file systems not in `tests/RECORD.md`.**
 

@@ -1,0 +1,57 @@
+{
+ "report_format": 2,
+ "stamp": {
+  "measured_at_head": "b57eb9a5fd94",
+  "working_tree_dirty": null,
+  "detector_closure": "74309fe6db463a53",
+  "working_tree_dirty_note": "not checked: this repository has no working tree"
+ },
+ "repo": "/home/runner/work/_temp/rust-lang__rust.git",
+ "version_file": null,
+ "closure_globs": [
+  "src/**",
+  "lib/**",
+  "app/**",
+  "*.py",
+  "*.js",
+  "*.ts",
+  "*.rs",
+  "*.go",
+  "*.java"
+ ],
+ "published_at": "commits",
+ "publication_points": 400,
+ "labels": 2,
+ "labels_covering_multiple_closures": 2,
+ "max_closures_per_label": 3,
+ "verdict": "drift",
+ "drift": {
+  "0.1.100": {
+   "0e9278958202cac0": "improve `items_after_test_module`: don't let derive expansions hide trailing items (#17816) (2026-09-30)",
+   "804f34417af19200": "Changelog for Clippy 1.99 \ud83c\udf42 (#17802) (2026-10-01)",
+   "6de23e00f334a3c6": "Merge remote-tracking branch 'upstream/master' into rustup (2026-10-01)"
+  },
+  "0.1.101": {
+   "6de23e00f334a3c6": "Bump Clippy version -> 0.1.101 (2026-10-01)",
+   "90fc0fa6f704253f": "Rustup (#17826) (2026-10-01)"
+  }
+ },
+ "closure_ids": {
+  "0e9278958202cac0": "a161dce7d8034c8421105d43ec09d127cc2141856419218e15e6b1620da17c11",
+  "804f34417af19200": "b33516ffeec333b5ab9147e5d1085ceedff548059be4499b31d02683d8cbf998",
+  "6de23e00f334a3c6": "c5d2a24f25f5aaab4bd638e45e24145a45731b9153a02e30fbb7c1ecb0b59c1f",
+  "90fc0fa6f704253f": "b8f585bec4c3961386bc7164c68c5c31fe3b209a6d68f70d499bc8b14abbfbd7"
+ },
+ "closure_changes_between_points": 332,
+ "label_sources": {
+  "Cargo.toml": 6
+ },
+ "publication_points_scanned": 400,
+ "publication_points_compared": 6,
+ "points_without_label": 394,
+ "points_with_empty_closure": 0,
+ "points_not_commits": 0,
+ "range_truncated": true,
+ "points_with_conflicting_sources": 0,
+ "points_label_contradicted": 0
+}

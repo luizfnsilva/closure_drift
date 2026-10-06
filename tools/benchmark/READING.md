@@ -100,3 +100,32 @@ What it shows:
   The `git/git` recipe read `DEF_VER`, which is not git's version, and is withdrawn
   (`docs/LABELS.md`); its 39 "labels in drift" are not findings.
 - F5 at two pairs, as in run 1: the harness compares the ids of two empty closures.
+
+## Run 3 — 1.0.0, written 2026-10-06 after the results
+
+CI run 37506076749, script `74309fe6…`, B3 of 0.9.1 on the same clone. Memory is now the
+**whole process tree** (the detector and its `git cat-file`), sampled every 50 ms
+(`tests/PREREGISTRATION.md`, amendment to §15); runs 1 and 2 recorded the largest single process.
+
+| repository | every tag, 0.9.1 | every tag, 1.0.0 | with the recipe, 1.0.0 | objects read (recipe) |
+|---|---|---|---|---|
+| `torvalds/linux` | refusal · 100 s · 6542 MB | refusal · 150 s · 900 MB | clean · 240 s · 900 MB | 368,458 |
+| `llvm/llvm-project` | refusal · 52 s · 2693 MB | refusal · 77 s · 614 MB | drift · 73 s · 615 MB | 147,313 |
+| `rust-lang/rust` | refusal · 14 s · 1264 MB | refusal · 20 s · 376 MB | incomplete · 18 s · 372 MB | 82,089 |
+| `python/cpython` | refusal · 14 s · 874 MB | refusal · 16 s · 248 MB | drift · 55 s · 255 MB | 37,630 |
+| `nodejs/node` | refusal · 48 s · 1858 MB | refusal · 62 s · 313 MB | drift · 123 s · 333 MB | 106,255 |
+| `kubernetes/kubernetes` | refusal · 54 s · 1281 MB | refusal · 66 s · 266 MB | — | — |
+| `git/git` | drift · 6 s · 555 MB | incomplete · 7 s · 206 MB | — | — |
+| `Azure/azure-sdk-for-python` | clean · 572 s · 1362 MB | incomplete · 678 s · 317 MB | — | — |
+| `googleapis/google-cloud-python` | drift · 451 s · 1088 MB | drift · 543 s · 282 MB | — | — |
+| `DefinitelyTyped/DefinitelyTyped` | inconclusive · 2 s · 165 MB | refusal · 2 s · 128 MB | — | — |
+
+- **R6 is met**: no run past its limit, no crash; every tag of the kernel with the recipe in
+  900 MB for the whole tree, under the 1 GB of §11, with little room. 0.9.1 on the same clone:
+  6,541 MB.
+- **The 535 MB published for 0.10.0 was the largest single process**, not the tree; the tree was
+  larger. Recorded in `docs/FAILURES.md`.
+- Time is not bounded: every tag of the kernel takes 240 s with the recipe.
+- Recipes as in run 2: the kernel `clean` over 947 of 947 tags; LLVM and Node `drift` on release
+  candidates whose suffix the recipe does not read; CPython 2 labels on two old tags; Rust
+  `incomplete`, 74 of 164 compared.

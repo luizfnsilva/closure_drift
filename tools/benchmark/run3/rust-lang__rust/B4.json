@@ -1,0 +1,39 @@
+{
+ "report_format": 2,
+ "stamp": {
+  "measured_at_head": "b57eb9a5fd94",
+  "working_tree_dirty": null,
+  "detector_closure": "74309fe6db463a53",
+  "working_tree_dirty_note": "not checked: this repository has no working tree"
+ },
+ "mode": "would_tag",
+ "repo": "/home/runner/work/_temp/rust-lang__rust.git",
+ "version_file": null,
+ "closure_globs": [
+  "src/**",
+  "lib/**",
+  "app/**",
+  "*.py",
+  "*.js",
+  "*.ts",
+  "*.rs",
+  "*.go",
+  "*.java"
+ ],
+ "published_at": "tags",
+ "verdict": "no_label_at_head",
+ "label_at_head": null,
+ "label_source": null,
+ "closure_at_head": "2f3bbb65b08e1da4",
+ "closure_id_at_head": "21f1b45d61ac52a06b8ddce651f5d4d7f745a1f30c6fb2fdd3d430b1c617b54b",
+ "collides_with": [],
+ "existing_drift_labels": 0,
+ "publication_points_scanned": 164,
+ "publication_points_compared": 0,
+ "points_without_label": 164,
+ "points_with_empty_closure": 0,
+ "points_not_commits": 0,
+ "range_truncated": false,
+ "points_with_conflicting_sources": 0,
+ "points_label_contradicted": 0
+}

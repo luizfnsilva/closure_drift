@@ -1,0 +1,43 @@
+{
+ "report_format": 2,
+ "stamp": {
+  "measured_at_head": "5a7d1e8045ce",
+  "working_tree_dirty": null,
+  "detector_closure": "74309fe6db463a53",
+  "working_tree_dirty_note": "not checked: this repository has no working tree"
+ },
+ "repo": "/home/runner/work/_temp/git__git.git",
+ "version_file": "Cargo.toml",
+ "closure_globs": [
+  "src/**",
+  "lib/**",
+  "app/**",
+  "*.py",
+  "*.js",
+  "*.ts",
+  "*.rs",
+  "*.go",
+  "*.java"
+ ],
+ "published_at": "tags",
+ "publication_points": 400,
+ "labels": 0,
+ "labels_covering_multiple_closures": 0,
+ "max_closures_per_label": 0,
+ "verdict": "incomplete",
+ "drift": {},
+ "closure_ids": {},
+ "closure_changes_between_points": 199,
+ "label_sources": {},
+ "publication_points_scanned": 400,
+ "publication_points_compared": 0,
+ "points_without_label": 400,
+ "points_with_empty_closure": 0,
+ "points_not_commits": 1,
+ "range_truncated": true,
+ "points_with_conflicting_sources": 0,
+ "points_label_contradicted": 20,
+ "contradicted_sources": [
+  "Cargo.toml"
+ ]
+}

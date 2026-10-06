@@ -40,7 +40,7 @@ met.
 ## Verifying what you run
 
 The citable artefact is the Zenodo deposit; every version has its own DOI. The measurement script
-has had five states, and the checksum to expect depends on which deposit you pinned:
+has had six states, and the checksum to expect depends on which deposit you pinned:
 
 ```
 sha256  da5da3c0e781b67b9b3a55800d599c243edc8df649fc90b24a88e289533805c5  closure_drift.py  (0.3.0 - 0.6.0)
@@ -48,9 +48,10 @@ sha256  6d8906ef374b73e6b8c58adba813c77c4ff352f5c9c280aa43ff2baa4f804451  closur
 sha256  6548f891a826034c35ef83b276578c79564b57f892a54422af5c1be44591137c  closure_drift.py  (0.9.0)
 sha256  89b5349928eba22b0394d01940ed3d4aa989d6820f48fdddf189ad521689c51c  closure_drift.py  (0.9.1)
 sha256  91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990  closure_drift.py  (0.10.0)
+sha256  74309fe6db463a53e2dce112596b425a596a1a38dce413054e2db32a23f99f0d  closure_drift.py  (1.0.0)
 ```
 
-Do not take those five lines from this page as the authority: this page is inside the package it
+Do not take those six lines from this page as the authority: this page is inside the package it
 describes, and a package does not establish its own provenance. The checksums to check against are
 the ones in the `DEPOSIT.sha256` of the DOI you pinned, and the record itself:
 

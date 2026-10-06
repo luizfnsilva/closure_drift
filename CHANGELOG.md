@@ -3,10 +3,10 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
-## 1.0.0 — @@DATE@@
+## 1.0.0 — 2026-10-06
 
 What 1.0 had to meet was written down before any of it was done (`tests/PREREGISTRATION.md` §11):
-eight requirements, each checked by a command or a file. The script is sha256 `@@SHA@@`.
+eight requirements, each checked by a command or a file. The script is sha256 `74309fe6db463a53e2dce112596b425a596a1a38dce413054e2db32a23f99f0d`.
 
 ### Changed — a result of 0.10.0 can change
 
@@ -22,8 +22,10 @@ eight requirements, each checked by a command or a file. The script is sha256 `@
   version file and closure; one verdict each, and `--component NAME`.
 - `--diagnose --json` reports `objects_read`; the components report carries its own stamp.
 - **A regression corpus**: the 100 projects of the study, each pinned to a recorded HEAD and set of
-  tags (`tools/regression/`). @@REGRESSION@@
-- The scale benchmark runs on the 2nd of every month. @@BENCH@@
+  tags (`tools/regression/`). Recorded with 0.10.0; 1.0.0 gives the recorded answer on all 100; 0.9.1, the
+  control, differs on exactly the four that study run 3 found.
+- The scale benchmark runs on the 2nd of every month. Memory is now the whole process tree: every tag of the Linux kernel with its recipe in
+  900 MB (0.9.1: 6,541 MB on the same clone), in 240 s.
 - Python 3.9 to 3.14 in CI.
 
 ### Declared, not fixed
@@ -34,7 +36,16 @@ repository: `v0.0.268` was tagged and never published).
 
 ### How it was tested
 
-@@TESTS@@
+Results on Linux (Python 3.9 to 3.14), macOS (3.10, 3.14) and Windows (3.9, 3.14), script
+`74309fe6db463a53e2dce112596b425a596a1a38dce413054e2db32a23f99f0d`, CI run 37506080583: battery 161 proofs (161, 160 and 156 green; the rest not runnable on that
+platform; none red), 40 of 40 mutants caught, campaign 315 attacks with 3 loose that are declared
+limits, 17 of 17 properties against the independent oracle with 10 of 10 controls. A fourth
+adversarial pass (components, exclusions) found eleven loose cases; all fixed before release. A
+review of the whole repository found thirty-four statements it could not sustain; each was
+corrected or answered (`docs/REVIEW-1.0.0.md`).
+
+**A correction to 0.10.0.** Its "535 MB for every tag of the kernel" was the largest single
+process, not the whole process tree, which was larger. 1.0.0 measures the tree.
 
 ## 0.10.0 — 2026-10-06
 

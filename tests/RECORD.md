@@ -1,3 +1,20 @@
+# Record of the battery runs — closure_drift 1.0.0
+
+Detector 1.0.0: `closure_drift.py`, sha256 `74309fe6db463a53e2dce112596b425a596a1a38dce413054e2db32a23f99f0d`. CI run 37506080583.
+
+| platform | CPython | battery | mutants | adversarial | oracle | properties |
+|---|---|---|---|---|---|---|
+| Ubuntu | 3.9, 3.10, 3.11, 3.12, 3.13, 3.14 | 161 · 161 green · 0 red · 0 not run | 40 of 40 | 315 · 303 as required · 3 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 controls |
+| macOS | 3.10, 3.14 | 161 · 160 green · 0 red · 1 not run | 40 of 40 | 315 · 303 · 3 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+| Windows | 3.9, 3.14 | 161 · 156 green · 0 red · 5 not run | 40 of 40 | 315 · 280 · 3 loose · 32 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+
+The 3 loose are ZA02, ZA04, ZX03 on every platform, in the campaign's closed list of known cases
+(`docs/FAILURES.md` O2a–O2c, declared in `SCOPE.md`). Not run: as for 0.10.0 below, plus on
+Windows the cases of extension 4 that need a POSIX shell or file names Windows refuses.
+
+Regression corpus (`tools/regression/`), the same script: 100 of 100 match. Benchmark run 3, the
+same script: `tools/benchmark/READING.md`.
+
 # Record of the battery runs — closure_drift 0.10.0
 
 Detector 0.10.0: `closure_drift.py`, sha256 `91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990`.

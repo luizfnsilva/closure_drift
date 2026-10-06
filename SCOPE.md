@@ -88,7 +88,7 @@ will not arrive as a silent extension of this one.
 | 0.9.0 | `6548f891a826034c35ef83b276578c79564b57f892a54422af5c1be44591137c` |
 | 0.9.1 | `89b5349928eba22b0394d01940ed3d4aa989d6820f48fdddf189ad521689c51c` |
 | 0.10.0 | `91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990` |
-| 1.0.0 | `@@SHA@@` |
+| 1.0.0 | `74309fe6db463a53e2dce112596b425a596a1a38dce413054e2db32a23f99f0d` |
 
 0.9.0 is the first change that can alter a measurement: it reads the label at every tag and
 compares more of them, so a `clean` from an earlier version can be `drift` now. `CHANGELOG.md`

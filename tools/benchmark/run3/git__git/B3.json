@@ -1,0 +1,72 @@
+{
+ "report_format": 2,
+ "stamp": {
+  "measured_at_head": "5a7d1e8045ce",
+  "working_tree_dirty": null,
+  "detector_closure": "74309fe6db463a53",
+  "working_tree_dirty_note": "not checked: this repository has no working tree"
+ },
+ "repo": "/home/runner/work/_temp/git__git.git",
+ "version_file": "Cargo.toml",
+ "closure_globs": [
+  "src/**",
+  "lib/**",
+  "app/**",
+  "*.py",
+  "*.js",
+  "*.ts",
+  "*.rs",
+  "*.go",
+  "*.java"
+ ],
+ "published_at": "tags",
+ "publication_points": 998,
+ "labels": 0,
+ "labels_covering_multiple_closures": 0,
+ "max_closures_per_label": 0,
+ "verdict": "incomplete",
+ "drift": {},
+ "closure_ids": {},
+ "closure_changes_between_points": 483,
+ "label_sources": {},
+ "publication_points_scanned": 1011,
+ "publication_points_compared": 0,
+ "points_without_label": 998,
+ "points_with_empty_closure": 13,
+ "points_not_commits": 1,
+ "range_truncated": false,
+ "points_with_conflicting_sources": 0,
+ "points_label_contradicted": 20,
+ "contradicted_sources": [
+  "Cargo.toml"
+ ],
+ "diagnostics": {
+  "detector_version": "1.0.0",
+  "detector_closure": "74309fe6db463a53",
+  "python": "3.13.15",
+  "platform": "linux",
+  "git": "git version 2.55.0",
+  "options": {
+   "at": null,
+   "would_tag": false,
+   "strict": false,
+   "json": true,
+   "max_commits": 1000000,
+   "tags_globs_given": 0,
+   "closure_globs_given": 0,
+   "version_file_given": false,
+   "version_regex_given": false,
+   "explain_given": false,
+   "compare_given": false
+  },
+  "repository": {
+   "bare": "true",
+   "shallow": "false",
+   "object_format": "sha1",
+   "tags": 1012,
+   "commits_reachable_from_head": "82426",
+   "config_file_present": false
+  },
+  "objects_read": 9716
+ }
+}
