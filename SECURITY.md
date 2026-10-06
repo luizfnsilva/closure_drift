@@ -46,7 +46,7 @@ sha256  da5da3c0e781b67b9b3a55800d599c243edc8df649fc90b24a88e289533805c5  closur
 sha256  6d8906ef374b73e6b8c58adba813c77c4ff352f5c9c280aa43ff2baa4f804451  closure_drift.py  (0.7.0 - 0.7.1)
 sha256  6548f891a826034c35ef83b276578c79564b57f892a54422af5c1be44591137c  closure_drift.py  (0.9.0)
 sha256  89b5349928eba22b0394d01940ed3d4aa989d6820f48fdddf189ad521689c51c  closure_drift.py  (0.9.1)
-sha256  b8fead958904b3deb1e5def6bf1edaff3481274b604bc06971dac377ea3533ce  closure_drift.py  (0.10.0)
+sha256  91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990  closure_drift.py  (0.10.0)
 ```
 
 Do not take those five lines from this page as the authority: this page is inside the package it

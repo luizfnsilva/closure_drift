@@ -169,7 +169,7 @@ or write to lfnsilva.invest@gmail.com. A result showing the tool is wrong is the
 
 ## Version
 
-**0.10.0.** Script sha256 `b8fead958904b3deb1e5def6bf1edaff3481274b604bc06971dac377ea3533ce`.
+**0.10.0.** Script sha256 `91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990`.
 It fixes the four failures the large-repository benchmark found: `clean` now needs at least as
 many tags compared as not; a version file that no tag agrees with decides nothing; a version
 spread over several lines can be read with named groups; memory no longer grows with history.

@@ -74,7 +74,7 @@ def tree_cache_bound() -> int:
     try:
         return max(1, int(os.environ.get("CLOSURE_DRIFT_TREE_CACHE", "")))
     except ValueError:
-        return 1_000_000
+        return 250_000
 
 
 class Refusal(Exception):
@@ -82,9 +82,11 @@ class Refusal(Exception):
 
 
 # Every git call uses these. They stop git from running commands named in the measured
-# repository's config (fsmonitor, lazy fetch), from writing to it (optional locks), and from
-# reading a different object than the one named (replace refs).
-GIT = ["git", "--no-optional-locks", "--no-replace-objects", "-c", "core.fsmonitor=false"]
+# repository's config (fsmonitor, lazy fetch), from writing to it (optional locks), from reading
+# a different object than the one named (replace refs), and from mapping more than 256 MB of pack
+# files into memory at once.
+GIT = ["git", "--no-optional-locks", "--no-replace-objects", "-c", "core.fsmonitor=false",
+       "-c", "core.packedGitWindowSize=32m", "-c", "core.packedGitLimit=256m"]
 
 # Variables that would make git read another repository than the one named. Removed, not obeyed.
 REDIRECTING = ("GIT_DIR", "GIT_WORK_TREE", "GIT_OBJECT_DIRECTORY", "GIT_ALTERNATE_OBJECT_DIRECTORIES",

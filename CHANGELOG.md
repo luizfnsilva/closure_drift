@@ -6,7 +6,7 @@ DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 ## 0.10.0 — 2026-10-05
 
 The four failures found by the benchmark of 0.9.1 on ten large repositories. The script is sha256
-`b8fead958904b3deb1e5def6bf1edaff3481274b604bc06971dac377ea3533ce`. Each change was pre-registered before the code (`tests/PREREGISTRATION.md` §10).
+`91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990`. Each change was pre-registered before the code (`tests/PREREGISTRATION.md` §10).
 
 ### Changed — a result of 0.9.x can change
 

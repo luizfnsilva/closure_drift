@@ -655,3 +655,23 @@ only checked for `(?P<`. The example now uses `part1`, `part2`; NG05 requires `(
 mistake was in the benchmark's recipes (`tools/benchmark/recipes.json`), found in their results.
 Only the text of that refusal changes in the detector. Study run 3 and benchmark run 2 were measured
 with the script before this change (sha256 `08ceb754…`); no measurement reads that message.
+
+### Amendment 5 to §10, 2026-10-05 — MM did not meet its requirement
+
+Benchmark run 2 measured every tag of `torvalds/linux` at 3.3 GB with 0.10.0, the same as 0.9.1:
+the requirement (under 1.5 GB) was **not met**, and that result stays recorded. Measured since, on
+a clone of CPython, the two processes apart: the detector's own heap held about 280 MB, nearly all
+of it the tree cache at its bound of 1,000,000 entries, and `git cat-file` about 375 MB, which is
+git mapping the repository's pack files into memory — 6.5 GB of them on the kernel. The bound
+contained the cache but was set too high to matter, and the larger part was never the detector's.
+
+The change, written before it is made:
+
+1. Every git call adds `-c core.packedGitWindowSize=32m -c core.packedGitLimit=256m`. Measured on
+   CPython: `git cat-file` 375 → 217 MB, 17 → 14 s, the same report.
+2. The default bound of the tree cache becomes 250,000 entries.
+
+Required: benchmark B3 of `torvalds/linux` under 1.5 GB peak for the whole process tree, no more
+than 1.5 times slower than 0.9.1 on the same clone; every suite as before; the same reports as the
+script measured in study run 3 and benchmark run 2, apart from the stamp, on the six reference
+repositories and the 60 seeds of the property suite.
