@@ -1,0 +1,41 @@
+{
+ "detector_sha256": "91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990",
+ "expected": {
+  "drift": {},
+  "exit": 0,
+  "labels": 20,
+  "labels_covering_multiple_closures": 0,
+  "points_label_contradicted": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points_compared": 21,
+  "publication_points_scanned": 21,
+  "verdict": "clean"
+ },
+ "head": "3fba7d3e19c84e5bb1f15c22b1a5a6db6e8f07c7",
+ "rank": 108,
+ "repository": "python-distro/distro",
+ "tags": {
+  "0.2.0": "2f626be146900d089dc130b774abe0372c9301a2",
+  "0.2.1": "2f626be146900d089dc130b774abe0372c9301a2",
+  "0.2.9": "b7d371295e48b7cc153ad1dc3979219cc3c79976",
+  "v0.1.2": "438571499ebc6414669ec4149421a41a2bd8cb37",
+  "v0.2.1": "2886bed55c2e83413bb72114261fbbcc5e1300c1",
+  "v0.5.0": "c8056b6bbd9f914608da1b2eb2a69f19ca1744f5",
+  "v0.6.0": "f22e0d050b7635331e159b20e39a7647938a4e50",
+  "v1.0.0": "4c5bb2b9132acbaf82d1b1ffd5a06cf102792aac",
+  "v1.0.1": "bc8a1fbbede95c777532c57a128565f4d8265a8b",
+  "v1.0.2": "9109a420afe8d8543ddb0f54fdb00f39634953c3",
+  "v1.0.3": "1dfa683c52b1931682c273bad71399682c446e07",
+  "v1.0.4": "6c9d5947671f54b41198987ef0a2a887c394995c",
+  "v1.1.0": "ff1699d63b3ba93411d339fa1b19836684c6f420",
+  "v1.2.0": "55fb75e327a2e6a3d5f447897509af1ee291b3c3",
+  "v1.3.0": "d8772664a7f1514774d00fdcf315e8c17c8b924d",
+  "v1.4.0": "c2d9e3693463b903ea1ef37c2e63a9d0d3de6c5f",
+  "v1.5.0": "d93643a066f72b1fea3864d30a407c2ee7ec7b44",
+  "v1.6.0": "116cdad222637c8612c4126ff8b3718bdfcb8696",
+  "v1.7.0": "697b2dbb20ab12cb86becf57f062645de723d5ac",
+  "v1.8.0": "7766e989a79101c1b8ec02e5e76aad520bf0abcd",
+  "v1.9.0": "8d88a2d72a3dbdb1d1443788c2e0142658b2b0ba"
+ }
+}

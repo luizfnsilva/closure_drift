@@ -1,0 +1,29 @@
+{
+ "detector_sha256": "91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990",
+ "expected": {
+  "drift": {},
+  "exit": 0,
+  "labels": 9,
+  "labels_covering_multiple_closures": 0,
+  "points_label_contradicted": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points_compared": 9,
+  "publication_points_scanned": 9,
+  "verdict": "clean"
+ },
+ "head": "83d4dbb74fc367db4403c76be8c0f83cd4b63fbe",
+ "rank": 28,
+ "repository": "pydantic/typing-inspection",
+ "tags": {
+  "v0.1.0": "d1bb9a102b747b2cc56031453ffc6fb0a1008d9d",
+  "v0.2.0": "e28f90d5b2d704f8474c8fec3b2668176d75891a",
+  "v0.3.0": "3fdf899ea20da4562bc571add23bcabaa492c687",
+  "v0.3.1": "9ed7094eefe229913507b3a20585a6ccb138b7ed",
+  "v0.4.0": "7dd90817b36f979c6d290d7d14caf0f524698777",
+  "v0.4.1": "199be9bfac1cd406aead3442e84c5433ef9a06d3",
+  "v0.4.2": "14fe8ad808ba59280edda699ffba63a89595be88",
+  "v0.4.3": "969de7095af88dc7d1ab225a8c7e919892e03dba",
+  "v0.4.4": "1a954441d0f6491f45f3fe220725e252346e21b3"
+ }
+}

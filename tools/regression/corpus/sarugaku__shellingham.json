@@ -1,0 +1,41 @@
+{
+ "detector_sha256": "91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990",
+ "expected": {
+  "drift": {},
+  "exit": 0,
+  "labels": 19,
+  "labels_covering_multiple_closures": 0,
+  "points_label_contradicted": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 2,
+  "publication_points_compared": 19,
+  "publication_points_scanned": 21,
+  "verdict": "clean"
+ },
+ "head": "926401c4543b84f9f579932d30fb52a104639398",
+ "rank": 110,
+ "repository": "sarugaku/shellingham",
+ "tags": {
+  "1.0.1": "ecb2936ec9b3cae5f00f7c2bcdc95fcb4e3d705e",
+  "1.1.0": "3ace44f1ba2c5c54b88b90265d189bf4af2a8774",
+  "1.2.0": "08937a9766c0c3effcf6a9e5725468141ac173ca",
+  "1.2.1": "be0c74fc93c2f64f99deb95ba01dfad8afdc925c",
+  "1.2.2": "0675e3fa860cbd2de3b8b19a84559d22b42b6270",
+  "1.2.3": "0a1dc44c36700e99b2d4fd4738edddd5fa284c30",
+  "1.2.4": "443664e5803ab2d61903cdefb273923f41a6b155",
+  "1.2.5": "f45eb38548ca5330342442dd4c51389ba65638b1",
+  "1.2.6": "40c752d6aa2932a46f919b52109fd21cc03827e9",
+  "1.2.7": "530c587bb7be6b7d4bff6f53ee53e298485ab856",
+  "1.2.8": "0f71fe761cf5cca8da7d33a87a8f5aee01ba991d",
+  "1.3.0": "0dd626cc16c5e1b4e4af1c7f5db6c68491e46639",
+  "1.3.1": "b8fa97d6bdc80ba9f486b3da74621406ee4170f7",
+  "1.3.2": "9346110def60ab860e46b0efa1747f4af4b14d99",
+  "1.4.0": "e5b717056fba28178f1745b3395c758f7b0c5ffe",
+  "1.5.0": "ace45254557977bb8d0a7c511d16c074ec95576b",
+  "1.5.0.post1": "cc55f77c11ad2a67b9f3538aab7d7170ca048a6e",
+  "1.5.1": "192e81c5ce874227b802ff6529203725c27f2c56",
+  "1.5.2": "27222f3c7b88a821595b219fe42b7bece5417c1c",
+  "1.5.3": "baa4ad0ec01df94917d08128c2974ddf9b217536",
+  "1.5.4": "9d67ab9c918b9cd5b1d6c6419a4d5bcc19e584cb"
+ }
+}

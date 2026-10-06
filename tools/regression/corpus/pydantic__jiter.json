@@ -1,0 +1,66 @@
+{
+ "detector_sha256": "91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990",
+ "expected": {
+  "drift": {
+   "0.1.0": [
+    "14cd87875f42aa1969fceb044784c24e54a7e5cafc061bc1b08cc8b9e4f88252",
+    "21fac58061784e7833c09e978a8f2b25c1d91cfbfe2784cc73950bf0c5927a6b",
+    "638cda1156f631e00383b4996574483965adba0acfb0782218e6500756c36820",
+    "a7312b0c905bfe0bca3abf43a14d1bef2b688a1969001a7a043b28a81037f636",
+    "f269c0187fd939f367f0a89f4a78f2db089e623519a4e26c9580a9d9bdc723df"
+   ],
+   "0.3.0": [
+    "206de47aa16f12b7dbb034d14ecb25bc8ec5952efcd19b64debf8a29bb96239a",
+    "4a24ce45b09de2988c67d098c340c113a7304e74786970977e361fd41a020f03"
+   ]
+  },
+  "exit": 1,
+  "labels": 29,
+  "labels_covering_multiple_closures": 2,
+  "points_label_contradicted": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points_compared": 34,
+  "publication_points_scanned": 34,
+  "verdict": "drift"
+ },
+ "head": "c03ab2f9922b45c79e2af526d4156a6142ec6d6d",
+ "rank": 92,
+ "repository": "pydantic/jiter",
+ "tags": {
+  "jiter-python-v0.1.0": "06bd0bb1574251b025120caf1fe5e1cca26bd1b1",
+  "v0.0.2": "65aafa9df1b26ae66b9fe18bcf214f730b42961c",
+  "v0.0.3": "a46427c2d68dd85eaf9db2ce1fe6d86410b79cfa",
+  "v0.0.4": "6257af08b1742445805d60f6710e620bb12eaacc",
+  "v0.0.5": "4da99fd495667172cc82d558b677a8da4b0a72d7",
+  "v0.0.6": "71df64ad30c251d346977bbb59c679235413b2ec",
+  "v0.0.7": "0897da43349357db8b18082ee8626f9278b24d6f",
+  "v0.1.0": "4dd0c35fe7a5267014c054cee3da6c4cdaa8704f",
+  "v0.1.1": "209e85412bd652227ae3591bfbd70ec9897ee5de",
+  "v0.10.0": "4f0651417714fef98db51ad4b53ea18278fc4fcc",
+  "v0.11.0": "a0907638427b307d1bf22ff080e002d961f905d7",
+  "v0.11.1": "114b6e678765fc4c24ceb4ce25ef3517524481e2",
+  "v0.12.0": "2ad77c2a03583da20e766d18519eb6798ec43f8a",
+  "v0.13.0": "79de02634d0e2c1aa330e9e323b9e1e97cdad107",
+  "v0.14.0": "dcdc93df6b9c6eb53facb0fff725069d9528d735",
+  "v0.15.0": "0bb22aa6b3a4d729e6c7bae74c05a5d0f1f654b0",
+  "v0.16.0": "785cf750016150bda7410e95525bd6ed398102c4",
+  "v0.17.0": "2b5ec63e505b44775e29b865c3161ea13bdad16b",
+  "v0.2.0": "c31fc7d7c44aae276909412a1fea2f30222726c9",
+  "v0.2.1": "efad44e7a6438a4c6bf2d5de45bf78da3de27219",
+  "v0.3.0": "919a9b62c74513126a602c84c855dafda8ef7b2e",
+  "v0.4.0": "366d16a24c113d01d96c6a6676cdfb7f00fcdcdc",
+  "v0.4.1": "8c2cdf1aa03115702f08774a06f8433ace922c63",
+  "v0.4.2": "d2d0cd0a688cfac72c186d11b6618feccf93d376",
+  "v0.5.0": "7cb88e65eaa084b9b9138ac43a2cabb1ec4bd5f6",
+  "v0.6.0": "c6fe082d2b280af8fd2f0b7203d38a030d982055",
+  "v0.6.1": "1f945c8a154cf70743571e7754821f4fe85220ca",
+  "v0.7.0": "e1d4c9f4c00d79e50622b60ac739d330e58a582d",
+  "v0.7.1": "1fbdb1e7d6d45a54496a4e59c60000ccaab92380",
+  "v0.8.0": "2b67dd0d4cf06cb9c36e0e99654cb83b8d5fc391",
+  "v0.8.1": "06aa3a587839ea6c1ff8de841ea50104da299775",
+  "v0.8.2": "5f208ea1feccc9d5dc7c0f18eab443a4e0400e13",
+  "v0.9.0": "9fb9c686fe8532d3e8ebcd2f54f3ecaf5b33e0c2",
+  "v0.9.1": "8420c2e0042497014f8fd5715b2bca4675a2d476"
+ }
+}

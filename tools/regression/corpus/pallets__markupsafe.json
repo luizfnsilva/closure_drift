@@ -1,0 +1,68 @@
+{
+ "detector_sha256": "91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990",
+ "expected": {
+  "drift": {
+   "1.1.1": [
+    "4aac48186f9ed55f843252b6f98eec17a372fddbd40a6ded8e481b9e97272009",
+    "f8de7480801a5d6f505e9403eb56bb27f1ac2eb02af4cb8099c009958e375f0f"
+   ],
+   "2.0.1": [
+    "16f73380e5c63e5749105c065ff1c7f96b2cfae424fff750f3e22a535b13ff6c",
+    "29d1daf104d4897b1cd452356143a9d4bb9bcf652d3e9bb5a830c1f7aec23bc6"
+   ]
+  },
+  "exit": 1,
+  "labels": 35,
+  "labels_covering_multiple_closures": 2,
+  "points_label_contradicted": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points_compared": 39,
+  "publication_points_scanned": 39,
+  "verdict": "drift"
+ },
+ "head": "4e111271b1494995708a9e878a10829b5e10c7ba",
+ "rank": 34,
+ "repository": "pallets/markupsafe",
+ "tags": {
+  "0.12": "71693a29735082f78fe84d7311f5e33aed69ef8b",
+  "0.13": "515ec279a31168272c9f32d24f11735b69eb3217",
+  "0.14": "3284e098e54c816c561ccb800d978b570f08c36e",
+  "0.15": "98caea1496846935dd60a0e170c401e91ce9029a",
+  "0.16": "7afa6391254dc176a2352475226eabf35f0d178d",
+  "0.17": "0aa98c6abd7e8e1c4f585fa01a51a7607f501ada",
+  "0.18": "cbac3a73c628aed66800e993e3931fcb43f76dd0",
+  "0.19": "497d9b67793ad9ca09d597c27d1196a94f57ddc4",
+  "0.20": "026f317933afbf49e7babd2a1fe7d19e86b1b5cf",
+  "0.21": "1742d44c89bdb80e7e1c4e5a92831612ecd07797",
+  "0.22": "58cde05bdcb0a53d87213b4a5bb605937f178171",
+  "0.23": "feb1d70c16df62f60dcb521d127fdad8819fc036",
+  "0.9": "05b792ccb62dd28f323da2254166213767ee86c2",
+  "0.9.1": "5e7a7a64df83bc340a05c77820c8c167b318b05f",
+  "0.9.2": "5f853161c1041ccff04987e0fa736ebe2eb62e17",
+  "0.9.3": "4fa38b6fb0923789b2a9e6c7f980687c1725384d",
+  "1.0": "d2a40c41dd1930345628ea9412d97e159f828157",
+  "1.0.x": "c96636ab07f74b352b20e6e3f1eb9aa02b95aedd",
+  "1.1.0": "9963f3d5b77ec0bb2cc1a9c3a4679246f37833d4",
+  "1.1.1": "22c946de28c2f5916f8c88a983a3e48e1cdbd2fd",
+  "1.1.x": "2fbc2f4f5e8823acd3d6155a5f8e706102d6209f",
+  "2.0.0": "bb1f55d2a0bbd78ff3fc3cc78733aeb438bdd3cc",
+  "2.0.0a1": "6f9ceabd667ce055456e7dec434b23caa5ed748b",
+  "2.0.0rc1": "8d53be2a2497137c5d5b12d408a05109b39866e3",
+  "2.0.0rc2": "ebaa7702e405f63000e29b7802a5bd7af23741c9",
+  "2.0.1": "dfb5bc1e1f6cddc057c3896c07b7b1820f3d1621",
+  "2.0.x": "15acd7b49c9a80e402c41c3dcb3e765be479174b",
+  "2.1.0": "160e0050d3cec7bef6f117d0581456fa4841bf2b",
+  "2.1.1": "19916f6e2614532351be236a27d7213e1378aa27",
+  "2.1.2": "f56c4bc1e0b3e3743a589b84857757a8c328af69",
+  "2.1.3": "d40f713fe08c4d68be969e9869101a0246017ef7",
+  "2.1.4": "bc65ecff8ec9f3ef297cd52ecd587394e4eadd4c",
+  "2.1.5": "0e6f6a4fe58bcb342c6b10949dbd6c57c1564a9b",
+  "2.1.x": "dd6f26ebad591ab9e35ab972da8427df94db5cea",
+  "3.0.0": "17bdb2e9bedc8518dcf970172efdb00372986c60",
+  "3.0.1": "29b2ea0af55268dcb109ab17fa4c12553af0a3b4",
+  "3.0.2": "6c7c43952546366c9701ca099b7e228c1e46578e",
+  "3.0.3": "e536039b6e854bc30d42e1c39db2cc361a9755fa",
+  "3.0.4": "e4fe38cf8eafb25262556d2bdfbcceba6149672f"
+ }
+}

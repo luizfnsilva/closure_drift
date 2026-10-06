@@ -1,0 +1,58 @@
+{
+ "detector_sha256": "91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990",
+ "expected": {
+  "drift": {
+   "1.14.4": [
+    "87744039f8fc3b757353a42339d9a5150f0aac828e2a6a6ac1d3bfa190194056",
+    "d7d3a3bc30f6b89cfc40b25fdcdf1b4cd56420b7c328b85518a9fcc8f1c0b6e8"
+   ]
+  },
+  "exit": 1,
+  "labels": 32,
+  "labels_covering_multiple_closures": 1,
+  "points_label_contradicted": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points_compared": 33,
+  "publication_points_scanned": 33,
+  "verdict": "drift"
+ },
+ "head": "ed994e094ddad5916439d86fdef3c692bd2fcdbe",
+ "rank": 11,
+ "repository": "python-cffi/cffi",
+ "tags": {
+  "v1.11.1": "8b90b406dc745db48ba5ed7048638403cb254e0d",
+  "v1.11.2": "f1f00632944ffdf7696d6335c0cf71bf57e66526",
+  "v1.11.3": "a565bcd04d148feb2d08155d8ce657e4dcec556f",
+  "v1.11.4": "ee7ea0ce8a418ece499b492f6b4cb8ed945e0da3",
+  "v1.11.5": "292e0278a6a96d95f286a187cfc719257f100f53",
+  "v1.12.0": "541a03b900e1e6ed4fdd2bc5aefe676b17428e89",
+  "v1.12.1": "8339347946ce3f639ca328ffc1b98b8193779c2a",
+  "v1.12.2": "671058ddcce1154220b2a9fce897d5be47e77d94",
+  "v1.12.3": "d98b50fd3f102c79bf0025e8c80cf5ae623da507",
+  "v1.13.0": "299b68a53aecaf3a8872502ec138eda8b1226b0c",
+  "v1.13.1": "553fe786411d9713e5f5ba5733c2dcb2a2dbbc08",
+  "v1.13.2": "75e5e71351930566d2f2fc5c288cdf97bc5348d1",
+  "v1.14.0": "5eedc95f68eb599832c2958e5416e231536ad792",
+  "v1.14.1": "267c0379908fdb675da726856262777eea90877d",
+  "v1.14.2": "67743bd892ff463de2fd2c6e50070d08f4a065ff",
+  "v1.14.3": "981ee2f20044f5cc34cf7592f9e16d9128009c1b",
+  "v1.14.4": "51a8f8eaae2a0bba13cc1b4fad2d2b6cd614757c",
+  "v1.14.4-1": "eb27337da523ca0e0192721aa0338ee68296c8e6",
+  "v1.14.5": "413714e3a85f79afaa8e35247950df1b59d9d9e9",
+  "v1.14.6": "3bd975f57fb3caabc7a0452eb155bfc6f445a65a",
+  "v1.15.0": "ac6b9aa5d8579de0d13f2458d4368162d3e7b96a",
+  "v1.15.0rc1": "4d207fdd867934abb1601a2d373f00596f3ce0a7",
+  "v1.15.1": "ec9e0af363fa9a80fd37fdb6312174eea39c95da",
+  "v1.16.0": "ba44abd69cf6f0f1cc90db34cd067275dc10fc71",
+  "v1.16.0rc1": "e84703322be5f62692389741703900991f2503ef",
+  "v1.16.0rc2": "e20c65d938842f82ce63983150b286956081cb27",
+  "v1.17.0": "74731f941cf464ad3be5e13708a0a0183b32b3b7",
+  "v1.17.0rc1": "181fa00648f09f80970e9c669c3d61cca40b2a09",
+  "v1.17.1": "38bd6be6b94a65182f4bffb45c78e230e9290f51",
+  "v2.0.0": "6366c01d84e9a78e7e85f12ebe9760ba5d19b6d3",
+  "v2.0.0b1": "195cbda66b6be9297ef6d584644e50cfdcca4e8a",
+  "v2.1.0": "d9f6f70adac5ca9f260abf5405cf4d0373767b65",
+  "v2.1.1": "fd33e7700f0ebafe6f30bd5053f13327221b77a2"
+ }
+}

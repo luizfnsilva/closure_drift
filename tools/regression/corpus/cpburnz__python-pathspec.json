@@ -1,0 +1,38 @@
+{
+ "detector_sha256": "91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990",
+ "expected": {
+  "drift": {},
+  "exit": 0,
+  "labels": 17,
+  "labels_covering_multiple_closures": 0,
+  "points_label_contradicted": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 1,
+  "publication_points_compared": 17,
+  "publication_points_scanned": 18,
+  "verdict": "clean"
+ },
+ "head": "67f92eb506a735ec4956dd371c536703b7a18fb2",
+ "rank": 43,
+ "repository": "cpburnz/python-pathspec",
+ "tags": {
+  "v0.10.0": "9f7d13c3b08bd9d33bdaca60f4e054051d84050b",
+  "v0.10.1": "a8ceca77caf5d1bfa0b251d4ad19462b01ea0921",
+  "v0.10.2": "5d358be3d2067d3bf2bb493c8f74745d812ba9ee",
+  "v0.10.3": "8a7c8fc5a51c81e4d226251405f3aebd669b8450",
+  "v0.11.0": "a8ac2068508554077e9910eb82786cdfe89a9141",
+  "v0.11.1": "6fd6bee628f5f2746ac46939b13fd127941a73f9",
+  "v0.11.2": "878be226c5324a4c5470c2ff86034d27c0734d70",
+  "v0.12.0": "37e289515fbae7e92077a2438996046e79cae5bf",
+  "v0.12.1": "6485791e1b5cf2ef4e756ae392fa80f2c5045d4c",
+  "v0.8.1": "7b125acf41702cb82679dcf56aaf6a14d34bd785",
+  "v0.9.0": "7ca27e2300ced6364a3816820eb2532c89c7d01c",
+  "v1.0.0": "3a946678cbf0b634ee7a9b94447b315a7b69cddd",
+  "v1.0.1": "75f4d0672305dfe3d0a6f182b870c3edec29f316",
+  "v1.0.2": "0ff66291a073efa3daacb4ccace3ce60420923ba",
+  "v1.0.3": "db3f54e78f68824f641b186bf4a749d944e2153f",
+  "v1.0.4": "39f02a9bd9de3b9b99bba5f794d63d2087a50fec",
+  "v1.1.0": "c9249c8b4ca165ca8c5eea191cea4c0e6f3aa827",
+  "v1.1.1": "ecf71a99ca739479d450b9830f43416ea0c519c7"
+ }
+}

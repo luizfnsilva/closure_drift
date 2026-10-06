@@ -1,0 +1,24 @@
+{
+ "detector_sha256": "91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990",
+ "expected": {
+  "drift": {},
+  "exit": 0,
+  "labels": 4,
+  "labels_covering_multiple_closures": 0,
+  "points_label_contradicted": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points_compared": 4,
+  "publication_points_scanned": 4,
+  "verdict": "clean"
+ },
+ "head": "524d2edbbcb8bb48301ba716c7482827bcabb281",
+ "rank": 58,
+ "repository": "executablebooks/mdurl",
+ "tags": {
+  "0.0.1": "6d4478482378547b8e4ddd83a10b21c0a89abcab",
+  "0.1.0": "3248a524fd3705deaa2164f8d480a6d82c4e48fb",
+  "0.1.1": "bc96e2b22d28b14c3235a099772e890d9ba395cc",
+  "0.1.2": "fb26485560d0589d4ed56255a4fcf87d09752dbf"
+ }
+}

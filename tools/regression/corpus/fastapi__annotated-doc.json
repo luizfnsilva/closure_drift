@@ -1,0 +1,24 @@
+{
+ "detector_sha256": "91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990",
+ "expected": {
+  "drift": {},
+  "exit": 0,
+  "labels": 4,
+  "labels_covering_multiple_closures": 0,
+  "points_label_contradicted": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points_compared": 4,
+  "publication_points_scanned": 4,
+  "verdict": "clean"
+ },
+ "head": "e6e7324ff5ab80bbde7bab5e9ba2c35662e81fe5",
+ "rank": 69,
+ "repository": "fastapi/annotated-doc",
+ "tags": {
+  "0.0.2": "4cff021a7cc5fe3009a49ec655f2e3e920f73e0c",
+  "0.0.3": "a8a8b63515592650532ef49ca3992f81839d1570",
+  "0.0.4": "a6b2d3869f24c9c04cd7c024e59ccec3e5422a56",
+  "0.0.5": "ef48d6ad51d226f772fd9c5284f55199afe4007c"
+ }
+}

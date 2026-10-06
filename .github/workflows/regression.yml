@@ -2,10 +2,10 @@ name: regression
 
 # The regression corpus of tests/PREREGISTRATION.md §12. `snapshot` records the 100 repositories
 # once; `check` measures them again at the recorded state. By hand, or by pushing a branch named
-# regression-snapshot/*, regression-check/* or regression-check-v0.9.1/* (the last checks 0.9.1).
+# regression-snapshot/*, regression-check/*, or regression-check-<tag>/* to check that tag's detector.
 on:
   push:
-    branches: ['regression-snapshot/**', 'regression-check/**', 'regression-check-v0.9.1/**']
+    branches: ['regression-snapshot/**', 'regression-check/**', 'regression-check-v*/**']
   workflow_dispatch:
     inputs:
       mode:
@@ -21,7 +21,7 @@ permissions:
 
 env:
   MODE: ${{ inputs.mode || (startsWith(github.ref_name, 'regression-snapshot/') && 'snapshot' || 'check') }}
-  OTHER: ${{ inputs.detector || (startsWith(github.ref_name, 'regression-check-v0.9.1/') && 'v0.9.1' || '') }}
+  OTHER_INPUT: ${{ inputs.detector }}
 
 jobs:
   run:
@@ -37,9 +37,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-      - name: Another detector
-        if: env.OTHER != ''
-        run: git fetch --depth=1 origin tag "$OTHER" && git show "$OTHER:closure_drift.py" > "$RUNNER_TEMP/other.py"
+      - name: Another detector, named by the input or by the branch (regression-check-<tag>/...)
+        run: |
+          OTHER="$OTHER_INPUT"
+          case "$GITHUB_REF_NAME" in regression-check-v*/*) OTHER="${GITHUB_REF_NAME#regression-check-}"; OTHER="${OTHER%%/*}";; esac
+          echo "OTHER=$OTHER" >> "$GITHUB_ENV"
+          if [ -n "$OTHER" ]; then git fetch --depth=1 origin tag "$OTHER" && git show "$OTHER:closure_drift.py" > "$RUNNER_TEMP/other.py"; fi
       - name: Snapshot
         if: env.MODE == 'snapshot'
         run: python3 tools/regression/regress.py snapshot "$RUNNER_TEMP/work" --shard ${{ matrix.shard }}/10

@@ -1,0 +1,29 @@
+{
+ "detector_sha256": "91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990",
+ "expected": {
+  "drift": {},
+  "exit": 0,
+  "labels": 8,
+  "labels_covering_multiple_closures": 0,
+  "points_label_contradicted": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 1,
+  "publication_points_compared": 8,
+  "publication_points_scanned": 9,
+  "verdict": "clean"
+ },
+ "head": "40d8c03a1553953350d787e45f1cb768e2c14e6a",
+ "rank": 25,
+ "repository": "pytest-dev/iniconfig",
+ "tags": {
+  "0.1": "bf2b06b73e662593f0e2a36b431ec7195a2d5808",
+  "v1.0.0": "bfdff38cd421317e4eff01a53f73e283071a46db",
+  "v1.0.1": "4f843961be171f50ed14794aa92f9a967a68e044",
+  "v1.1.0": "ac8e4ce14bdf8ad25fd4383d24a942ebc3935c5a",
+  "v1.1.1": "4e20f6bcdef72a2ffef1f811a4540778da60733b",
+  "v2.0.0": "93f5930e668c0d1ddf4597e38dd0dea4e2665e7a",
+  "v2.1.0": "34793a6417e35e511d0c17ffdd8a02ade0f9568e",
+  "v2.2.0": "57b7ed9c7a5950f9c57b2cfbe641ff4cc04baf1c",
+  "v2.3.0": "7faed13ae50bad7c5da3f5782f254a8a7736bb84"
+ }
+}
