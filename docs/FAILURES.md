@@ -7,10 +7,10 @@ author has reported one yet; when someone does, it goes here with their name if 
 
 | | what | found by | what to do meanwhile |
 |---|---|---|---|
-| O1 | **`clean`, exit 0, over a tiny share of the tags.** `Azure/azure-sdk-for-python`: 9 of 5,508 compared. The counts are printed; the exit code does not carry them | benchmark, 2026-10-05 | `--strict` in any gate |
-| O2 | **A wrong version source is believed.** `git/git`: `drift` on `0.1.0` from a helper crate's `Cargo.toml`. `DefinitelyTyped`: `would_drift` on a root `package.json` nobody releases | benchmark | `--version-file` in any gate |
-| O3 | **No label found outside the listed ecosystems.** 6 of 10 large repositories; 8 of the 100 PyPI projects still undecided | benchmark; study run 2 | `--version-file`, `--version-regex` |
-| O4 | **Memory grows with history.** 3.4 GB for every tag of the Linux kernel; no limit, no warning | benchmark | fewer tags (`--max-commits`, `--tags`) |
+| O2a | **A wrong file is still believed when one tag agrees by chance** with its first number (a helper crate's `0.1.0` and an old tag `v0.1`) | adversarial ZA04 | `--version-file` in any gate |
+| O2b | **Build-number tags (`release-41`) read as versions**: a correct file can be refused, exit 2 | adversarial ZA02 | `--version-file` |
+| O2c | **`--at commits` has no tag to check a version file against** | adversarial ZX03 | `--version-file` |
+| O3 | **No label found outside the listed ecosystems.** The rules still know only the files in `docs/LABELS.md`; recipes for six large projects are there | benchmark | `--version-file`, `--version-regex` |
 | O5 | **A refusal for want of a label comes after the whole scan** (52 s on the kernel) | benchmark | — |
 | O6 | **Exclusions match folders, not only files.** `**/*_test.*` leaves out everything under a folder named `x_test.d`; `**/*.test.*` the same. Glob matching is `fnmatch` on the whole path and is not specified anywhere but `tests/ORACLE_SPEC.md` | writing the oracle's specification | `--closure` cannot bring them back; rename, or accept |
 | O7 | Labels are compared as text (`1.0` ≠ `1.0.0`); a mode-only change is not seen; a submodule's content is not read | declared since 0.9.0 | `SCOPE.md` |
@@ -21,6 +21,11 @@ author has reported one yet; when someone does, it goes here with their name if 
 
 | release | what failed | found by |
 |---|---|---|
+| 0.10.0 | **`clean`, exit 0, over a tiny share of the tags** (`Azure/azure-sdk-for-python`: 9 of 5,508). `clean` now needs at least as many tags compared as not | benchmark of 0.9.1 |
+| 0.10.0 | **a wrong version file believed** (`git/git`: a helper crate's `Cargo.toml`; `DefinitelyTyped`: a private `package.json`). A file no tag agrees with decides nothing; a private `package.json` is not read | benchmark of 0.9.1 |
+| 0.10.0 | **a version spread over several lines could not be read** (Linux, Node, LLVM). Named groups `part1`, `part2`, … are joined | benchmark of 0.9.1 |
+| 0.10.0 | **memory grew with history**: every tree and every version file read was kept | benchmark of 0.9.1; adversarial ZM05, ZM06 |
+| 0.10.0 | the first form of the fix for a wrong version file **hid real drift, and once gave `clean`, exit 0** | adversarial extension 3, before release; rewritten twice (`tests/PREREGISTRATION.md` §10) |
 | 0.9.1 | **on Windows, closure globs matched without regard to case**: one commit, two closures, and in generated repositories two verdicts | property suite against the oracle, on the Windows runner; suspected in writing before the run |
 | 0.9.1 | `SECURITY.md` printed the checksum of an unreleased build as that of 0.9.0 | reading the page against `DEPOSIT.sha256` |
 | 0.9.0 | files with non-ASCII names silently outside the closure; submodule pointers ignored; root-level `tests/`, `docs/`, `*.md` inside it | acceptance proofs written before the fix: 30 of 51 red against 0.7.1 |

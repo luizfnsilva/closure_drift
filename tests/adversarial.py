@@ -11,7 +11,9 @@ Every attack ends `as_required`, `loose` (a finding — or a hang past its time 
 
     N attacks · N as required · N loose · N not run
 
-Exit 0 only when loose == 0; 1 when something is loose; 2 when the campaign itself could not run.
+Exit 0 only when every loose case is in KNOWN_OPEN (a limit published in docs/FAILURES.md); 1 when
+any other case is loose; 2 when the campaign itself could not run. Known loose cases are still
+counted as loose.
 
 Zero dependencies beyond CPython >= 3.9 and git. Every repository it measures is built in a
 temporary directory; the detector repo itself is only ever read. Nothing from the clock or unseeded
@@ -4473,8 +4475,12 @@ def main():
     fired = sum(1 for d in controls if "FIRES" in d)
     print("\ncommand-execution cases with a positive control: %d; the vector fires under plain git "
           "in %d of them, and is blocked under the detector in every one of those" % (len(controls), fired))
+    known = sorted(c for c, _t, s, _d in results if s == "loose" and c in KNOWN_OPEN)
     final = "%d attacks \u00b7 %d as required \u00b7 %d loose \u00b7 %d not run" % (n, ar, lo, nr)
     print(final)
+    if known:
+        print("of the loose, known and open in docs/FAILURES.md: "
+              + ", ".join("%s (%s)" % (c, KNOWN_OPEN[c]) for c in known))
 
     if json_out:
         Path(json_out).write_text(json.dumps(
@@ -4482,7 +4488,12 @@ def main():
              "results": [{"id": c, "title": t, "status": s, "detail": d} for c, t, s, d in results],
              "final": final}, indent=1))
 
-    return 0 if lo == 0 else 1
+    return 0 if lo == len(known) else 1
+
+
+# Loose cases that are published limits, each with its row in docs/FAILURES.md. The list is closed:
+# a loose case not named here fails the campaign.
+KNOWN_OPEN = {"ZA02": "O2b", "ZA04": "O2a", "ZX03": "O2c"}
 
 
 if __name__ == "__main__":

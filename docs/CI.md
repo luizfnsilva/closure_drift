@@ -16,13 +16,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: luizfnsilva/closure_drift@v0.9.1        # mode: would-tag (default)
+      - uses: luizfnsilva/closure_drift@v0.10.0        # mode: would-tag (default)
 ```
 
 The whole tag history, on a schedule, with a family of tags and a strict verdict:
 
 ```yaml
-      - uses: luizfnsilva/closure_drift@v0.9.1
+      - uses: luizfnsilva/closure_drift@v0.10.0
         with:
           mode: measure
           args: --tags 'v*' --strict
@@ -66,7 +66,7 @@ check-version-label:
 ```yaml
 # .pre-commit-config.yaml — runs on git push
 - repo: https://github.com/luizfnsilva/closure_drift
-  rev: v0.9.1
+  rev: v0.10.0
   hooks:
     - id: closure-drift-would-tag
 ```
