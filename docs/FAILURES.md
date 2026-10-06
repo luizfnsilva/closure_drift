@@ -24,7 +24,7 @@ author has reported one yet; when someone does, it goes here with their name if 
 | 0.10.0 | **`clean`, exit 0, over a tiny share of the tags** (`Azure/azure-sdk-for-python`: 9 of 5,508). `clean` now needs at least as many tags compared as not | benchmark of 0.9.1 |
 | 0.10.0 | **a wrong version file believed** (`git/git`: a helper crate's `Cargo.toml`; `DefinitelyTyped`: a private `package.json`). A file no tag agrees with decides nothing; a private `package.json` is not read | benchmark of 0.9.1 |
 | 0.10.0 | **a version spread over several lines could not be read** (Linux, Node, LLVM). Named groups `part1`, `part2`, … are joined | benchmark of 0.9.1 |
-| 0.10.0 | **memory grew with history**: every tree and every version file read was kept | benchmark of 0.9.1; adversarial ZM05, ZM06 |
+| 0.10.0 | **memory grew with history**: every tree and every version file read was kept, and git mapped whole pack files. Every tag of the kernel: 3,285 MB → 535 MB. The first form of the fix missed its target | benchmark of 0.9.1; adversarial ZM05, ZM06; benchmark run 2 |
 | 0.10.0 | the first form of the fix for a wrong version file **hid real drift, and once gave `clean`, exit 0** | adversarial extension 3, before release; rewritten twice (`tests/PREREGISTRATION.md` §10) |
 | 0.9.1 | **on Windows, closure globs matched without regard to case**: one commit, two closures, and in generated repositories two verdicts | property suite against the oracle, on the Windows runner; suspected in writing before the run |
 | 0.9.1 | `SECURITY.md` printed the checksum of an unreleased build as that of 0.9.0 | reading the page against `DEPOSIT.sha256` |

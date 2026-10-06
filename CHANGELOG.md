@@ -41,11 +41,21 @@ The four failures found by the benchmark of 0.9.1 on ten large repositories. The
 The first form of the second rule dropped the points of a contradicted file. An adversarial pass,
 by a reviewer who did not write it, showed that this hid real drift and in one case produced a
 `clean`, exit 0. The rule was rewritten twice; both amendments are dated in the pre-registration,
-and the 40 attacks are kept as delivered. @@TESTS@@
+and the 40 attacks are kept as delivered. Results on Linux, macOS and Windows, script
+`91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990`: battery 145 proofs (145, 144 and 140 green; the rest not runnable on that platform; none
+red), 35 of 35 mutants caught, campaign 275 attacks with 3 loose that are published limits
+(`docs/FAILURES.md` O2a–O2c), 17 of 17 properties against the independent oracle with 10 of 10
+controls. The memory fix missed its pre-registered target at first (the kernel still took 3.3 GB:
+most of it was git mapping pack files, and the cache bound was set too high); the second form
+meets it — every tag of the kernel in 535 MB against 3,285 MB for 0.9.1 on the same clone.
 
 ### Comparability
 
-@@COMPARE@@
+Measured, not assumed: study run 3 cloned each of the 100 repositories once and measured it with
+0.9.1 and with 0.10.0. Four moved, all from `clean` to `incomplete` (`coveragepy`, `idna`, `scipy`,
+`tqdm`, each with fewer tags compared than not), as predicted from the stored reports before the
+run; nothing else moved. Drift: 29 of the 88 decided, 29 of 100. On the benchmark, `git/git` and
+`DefinitelyTyped` no longer answer `drift`; the Azure SDK is `incomplete`.
 
 ## 0.9.1 — 2026-10-05
 

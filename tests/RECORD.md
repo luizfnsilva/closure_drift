@@ -1,3 +1,29 @@
+# Record of the battery runs — closure_drift 0.10.0
+
+Detector 0.10.0: `closure_drift.py`, sha256 `91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990`.
+
+## macOS 26.7 (Apple silicon), git 2.54.0 — 2026-10-06
+
+| suite | CPython 3.14.7 |
+|---|---|
+| `tests/battery.py` | 145 declared · 144 green · 0 red · 1 not run (the same under 3.9.6) |
+| `tests/negative_controls.py` | 35 mutants · 35 caught · 0 not caught · positive control holds |
+| `tests/adversarial.py` | 275 attacks · 263 as required · 3 loose · 9 not run; the 3 loose are ZA02, ZA04, ZX03, published as `docs/FAILURES.md` O2b, O2a, O2c |
+| `tests/oracle.py --self-test` | 117 of 117 |
+| `tests/properties.py` | 17 · 17 green · 0 red; 10 controls · 10 caught |
+
+## Linux, macOS, Windows — CI run 37405328391
+
+| platform | CPython | battery | mutants | adversarial | properties |
+|---|---|---|---|---|---|
+| Ubuntu | 3.9, 3.11, 3.13 | 145 · 145 green · 0 red · 0 not run | 35 of 35 | 275 · 263 as required · 3 loose · 9 not run | 17 of 17 · 10 of 10 controls |
+| macOS | 3.11, 3.13 | 145 · 144 green · 0 red · 1 not run | 35 of 35 | 275 · 263 · 3 loose · 9 not run | 17 of 17 · 10 of 10 |
+| Windows | 3.9, 3.13 | 145 · 140 green · 0 red · 5 not run | 35 of 35 | 275 · 242 · 3 loose · 30 not run | 17 of 17 · 10 of 10 |
+
+The 3 loose are the same three on every platform. What does not run on each platform is listed
+under 0.9.0 below, plus, on Windows, the cases of extension 3 that need a POSIX shell or file names
+Windows refuses.
+
 # Record of the battery runs — closure_drift 0.9.1
 
 Detector 0.9.1: `closure_drift.py`, sha256 `89b5349928eba22b0394d01940ed3d4aa989d6820f48fdddf189ad521689c51c`.

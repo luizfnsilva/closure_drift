@@ -78,16 +78,17 @@ Settings can be committed in `.closure-drift.json`. Flags override it; a broken 
 
 ## What it found
 
-**The 100 most-downloaded PyPI projects, at the defaults**, measured with 0.9.0 — rule and method
+**The 100 most-downloaded PyPI projects, at the defaults**, measured with 0.10.0 — rule and method
 fixed before the first run; no repository tuned ([full table and every collision](tools/study/STUDY.md)):
 
 | | repositories |
 |---|---|
-| `clean` | 63 |
+| `clean` | 59 |
 | `drift` | 29 |
+| `incomplete` — fewer tags compared than not | 4 |
 | no version label found, or inconclusive | 8 |
 
-A version label names two different code states in **29 of the 92** decided, 29 of all 100. Each
+A version label names two different code states in **29 of the 88** decided, 29 of all 100. Each
 of the 87 labels is in `collisions.tsv`, one line per tag involved, reproducible by hand:
 
 ```
@@ -156,9 +157,10 @@ CI runs the same four on Linux, macOS and Windows; what each platform could not 
 tried. `./reproduce.sh` runs all of it.
 
 **Ten large repositories** (the Linux kernel, LLVM, CPython and seven more), protocol written
-first: scanning every tag of the kernel takes 90 s and 3.4 GB; the oracle agrees at every pair
-with files; in six of ten the default rules find no version label, and three answers a gate would
-act on are wrong, or rest on almost nothing, for want of `--strict` or `--version-file`. [`tools/benchmark/BENCHMARK.md`](tools/benchmark/BENCHMARK.md).
+first. 0.9.1 needed 3.3 GB for every tag of the kernel and gave three wrong or near-empty answers;
+0.10.0 needs 535 MB and gives none of those three. With a declared version file
+([`docs/LABELS.md`](docs/LABELS.md)) every tag of the kernel is compared: `clean`, 947 of 947.
+[`tools/benchmark/READING.md`](tools/benchmark/READING.md).
 
 ## Send a result
 

@@ -220,6 +220,34 @@ The reports as emitted are in [`results/`](results/) and [`run1/results/`](run1/
 | 110 | shellingham | `sarugaku/shellingham` | no label found | clean | 19 of 21 | 19 | 0 | `src/shellingham/__init__.py` |
 | 111 | mypy-extensions | `python/mypy_extensions` | inconclusive | clean | 7 of 7 | 7 | 0 | `pyproject.toml`, `setup.py` |
 
+## Run 3 — detector 0.10.0 against 0.9.1, on the same clones
+
+Run on GitHub's runners on 2026-10-05; each repository was cloned once and measured with both
+detectors, so what differs between the two columns is the detector, not the repositories.
+
+| outcome | 0.9.1 | 0.10.0 |
+|---|---|---|
+| `clean` | 63 | 59 |
+| `drift` | 29 | 29 |
+| `incomplete` | 0 | 4 |
+| no label found | 7 | 7 |
+| `inconclusive` | 1 | 1 |
+
+**0.10.0: a version label names more than one code state in 29 of the 88 repositories where
+a determination was reached, and in 29 of all 100.**
+
+Repositories whose outcome differs between the two detectors:
+
+- `kjd/idna`: clean → incomplete (17 of 43 tags compared)
+- `tqdm/tqdm`: clean → incomplete (49 of 175 tags compared)
+- `scipy/scipy`: clean → incomplete (43 of 188 tags compared)
+- `coveragepy/coveragepy`: clean → incomplete (36 of 192 tags compared)
+
+Detectors: 0.10.0 sha256 `91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990`, 0.9.1 `91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990`.
+The released 0.10.0 script differs from the one that measured this run in the text of one refusal
+and in how much memory it keeps (`tests/PREREGISTRATION.md` §10, amendments 4 and 5); on the 60
+generated repositories of the property suite and six public ones, the two print the same report.
+
 ## A later reading of 17 reproduced collisions
 
 **This section is not part of the study.** It is a manual reading made after run 2, it was not
