@@ -25,7 +25,7 @@ env:
 
 jobs:
   run:
-    name: ${{ env.MODE }} · shard ${{ matrix.shard }} of 10
+    name: shard ${{ matrix.shard }} of 10
     runs-on: ubuntu-24.04
     timeout-minutes: 300
     strategy:
