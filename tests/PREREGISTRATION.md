@@ -680,3 +680,27 @@ repositories and the 60 seeds of the property suite.
 
 Where §10 and its amendments say "the benchmark of 0.9.1", run 1 of the benchmark was measured with
 0.9.0; 0.9.1 gives the same reports there (it differs only on Windows). Nothing else changes.
+
+## 11. Added 2026-10-06, before any of it was written — what 1.0 has to meet
+
+1.0 adds no capability to impress. It is the release that a reviewer who examines it cannot
+discredit. Every line below is checked by a command or a file; a line that cannot be met is
+written down as scope, with the reason, or 1.0 does not ship.
+
+| id | requirement | how it is checked |
+|---|---|---|
+| R1 | No proof red, every mutant caught, no loose adversarial case outside the closed known list, every property green — on Linux, macOS and Windows | `tests/RECORD.md`, CI run named there |
+| R2 | The same on every Python the package declares: 3.9, 3.10, 3.11, 3.12, 3.13, 3.14 | CI matrix; `pyproject.toml` classifiers equal to it |
+| R3 | A regression corpus: the 100 repositories of the study, each pinned to a recorded HEAD and set of tags; the release must reproduce the recorded classification of every repository whose snapshot is intact | `tools/regression/`; a repository whose upstream moved or deleted a recorded tag is reported, by name, as not checkable |
+| R4 | No known correctness defect left unresolved: every open item of `docs/FAILURES.md` that can produce a wrong `clean` or `drift` is fixed, or declared in `SCOPE.md` with the condition under which it applies and the way to avoid it | `docs/FAILURES.md` against `SCOPE.md` |
+| R5 | Monorepos: components declared in `.closure-drift.json`, each with its own tags, version file and closure, one verdict each. Declared, never inferred | proofs CP*, mutants, adversarial pass |
+| R6 | Scale, measured by a recurring job: every tag of `torvalds/linux`, `llvm/llvm-project`, `python/cpython`, `rust-lang/rust`, `nodejs/node`, with time, peak memory of the whole process tree, tags scanned, compared, without label, and objects read; the kernel under 1 GB | `.github/workflows/benchmark.yml`, scheduled |
+| R7 | Every quantitative claim of the public pages traceable to a file of the repository; no "production-grade", "secure", "enterprise" or similar without a measurable definition | an independent review of the whole repository, committed as delivered |
+| R8 | Reproducibility: `reproduce.sh` runs every suite; the release's script hash in `DEPOSIT.sha256` matches the Zenodo record | `tools/verify_deposit.py --from-zenodo` |
+
+Not required, and why: incremental analysis (every tag of the kernel takes about two minutes;
+nothing measured asks for it, and it would add state); inferring components (declaring them is
+what R5 asks for); a guarantee for the label rules without `--version-file` (they refuse on
+contradiction, and are best effort otherwise — R4 writes that down).
+
+The proofs, mutants and cases for R3–R6 are written in sections 12 onward, each before its code.
