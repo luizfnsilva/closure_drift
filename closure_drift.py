@@ -1043,7 +1043,7 @@ def components(a, head_sha: str, cfg: dict, comps: dict) -> int:
     verdicts = [r["verdict"] for r in reports.values()]
     verdict = ("drift" if "drift" in verdicts else "clean" if all(v == "clean" for v in verdicts)
                else "incomplete")
-    code = {"clean": 0, "drift": 1}.get(verdict, 2)
+    code = 0 if verdict == "clean" else 1 if verdict == "drift" else 2
     if a.badge:
         print(badge(verdict, head_sha[:12]))
         return code
