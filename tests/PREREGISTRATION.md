@@ -818,3 +818,20 @@ The project says which components it has; the tool never guesses them.
 Mutants: M38 (a component without a version counts as clean → CM03), M39 (`--component` ignored →
 CM04), M40 (`--would-tag` allowed without `--component` → CM06). An adversarial pass on components
 by a reviewer who did not write them, committed as delivered before any fix.
+
+## 15. Added 2026-10-06, before any of it was written — the benchmark as a recurring job (R6)
+
+The benchmark (`tools/benchmark/`) runs on the 2nd of every month, and by hand. Run 3, the first
+under this section, is the one 1.0 is judged on.
+
+- `--diagnose` reports `objects_read`: how many git objects the run read. It changes no other
+  output; the count is the same for the same repository and options.
+- B3 (every tag, defaults) and B8 (every tag, the recipe of `recipes.json`) run with `--diagnose`,
+  and the result records, for each: time, peak memory of the process tree, tags scanned, compared,
+  without label, contradicted, and objects read.
+- Required for 1.0 (R6), on B8 of `torvalds/linux`, `llvm/llvm-project`, `python/cpython`,
+  `rust-lang/rust` and `nodejs/node`: no run past its limit, no crash, the kernel under 1 GB.
+
+| id | setup | required |
+|---|---|---|
+| DG04 | a repository of three tags, `--diagnose --json` | `diagnostics.objects_read` is a positive integer; the same on a second run; the rest of the report equals the run without `--diagnose` apart from `diagnostics` |

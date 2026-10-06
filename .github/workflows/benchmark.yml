@@ -3,6 +3,9 @@ name: benchmark
 # Ten large repositories, as tools/benchmark/PREREGISTRATION.md says. Run by hand, or by pushing a
 # branch named benchmark-run/*. It measures; it does not gate anything.
 on:
+  schedule:
+    # the 2nd of every month: scale is measured, not remembered
+    - cron: '0 7 2 * *'
   workflow_dispatch:
     inputs:
       repos:

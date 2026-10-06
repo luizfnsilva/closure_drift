@@ -57,6 +57,7 @@ MAX_BUILD_FILE = 1 << 20      # a build file larger than this is not read for a 
 
 DIAGNOSTICS: dict = {}     # filled only with --diagnose; added to every JSON report
 COMPONENT: dict = {}       # {"component": NAME} with --component; added to every JSON report
+OBJECTS_READ = [0]         # git objects read in this run; reported by --diagnose
 
 CLOSURE_DEFAULTS = ["src/**", "lib/**", "app/**", "*.py", "*.js", "*.ts", "*.rs", "*.go", "*.java"]
 
@@ -124,6 +125,7 @@ def git(args: list[str], repo: str, may_fail: bool = False) -> str:
 def emit(report: dict) -> None:
     report.update(COMPONENT)
     if DIAGNOSTICS:
+        DIAGNOSTICS["objects_read"] = OBJECTS_READ[0]
         report["diagnostics"] = DIAGNOSTICS
     print(json.dumps(report, indent=1))
 
@@ -216,6 +218,7 @@ class Objects:
 
     def read(self, name: str, want: str) -> bytes:
         """The bytes of object `name`, which must be of type `want`."""
+        OBJECTS_READ[0] += 1
         try:
             self.proc.stdin.write(name.encode() + b"\n")
             self.proc.stdin.flush()

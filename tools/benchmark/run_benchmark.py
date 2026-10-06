@@ -76,10 +76,13 @@ def summary(path):
         return {}
     keep = ("verdict", "labels", "labels_covering_multiple_closures", "max_closures_per_label",
             "publication_points_scanned", "publication_points_compared", "points_without_label",
-            "points_with_empty_closure", "range_truncated", "version_file", "label_at_head")
+            "points_with_empty_closure", "points_label_contradicted", "range_truncated", "version_file",
+            "label_at_head")
     out = {k: r[k] for k in keep if k in r}
     if "stamp" in r:
         out["detector_closure"] = r["stamp"].get("detector_closure")
+    if "diagnostics" in r:
+        out["objects_read"] = r["diagnostics"].get("objects_read")
     return out
 
 
@@ -141,13 +144,13 @@ def main():
     det = [sys.executable, str(DETECTOR), str(clone)]
     recipes = json.loads((Path(__file__).parent / "recipes.json").read_text(encoding="utf-8"))
     plan = [("B1", det + ["--json"]), ("B2", det + ["--json"]),
-            ("B3", det + ["--json", "--max-commits", "1000000"]),
+            ("B3", det + ["--json", "--max-commits", "1000000", "--diagnose"]),
             ("B4", det + ["--would-tag", "--json"]),
             ("B5", det + ["--at", "commits", "--json"])]
     if a.baseline:
         plan.append(("B3_baseline", [sys.executable, a.baseline, str(clone), "--json", "--max-commits", "1000000"]))
     if a.slug in recipes:
-        plan.append(("B8", det + ["--json", "--max-commits", "1000000"] + recipes[a.slug]))
+        plan.append(("B8", det + ["--json", "--max-commits", "1000000", "--diagnose"] + recipes[a.slug]))
     pairs = []
     if len(tags) >= 2:
         oldest, median, newest = tags[0], tags[len(tags) // 2], tags[-1]

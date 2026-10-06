@@ -1119,6 +1119,21 @@ def dg03(root):
     check("not a git repository" in err and "Traceback" not in err, "the refusal is not the named one")
 
 
+@proof("DG04")
+def dg04(root):
+    r = Repo(root, "dg04")
+    for tag, version in (("v1.0.0", "1.0.0"), ("v1.1.0", "1.1.0"), ("v1.2.0", "1.2.0")):
+        r.release(tag, version, {"src/a.py": "# %s\n" % tag})
+    _rc, one, _o, _e = run(r, "--diagnose")
+    _rc, two, _o, _e = run(r, "--diagnose")
+    _rc, plain, _o, _e = run(r)
+    n = (one or {}).get("diagnostics", {}).get("objects_read")
+    check(isinstance(n, int) and n > 0, "objects_read is %r" % n)
+    check(n == (two or {}).get("diagnostics", {}).get("objects_read"), "objects_read differs between two runs")
+    one.pop("diagnostics")
+    check(one == plain, "--diagnose changed the report")
+
+
 # ---------------------------------------------------------------- VER — version
 
 @proof("VER01")
