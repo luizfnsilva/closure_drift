@@ -85,3 +85,11 @@ The change is the one written in the pre-registration before it was made. On mac
 ```bash
 python3 tests/oracle.py --self-test && python3 tests/properties.py && python3 tests/properties.py --controls
 ```
+
+## Detector 0.10.0 — controls re-anchored, 2026-10-05
+
+K07 and K09 replaced text that 0.10.0 moved (the `--strict` condition now shares its line with the
+coverage rule; the loop that files closures under a label moved out one level). Both no longer
+applied and were reported not caught, as they must be. Their anchors now name the new text; what
+each breaks and the property it must turn red are unchanged. The oracle was amended for 0.10.0 by
+its author (`tests/ORACLE_SPEC.md`, amendment 2; self-test 117 of 117).
