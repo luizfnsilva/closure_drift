@@ -663,9 +663,9 @@ CONTROLS = [
      'full.update(raw + b"\\0" + kind.encode() + b" " + oid.encode() + b"\\n")',
      'full.update(raw + b"\\0" + oid.encode() + b"\\n")'),
     ("K03", "paths are matched without regard to case", ("PR01", "PR15"),
-     "            got = matches(path, self.include) and not matches(path, CLOSURE_EXCLUDE)",
+     "            got = matches(path, self.include) and not excluded(path, is_file)",
      "            got = (matches(path.lower(), [g.lower() for g in self.include])\n"
-     "                   and not matches(path.lower(), CLOSURE_EXCLUDE))"),
+     "                   and not excluded(path.lower(), is_file))"),
     ("K04", "`only_in_a` and `only_in_b` are exchanged in --compare", ("PR02", "PR10"),
      '"changed": changed, "only_in_a": only_a, "only_in_b": only_b})',
      '"changed": changed, "only_in_a": only_b, "only_in_b": only_a})'),
@@ -684,8 +684,8 @@ CONTROLS = [
      ('"--sort=creatordate",', "        if full not in states:\n"),
      ('"--sort=refname",', "        if not states:\n")),
     ("K10", "submodule pointers are left out of the closure", ("PR01",),
-     'return [e for e in entries if e[1] in ("blob", "commit") and self.holds(e[0])]',
-     'return [e for e in entries if e[1] == "blob" and self.holds(e[0])]'),
+     'return [e for e in entries if e[1] in ("blob", "commit") and self.holds(e[0], e[1] == "blob")]',
+     'return [e for e in entries if e[1] == "blob" and self.holds(e[0], e[1] == "blob")]'),
 ]
 
 

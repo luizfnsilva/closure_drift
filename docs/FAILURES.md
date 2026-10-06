@@ -7,25 +7,32 @@ reported from outside.
 
 | | what | found by | what to do meanwhile |
 |---|---|---|---|
+| O3 | **No label found outside the listed ecosystems.** The rules still know only the files in `docs/LABELS.md`; recipes for five large projects are there | benchmark | `--version-file`, `--version-regex` |
+| O5 | **A refusal for want of a label comes after the whole scan** (68 s on the kernel with 0.10.0) | benchmark | — |
+| O9 | `RESULTS.md` is empty: no measurement by anyone else | — | send one |
+
+## Declared as scope (`SCOPE.md`), not as defects
+
+| | what | found by | what to do |
+|---|---|---|---|
 | O2a | **A wrong file is still believed when one tag agrees by chance** with its first number (a helper crate's `0.1.0` and an old tag `v0.1`) | adversarial ZA04 | `--version-file` in any gate |
 | O2b | **Build-number tags (`release-41`) read as versions**: a correct file can be refused, exit 2 | adversarial ZA02 | `--version-file` |
 | O2c | **`--at commits` has no tag to check a version file against** | adversarial ZX03 | `--version-file` |
-| O3 | **No label found outside the listed ecosystems.** The rules still know only the files in `docs/LABELS.md`; recipes for five large projects are there | benchmark | `--version-file`, `--version-regex` |
-| O5 | **A refusal for want of a label comes after the whole scan** (68 s on the kernel with 0.10.0) | benchmark | — |
-| O6 | **Exclusions match folders, not only files.** `**/*_test.*` leaves out everything under a folder named `x_test.d`; `**/*.test.*` the same. Glob matching is `fnmatch` on the whole path and is not specified anywhere but `tests/ORACLE_SPEC.md` | writing the oracle's specification | `--closure` cannot bring them back; rename, or accept |
-| O7 | Labels are compared as text (`1.0` ≠ `1.0.0`); a mode-only change is not seen; a submodule's content is not read | declared since 0.9.0 | `SCOPE.md` |
-| O8 | `setup.py` is never run by construction, and no test asserts it | writing the threat model | — |
-| O9 | `RESULTS.md` is empty: no measurement by anyone else | — | send one |
-| O10 | **A tag that was never released counts as a publication point.** `astral-sh/ruff` `v0.0.268` was tagged before the version bump and never published; the collision it makes names no second artefact | a participant in [ruff discussion 29122](https://github.com/astral-sh/ruff/discussions/29122), 2026-10-06 — the first failure reported from outside | `--tags` to the tags that are releases |
+| O10 | **A tag that was never released counts as a publication point.** `astral-sh/ruff` `v0.0.268` was tagged before the version bump and never published; the collision it makes names no second artefact | a participant in [ruff discussion 29122](https://github.com/astral-sh/ruff/discussions/29122), 2026-10-06 — the first failure reported from outside; the same shape in `openai-python` ([discussion 4031](https://github.com/openai/openai-python/discussions/4031)): the published `0.26.5` was built from the commit after the tag | `--tags` to the tags that are releases |
+| O7 | Labels are compared as text (`1.0` ≠ `1.0.0`); a mode-only change is not seen; a submodule's content is not read | declared since 0.9.0 | `SCOPE.md`, with what to do for each |
 
 ## Fixed
 
 | release | what failed | found by |
 |---|---|---|
+| 1.0.0 | **file-name exclusions also matched folders**: `**/*_test.*` left out everything under `src/x_test.d/` (O6) | writing the oracle's specification |
+| 1.0.0 | no test asserted that `setup.py` is never run (O8); proof SP01, with a positive control | writing the threat model |
+| 1.0.0 | the first form of components and file-name exclusions: a component measured under an invalid range; `--at commits` accepted with components; a key repeated in `.closure-drift.json` silently dropped (once giving `clean` over a component in drift); component names cut in the text report; a submodule excluded by its name | adversarial extension 4, before release |
+| 1.0.0 | the benchmark reported the largest single process as the memory of the run | the review of the whole repository |
 | 0.10.0 | **`clean`, exit 0, over a tiny share of the tags** (`Azure/azure-sdk-for-python`: 9 of 5,508). `clean` now needs at least as many tags compared as not | benchmark, run 1 |
 | 0.10.0 | **a wrong version file believed** (`git/git`: a helper crate's `Cargo.toml`; `DefinitelyTyped`: a private `package.json`). A file no tag agrees with decides nothing; a private `package.json` is not read | benchmark, run 1 |
 | 0.10.0 | **a version spread over several lines could not be read** (Linux, Node, LLVM). Named groups `part1`, `part2`, … are joined | benchmark, run 1 |
-| 0.10.0 | **memory grew with history**: every tree and every version file read was kept, and git mapped whole pack files. Every tag of the kernel: 3,285 MB → 535 MB. The first form of the fix missed its target | benchmark, run 1; adversarial ZM05, ZM06; benchmark run 2 |
+| 0.10.0 | **memory grew with history**: every tree and every version file read was kept, and git mapped whole pack files. The first form of the fix missed its target; 0.10.0 published "535 MB" for every tag of the kernel, which was the largest single process — the whole tree was larger. 1.0.0, whole tree: 900 MB, against 6,541 MB for 0.9.1 | benchmark, run 1; adversarial ZM05, ZM06; benchmark run 2 |
 | 0.10.0 | the first form of the fix for a wrong version file **hid real drift, and once gave `clean`, exit 0** | adversarial extension 3, before release; rewritten twice (`tests/PREREGISTRATION.md` §10) |
 | 0.9.1 | **on Windows, closure globs matched without regard to case**: one commit, two closures, and in generated repositories two verdicts | property suite against the oracle, on the Windows runner; suspected in writing before the run |
 | 0.9.1 | `SECURITY.md` printed the checksum of an unreleased build as that of 0.9.0 | reading the page against `DEPOSIT.sha256` |

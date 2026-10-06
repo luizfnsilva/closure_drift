@@ -1,0 +1,71 @@
+{
+ "report_format": 2,
+ "stamp": {
+  "measured_at_head": "5a7d1e8045ce",
+  "working_tree_dirty": null,
+  "detector_closure": "74309fe6db463a53",
+  "working_tree_dirty_note": "not checked: this repository has no working tree"
+ },
+ "mode": "compare",
+ "repo": "/home/runner/work/_temp/git__git.git",
+ "version_file": "Cargo.toml",
+ "closure_globs": [
+  "src/**",
+  "lib/**",
+  "app/**",
+  "*.py",
+  "*.js",
+  "*.ts",
+  "*.rs",
+  "*.go",
+  "*.java"
+ ],
+ "verdict": "not_comparable",
+ "a": {
+  "ref": "v0.99",
+  "commit": "a3eb250f996b",
+  "label": null,
+  "agrees_with_tag": null,
+  "label_source": null,
+  "closure": null,
+  "closure_id": null,
+  "files": 0
+ },
+ "b": {
+  "ref": "v2.56.0",
+  "commit": "a018953688f1",
+  "label": "0.1.0",
+  "agrees_with_tag": false,
+  "label_source": "Cargo.toml",
+  "closure": "8e703a24f9382930",
+  "closure_id": "b0755aaf67dda14b4fc2689597062dda54f970b5689571565e353fd42bdadde8",
+  "files": 23
+ },
+ "changed": [],
+ "only_in_a": [],
+ "only_in_b": [
+  "build.rs",
+  "contrib/fast-import/import-zips.py",
+  "contrib/libgit-rs/build.rs",
+  "contrib/libgit-rs/src/config.rs",
+  "contrib/libgit-rs/src/lib.rs",
+  "contrib/libgit-sys/build.rs",
+  "contrib/libgit-sys/src/lib.rs",
+  "git-gui/lib/win32_shortcut.js",
+  "git-p4.py",
+  "gitweb/static/js/adjust-timezone.js",
+  "gitweb/static/js/blame_incremental.js",
+  "gitweb/static/js/javascript-detection.js",
+  "gitweb/static/js/lib/common-lib.js",
+  "gitweb/static/js/lib/cookies.js",
+  "gitweb/static/js/lib/datetime.js",
+  "src/cargo-meson.sh",
+  "src/csum_file.rs",
+  "src/hash.rs",
+  "src/lib.rs",
+  "src/loose.rs",
+  "src/meson.build",
+  "src/varint.rs",
+  "t/unit-tests/clar/generate.py"
+ ]
+}

@@ -1,0 +1,116 @@
+{
+ "report_format": 2,
+ "stamp": {
+  "measured_at_head": "b30c031c6156",
+  "working_tree_dirty": null,
+  "detector_closure": "74309fe6db463a53",
+  "working_tree_dirty_note": "not checked: this repository has no working tree"
+ },
+ "repo": "/home/runner/work/_temp/llvm__llvm-project.git",
+ "version_file": "cmake/Modules/LLVMVersion.cmake",
+ "closure_globs": [
+  "llvm/lib/**",
+  "llvm/include/**"
+ ],
+ "published_at": "tags",
+ "publication_points": 328,
+ "labels": 44,
+ "labels_covering_multiple_closures": 5,
+ "max_closures_per_label": 5,
+ "verdict": "drift",
+ "drift": {
+  "19.1.0": {
+   "dd3ed45e1292bf88": "llvmorg-19.1.0-rc1 (2024-07-26)",
+   "95347bb2da5da647": "llvmorg-19.1.0-rc2 (2024-08-05)",
+   "56e606684c87dc70": "llvmorg-19.1.0-rc3 (2024-08-20)",
+   "912c2a8239fd924d": "llvmorg-19.1.0-rc4 (2024-09-03)",
+   "b52b34adfa956d39": "llvmorg-19.1.0 (2024-09-17)"
+  },
+  "20.1.0": {
+   "5995efe5ca63c027": "llvmorg-20.1.0-rc1 (2025-02-01)",
+   "20520eec231e1fdf": "llvmorg-20.1.0-rc2 (2025-02-11)",
+   "82a85af66978bce4": "llvmorg-20.1.0-rc3 (2025-02-25)"
+  },
+  "21.1.0": {
+   "1127c66fb37fe9ba": "llvmorg-21.1.0-rc1 (2025-07-17)",
+   "d243097b11b28ace": "llvmorg-21.1.0-rc2 (2025-07-29)",
+   "c05e59c330d0a602": "llvmorg-21.1.0-rc3 (2025-08-12)",
+   "53649d21ef82ce6a": "llvmorg-21.1.0 (2025-08-26)"
+  },
+  "22.1.0": {
+   "365866cc0929bb77": "llvmorg-22.1.0-rc1 (2026-01-16)",
+   "6a896d1dda9c3306": "llvmorg-22.1.0-rc2 (2026-01-27)",
+   "9f2e14f71c00e1b2": "llvmorg-22.1.0-rc3 (2026-02-10)",
+   "adf7fc83934edbc2": "llvmorg-22.1.0 (2026-02-24)"
+  },
+  "23.1.0": {
+   "a2b4bd8428f9921e": "llvmorg-23.1.0-rc1 (2026-07-18)",
+   "11cde241226fab60": "llvmorg-23.1.0-rc2 (2026-07-28)",
+   "a005fa97098cf51d": "llvmorg-23.1.0-rc3 (2026-08-12)",
+   "6e7a76098e30253a": "llvmorg-23.1.0 (2026-08-25)"
+  }
+ },
+ "closure_ids": {
+  "dd3ed45e1292bf88": "0aab4e44d4b14a0f67387d8fadea170a7bc94aa60d5b63da85bfef2dab6c3336",
+  "95347bb2da5da647": "d97323b2e3944fef222a5cfb0ca4c2381e960a2cba4a0f0b63bd9788ed8dcfc0",
+  "56e606684c87dc70": "c82cf46c07a8ca920fd779db2c4a09b536bf7e5c8ede15f3e8cd22262c767444",
+  "912c2a8239fd924d": "eb37d434ef841f1b53cdaea66c9e1e148d364b560ed94681553bbb0bcfa95265",
+  "b52b34adfa956d39": "46099e29ee4c5f46d26a72377d4d92e0beafb7914d17b9343bd31b952488e6c1",
+  "5995efe5ca63c027": "a19808ba9261bb3fb111732703f37b7c0f7dce8d913c1025fe40c97f8cdc8b03",
+  "20520eec231e1fdf": "8500d92130d94c4749332f0bd1b116d001dc427d531fa96452af6218bf7c71af",
+  "82a85af66978bce4": "94c05ef90cb3c6ebde5997e8a99a4d3108f93e50253f8ec7c40e8cd0fb206a79",
+  "1127c66fb37fe9ba": "72570cb3461dc0fa2082b65ab5bb7dfcbf207e6b7cdf87d7a7667555e91da7bd",
+  "d243097b11b28ace": "b534cb67be6cc4e2d8958f3134a60771facbbeac9426d6d7a90918c8d314db32",
+  "c05e59c330d0a602": "c60ababd5ae15750efe99704bb3887ecca109784b8959ebfd0cd40b1414f7586",
+  "53649d21ef82ce6a": "ff5f04b8850d99ff3c0c80e57d821126d2ad50ba7153f4e50fd47a18ad2f2e0d",
+  "365866cc0929bb77": "a5f49601cb57c46f2baaaade6980be7065e6692b956dd0e44f5217b2fa03e59a",
+  "6a896d1dda9c3306": "728f877fca30b8ef57b61267cc4a6476fa059244f8b005d9f21d8f491c2689ba",
+  "9f2e14f71c00e1b2": "c134042d4ca89dcae55b0d7df85acfc4be1df31ac985c21e05453197a4b8f74b",
+  "adf7fc83934edbc2": "20c6172e4ed354bbbe8e3fc24a00bd96ab43675980404c440cc7d258a2a4602a",
+  "a2b4bd8428f9921e": "e824213881f3bd3dcb8c4fe32193b6383a5555e76a2908207e61780bfd6a4dfd",
+  "11cde241226fab60": "fd5ffaa1ed1613f88c10467d3084ad12085eb55432af17853ecfc344c35b9312",
+  "a005fa97098cf51d": "fa179c17384003686a965e37a1c437d6b0bba200ade80895dff36a6bb185f392",
+  "6e7a76098e30253a": "48d49c7b1e4fc7594069d8992e0f7062c9b09be598f613d09e299749ce69265d"
+ },
+ "closure_changes_between_points": 266,
+ "label_sources": {
+  "cmake/Modules/LLVMVersion.cmake": 60
+ },
+ "publication_points_scanned": 328,
+ "publication_points_compared": 60,
+ "points_without_label": 268,
+ "points_with_empty_closure": 0,
+ "points_not_commits": 0,
+ "range_truncated": false,
+ "points_with_conflicting_sources": 0,
+ "points_label_contradicted": 0,
+ "diagnostics": {
+  "detector_version": "1.0.0",
+  "detector_closure": "74309fe6db463a53",
+  "python": "3.13.15",
+  "platform": "linux",
+  "git": "git version 2.55.0",
+  "options": {
+   "at": null,
+   "would_tag": false,
+   "strict": false,
+   "json": true,
+   "max_commits": 1000000,
+   "tags_globs_given": 0,
+   "closure_globs_given": 2,
+   "version_file_given": true,
+   "version_regex_given": true,
+   "explain_given": false,
+   "compare_given": false
+  },
+  "repository": {
+   "bare": "true",
+   "shallow": "false",
+   "object_format": "sha1",
+   "tags": 328,
+   "commits_reachable_from_head": "600913",
+   "config_file_present": false
+  },
+  "objects_read": 147313
+ }
+}

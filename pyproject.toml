@@ -13,13 +13,17 @@ license-files = ["LICENSE", "NOTICE"]
 authors = [{name = "Luiz F. Nunes da Silva", email = "lfnsilva.invest@gmail.com"}]
 keywords = ["versioning", "release", "reproducibility", "provenance", "git", "ci"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Software Development :: Version Control :: Git",
     "Topic :: Software Development :: Quality Assurance",
 ]

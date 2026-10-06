@@ -1,0 +1,45 @@
+{
+ "detector_sha256": "91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990",
+ "expected": {
+  "drift": {
+   "0.0.9": [
+    "7f2ac3f9cedc49a3125d1581dc93eb246a047cebee0028ff666a07bcf689cf6a",
+    "8e513f3fbd67f6ee398d13d45f8f96814ea93083c06a0005a4cfef17d0aced65"
+   ]
+  },
+  "exit": 1,
+  "labels": 19,
+  "labels_covering_multiple_closures": 1,
+  "points_label_contradicted": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points_compared": 20,
+  "publication_points_scanned": 20,
+  "verdict": "drift"
+ },
+ "head": "02f9c577bcd0ad9fedfb0fd5dc598d323f7984bf",
+ "rank": 84,
+ "repository": "pyasn1/pyasn1-modules",
+ "tags": {
+  "v0.0.10": "75a1d105027e86aa7d2720e6f0fa6349933ad55d",
+  "v0.0.11": "43f2ed528ab07315b73a19ccb920c6c9509dd417",
+  "v0.0.9": "cd2de07de7cbc4c0df7958ff26c3e109ad54b11e",
+  "v0.1.1": "e5f977b4eeb0fcf56da1688c55c9e30e1c3111b1",
+  "v0.1.2": "deac879a7da7bc6dde97f44f7b8b0e706efb9c7a",
+  "v0.1.3": "061aac03057f49359c94bfbb8781751da15882b2",
+  "v0.1.4": "b22ce8058e9860e058232d18e0d6911b87199546",
+  "v0.1.5": "620874bd43fb650b19d3c7b1a306888b7acd840a",
+  "v0.2.1": "5662c4308d3758d68e34398c1a70a346e58eb5a1",
+  "v0.2.2": "ac6ae3f2d72dcc53b6e691e218b2c43156aac5cb",
+  "v0.2.3": "ee7f9f20a2464bf52b3895efe5f6c5ab999520eb",
+  "v0.2.4": "dc62944265d25644f1d0171172ce99ebc74492fd",
+  "v0.2.5": "8764363979055eda0c736c49bad56abe6dc2687a",
+  "v0.2.6": "213c0f494b3ee7d12f82abbadfc345ca69e2432f",
+  "v0.2.7": "1daa0559f9da2d1d2304a6df99a4ec899d5b84d8",
+  "v0.2.8": "87e78d03b7b7f9f35afdf7fe85fe55410e5be4ab",
+  "v0.3.0": "ffc91a940f531841cb7b25f898afbc247b29bce4",
+  "v0.4.0": "4305459aeb2f9a9d4e39325844cea94de532201d",
+  "v0.4.1": "2add6d5b8470209265a8a0b5969b50f953d3714d",
+  "v0.4.2": "05e18d50f0114172f83ed7eea136b512d40df0af"
+ }
+}

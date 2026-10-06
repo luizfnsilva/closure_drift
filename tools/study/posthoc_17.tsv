@@ -6,7 +6,7 @@ encode/httpcore	0.14.0	0.14.0	0.14.1	8	7	candidate; confirmed 2026-10-05 in enco
 giampaolo/psutil	0.5.0	release-0.5.1	release-0.5.0	3	2	historical
 lxml/lxml	4.9.3	lxml-4.9.3-2	lxml-4.9.3	1	1	not recommended: only a build script differs
 numpy/numpy	2.0.0.dev0	v2.1.0.dev0	v2.0.0.dev0	289	230	not recommended: development markers (.dev0)
-openai/openai-python	0.26.4	v0.26.4	v0.26.5	4	4	candidate
+openai/openai-python	0.26.4	v0.26.4	v0.26.5	4	4	candidate; confirmed 2026-10-06 in openai/openai-python discussion 4031: tagged one commit before the bump; the published 0.26.5 was built from the bump commit
 pallets/click	3.3	3.3	3.x	1	1	not recommended: maintenance-branch marker
 pallets/jinja	2.10.3	2.10.3	2.10.x	11	11	not recommended: maintenance-branch marker
 pallets/markupsafe	1.1.1	1.1.1	1.1.x	1	0	not recommended: no package code differs

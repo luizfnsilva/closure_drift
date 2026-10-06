@@ -67,19 +67,24 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # every Python the package declares runs on Linux; macOS and Windows take the oldest
+          # and the newest they can run
           - {os: ubuntu-latest,  python: '3.9'}
+          - {os: ubuntu-latest,  python: '3.10'}
           - {os: ubuntu-latest,  python: '3.11'}
+          - {os: ubuntu-latest,  python: '3.12'}
           - {os: ubuntu-latest,  python: '3.13'}
-          - {os: macos-latest,   python: '3.11'}
-          - {os: macos-latest,   python: '3.13'}
+          - {os: ubuntu-latest,  python: '3.14'}
+          - {os: macos-latest,   python: '3.10'}
+          - {os: macos-latest,   python: '3.14'}
           - {os: windows-latest, python: '3.9'}
-          - {os: windows-latest, python: '3.13'}
+          - {os: windows-latest, python: '3.14'}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
-      # Three batteries, each with its own polarity and its own pre-registration
+      # Four suites and the oracle's own check, each with its own polarity and pre-registration
       # (tests/PREREGISTRATION.md, tests/PREREGISTRATION_ADVERSARIAL.md). Their scores are
       # printed side by side and never added together.
       - name: Demonstration — the three answers

@@ -1,0 +1,216 @@
+{
+ "repository": "nodejs/node",
+ "detector_sha256": "74309fe6db463a53e2dce112596b425a596a1a38dce413054e2db32a23f99f0d",
+ "baseline_sha256": "89b5349928eba22b0394d01940ed3d4aa989d6820f48fdddf189ad521689c51c",
+ "oracle_sha256": "648dceeb301a858e8e44df866a51808ebeca0614b650d2b9d09aac63cab7f94a",
+ "machine": {
+  "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "cpus": 4,
+  "python": "3.13.15",
+  "git": "git version 2.55.0",
+  "runner": "ubuntu24 20260927.320.1",
+  "memory_mb": 15989
+ },
+ "limit_seconds": 2400,
+ "runs": {
+  "B1": {
+   "exit": 2,
+   "seconds": 38.48,
+   "peak_mb": 152.1,
+   "tree_peak_mb": 286.2,
+   "stderr_first": "could not find a version label. Pass --version-file / --version-regex.",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stdout_bytes": 0,
+   "command": "closure_drift.py CLONE --json"
+  },
+  "B2": {
+   "exit": 2,
+   "seconds": 38.89,
+   "peak_mb": 152.1,
+   "tree_peak_mb": 287.1,
+   "stderr_first": "could not find a version label. Pass --version-file / --version-regex.",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stdout_bytes": 0,
+   "command": "closure_drift.py CLONE --json"
+  },
+  "B3": {
+   "exit": 2,
+   "seconds": 62.02,
+   "peak_mb": 172.9,
+   "tree_peak_mb": 313.4,
+   "stderr_first": "could not find a version label. Pass --version-file / --version-regex.",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stdout_bytes": 0,
+   "command": "closure_drift.py CLONE --json --max-commits 1000000 --diagnose"
+  },
+  "B4": {
+   "exit": 2,
+   "seconds": 62.59,
+   "peak_mb": 172.9,
+   "tree_peak_mb": 314.5,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "30be8edf11d074bd3123244b3e4829c8787fabff0638ecebf082c52ca61eb1e3",
+   "stdout_bytes": 994,
+   "command": "closure_drift.py CLONE --would-tag --json",
+   "verdict": "no_label_at_head",
+   "publication_points_scanned": 962,
+   "publication_points_compared": 0,
+   "points_without_label": 961,
+   "points_with_empty_closure": 1,
+   "points_label_contradicted": 0,
+   "range_truncated": false,
+   "version_file": null,
+   "label_at_head": null,
+   "detector_closure": "74309fe6db463a53"
+  },
+  "B5": {
+   "exit": 2,
+   "seconds": 35.99,
+   "peak_mb": 126.4,
+   "tree_peak_mb": 208.5,
+   "stderr_first": "could not find a version label. Pass --version-file / --version-regex.",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stdout_bytes": 0,
+   "command": "closure_drift.py CLONE --at commits --json"
+  },
+  "B3_baseline": {
+   "exit": 2,
+   "seconds": 48.07,
+   "peak_mb": 1048.6,
+   "tree_peak_mb": 1858.1,
+   "stderr_first": "could not find a version label. Pass --version-file / --version-regex.",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stdout_bytes": 0,
+   "command": "/home/runner/work/_temp/closure_drift_0.9.1.py CLONE --json --max-commits 1000000"
+  },
+  "B8": {
+   "exit": 1,
+   "seconds": 122.75,
+   "peak_mb": 173.5,
+   "tree_peak_mb": 332.9,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "c3fac5f914857c75a880c6f88e6b3bd6101a40a8fe3acd5e930393c9c5cf2cc4",
+   "stdout_bytes": 5455,
+   "command": "closure_drift.py CLONE --json --max-commits 1000000 --diagnose --version-file src/node_version.h --version-regex #define NODE_MAJOR_VERSION (?P<part1>\\d+)\\s*\\n#define NODE_MINOR_VERSION (?P<part2>\\d+)\\s*\\n#define NODE_PATCH_VERSION (?P<part3>\\d+)",
+   "verdict": "drift",
+   "labels": 880,
+   "labels_covering_multiple_closures": 8,
+   "max_closures_per_label": 8,
+   "publication_points_scanned": 962,
+   "publication_points_compared": 910,
+   "points_without_label": 51,
+   "points_with_empty_closure": 1,
+   "points_label_contradicted": 0,
+   "range_truncated": false,
+   "version_file": "src/node_version.h",
+   "detector_closure": "74309fe6db463a53",
+   "objects_read": 106255
+  },
+  "B6_oldest_newest": {
+   "exit": 2,
+   "seconds": 1.11,
+   "peak_mb": 68.0,
+   "tree_peak_mb": 108.9,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "b4c907572eab81ebaf4e7561c6bcac23c0262170ea80fc38bfb17ba79f188660",
+   "stdout_bytes": 99303,
+   "command": "closure_drift.py CLONE --compare v0.0.1 v22.23.3 --json",
+   "verdict": "not_comparable",
+   "version_file": null,
+   "detector_closure": "74309fe6db463a53"
+  },
+  "B7_oldest_newest": {
+   "exit": 0,
+   "seconds": 0.42,
+   "peak_mb": 87.1,
+   "tree_peak_mb": 86.4,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "8a23a9fd2fabf2a729cb6729fb2accce65aa65f3e0f0d0887cb28ede18318cbd",
+   "stdout_bytes": 93913,
+   "command": "tests/oracle.py CLONE --compare v0.0.1 v22.23.3"
+  },
+  "B6_median_newest": {
+   "exit": 2,
+   "seconds": 1.49,
+   "peak_mb": 77.8,
+   "tree_peak_mb": 120.7,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "0ff5994a0969ef132f509af4a6dcf2a290b845c309c0cdc818df78db2887a7a7",
+   "stdout_bytes": 106236,
+   "command": "closure_drift.py CLONE --compare v9.10.1 v22.23.3 --json",
+   "verdict": "not_comparable",
+   "version_file": null,
+   "detector_closure": "74309fe6db463a53"
+  },
+  "B7_median_newest": {
+   "exit": 0,
+   "seconds": 0.59,
+   "peak_mb": 87.2,
+   "tree_peak_mb": 81.5,
+   "stderr_first": "",
+   "stderr_has_traceback": false,
+   "timed_out": false,
+   "stdout_sha256": "58b0cd3c4e8ddd87e55edade633b4452b0ef02e66c89ef022e8a7025b8b32845",
+   "stdout_bytes": 100387,
+   "command": "tests/oracle.py CLONE --compare v9.10.1 v22.23.3"
+  }
+ },
+ "failures": [],
+ "clone": {
+  "exit": 0,
+  "seconds": 78.1,
+  "disk_mb": 1645,
+  "tags": 962,
+  "tags_at_commits": 962,
+  "commits_from_head": 48932,
+  "files_at_head": 55604,
+  "head": "c89ec290f0f82f544e39e6e5f2eab3b6de2c1cca"
+ },
+ "tags_picked": {
+  "oldest": "v0.0.1",
+  "median": "v9.10.1",
+  "newest": "v22.23.3"
+ },
+ "oracle": {
+  "oldest_newest": {
+   "compared": true,
+   "ids_and_counts_agree": true,
+   "path_lists_agree": true,
+   "files": [
+    244,
+    2141
+   ],
+   "paths_differing": 2379
+  },
+  "median_newest": {
+   "compared": true,
+   "ids_and_counts_agree": true,
+   "path_lists_agree": true,
+   "files": [
+    1057,
+    2141
+   ],
+   "paths_differing": 2608
+  }
+ }
+}

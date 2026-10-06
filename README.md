@@ -4,8 +4,8 @@
 
 ```
 $ closure-drift lodash
-DRIFT: 69 of 78 labels name more than one closure
-at a publication point. The worst covers 4.
+DRIFT: 60 of 67 labels name more than one closure
+at a publication point. The worst covers 3.
 ```
 
 A version is a string a human edits. When two releases share a version and differ in code, one
@@ -16,11 +16,11 @@ One command checks it. Read-only, one file, no dependencies, no network.
 ## Run it
 
 ```bash
-curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v0.10.0/closure_drift.py
+curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.0.0/closure_drift.py
 python3 closure_drift.py            # inside any git repository
 ```
 
-or `pipx run --spec git+https://github.com/luizfnsilva/closure_drift@v0.10.0 closure-drift`.
+or `pipx run --spec git+https://github.com/luizfnsilva/closure_drift@v1.0.0 closure-drift`.
 Needs Python 3.9+ and git. To see the three possible answers first: `python3 examples/demo.py`, or read [`docs/DEMOS.md`](docs/DEMOS.md).
 
 ## Check before you tag
@@ -31,13 +31,13 @@ Needs Python 3.9+ and git. To see the three possible answers first: `python3 exa
 # GitHub Actions
 - uses: actions/checkout@v4
   with: { fetch-depth: 0 }
-- uses: luizfnsilva/closure_drift@v0.10.0
+- uses: luizfnsilva/closure_drift@v1.0.0
 ```
 
 ```yaml
 # pre-commit, on git push
 - repo: https://github.com/luizfnsilva/closure_drift
-  rev: v0.10.0
+  rev: v1.0.0
   hooks: [{ id: closure-drift-would-tag }]
 ```
 
@@ -49,10 +49,10 @@ Other pipelines: [`docs/CI.md`](docs/CI.md).
 |---|---|---|
 | `clean` | 0 | every label names one closure, over at least as many points compared as not |
 | `drift` | 1 | a label names more than one closure |
-| `inconclusive`, `incomplete`, `no_labels`, `empty_closure`, `no_publication_points` | 2 | not enough to tell; the report says why |
+| any other verdict ([list](docs/REPORT.md)) | 2 | not enough to tell; the report says why |
 | refusal | 2 | cause on stderr |
 
-Exit 0 means `clean` and nothing else. No input produces a traceback; no failure exits 1.
+Exit 0 means `clean` and nothing else. No input we tried produces a traceback, and no failure exits 1.
 
 - **label** — the version your project declares at each tag: in its build files, in the module
   they point to, or the tag itself when the version is derived from it
@@ -72,13 +72,28 @@ The report also says how many tags it could **not** compare.
 | `--explain LABEL` | which paths differ under a label in drift |
 | `--compare A B` | two tags side by side |
 | `--version-file`, `--version-regex` | where the label is |
+| `--component NAME` | one component of a monorepo (below) |
 | `--json`, `--badge`, `--diagnose` | report ([contract](docs/REPORT.md)), README badge, bug-report block |
 
-Settings can be committed in `.closure-drift.json`. Flags override it; a broken file is refused.
+Settings can be committed in `.closure-drift.json`. Flags override it, except beside `components`,
+where they need `--component`; a broken file is refused.
+
+A monorepo declares its components, and gets one verdict each:
+
+```json
+{"components": {
+  "python": {"tags": ["py-*"], "version_file": "py/pyproject.toml", "closure": ["py/**"]},
+  "rust":   {"tags": ["rs-*"], "version_file": "rs/Cargo.toml",     "closure": ["rs/**"]}
+}}
+```
+
+The answer is `drift` if any component is in drift, `clean` if all are clean, otherwise
+`incomplete`. Components are declared, never guessed. A gate in such a repository passes
+`--component NAME` to `--would-tag`.
 
 ## What it found
 
-**The 100 most-downloaded PyPI projects, at the defaults**, measured with a build of 0.10.0 that prints
+**The 100 most-downloaded PyPI projects with a public repository, at the defaults**, measured with a build of 0.10.0 that prints
 the same reports as the release — rule and method
 fixed before the first run; no repository tuned ([full table and every collision](tools/study/STUDY.md)):
 
@@ -102,30 +117,27 @@ version, branch markers such as `7.x`, and tag families in a monorepo. A first r
 repository, decided only 63 of 100 — it read the version from one file chosen at HEAD — and that
 is why this release finds the label where each project keeps it.
 
-Seven repositories measured since 0.3.0, with 0.7.1 and with 0.9.0:
+Six reference repositories, measured with 1.0.0 at every tag ([`tools/reference/`](tools/reference/)):
 
-| Repository | 0.7.1 | 0.9.0 | Tags compared (0.7.1 → 0.9.0) |
+| Repository | verdict | labels in drift | tags compared |
 |---|---|---|---|
-| `pallets/click` | clean | **drift**, 3 of 66 labels | 11 → 71 of 71 |
-| `psf/requests` | clean | **drift**, 3 of 140 labels | 12 → 145 of 162 |
-| `pypa/packaging` | clean | clean | 14 → 50 of 53 |
-| `encode/httpx` | clean | clean | 69 → 88 of 88 |
-| `impress/impress.js` | drift, 2 of 4 | drift, 2 of 4 | 6 of 15 |
-| `lodash/lodash` | drift, 69 of 78 | drift, 69 of 78 | 280 of 400 |
-| `pola-rs/polars` | drift, 41 of 51 | drift, 41 of 51 | 281 of 400 |
-
-`click` and `requests` were `clean` over the dozen tags 0.7.1 could read; read at every tag, three
-labels in each name two trees.
+| `pallets/click` | drift | 3 of 66 | 71 of 71 |
+| `psf/requests` | drift | 3 of 140 | 145 of 162 |
+| `pypa/packaging` | clean | 0 of 50 | 50 of 53 |
+| `encode/httpx` | clean | 0 of 88 | 88 of 88 |
+| `impress/impress.js` | drift | 2 of 4 | 6 of 15 |
+| `lodash/lodash` | drift | 60 of 107 | 209 of 440 |
 
 Two causes: a release tagged without bumping the version (`impress.js`), and tag families sharing
-one version file (`lodash`, `polars`). Neither project is badly run. `--would-tag` addresses the
-first, `--tags` the second.
+one version file (`lodash`). Neither project is badly run. `--would-tag` addresses the first,
+`--tags` or components the second.
 
 ## Limits
 
 - It never runs your code and attests nothing. `clean` is about addressing, not reproducibility.
 - A change of file mode alone is not seen.
-- `tests/`, `docs/`, `vendor/`, `node_modules/` and `*.md` are never in the closure.
+- Never in the closure: folders `test/`, `tests/`, `spec/`, `docs/`, `vendor/`, `node_modules/`,
+  `.git/`; files named `*_test.*`, `*.test.*`, `*.md`.
 - The default closure globs are a guess. Pass `--closure`.
 - Labels are compared as written: `1.0` and `1.0.0` are two labels.
 - How the label is found is a set of rules, not a build: [`docs/LABELS.md`](docs/LABELS.md).
@@ -148,19 +160,23 @@ Four suites, each pre-registered before the code. Scores are never added togethe
 
 | suite | macOS, Python 3.14 |
 |---|---|
-| `tests/battery.py` — acceptance proofs | 145 declared · 144 green · 0 red · 1 not run |
-| `tests/negative_controls.py` — the battery must fail on a broken detector | 35 mutants · 35 caught · 0 not caught |
-| `tests/adversarial.py` — written by reviewers who did not write the fixes | 275 attacks · 263 as required · 3 loose · 9 not run; the 3 loose are published limits ([`docs/FAILURES.md`](docs/FAILURES.md) O2a–O2c) |
+| `tests/battery.py` — acceptance proofs | 161 declared · 160 green · 0 red · 1 not run |
+| `tests/negative_controls.py` — the battery must fail on a broken detector | 40 mutants · 40 caught · 0 not caught |
+| `tests/adversarial.py` — written by reviewers who did not write the fixes | 315 attacks · 303 as required · 3 loose · 9 not run; the 3 loose are declared limits ([`docs/FAILURES.md`](docs/FAILURES.md) O2a–O2c) |
 | `tests/properties.py` — 60 generated repositories against `tests/oracle.py`, a second implementation written from a specification by someone who did not read this one | 17 properties · 17 green · 0 red · 10 controls · 10 caught |
 
-CI runs the same four on Linux, macOS and Windows; what each platform could not run is in
+CI runs the same four on Linux (Python 3.9 to 3.14), macOS and Windows; what each platform could not
+run is in
 [`tests/RECORD.md`](tests/RECORD.md). These scores describe the cases executed, not inputs nobody
-tried. `./reproduce.sh` runs all of it.
+tried. `./reproduce.sh` runs all of it. The 100 projects of the study are also a regression corpus,
+pinned to recorded commits: 1.0.0 gives the recorded answer on all 100
+([`tools/regression/`](tools/regression/)).
 
 **Ten large repositories** (the Linux kernel, LLVM, CPython and seven more), protocol written
-first. 0.9.1 needed 3.3 GB for every tag of the kernel and gave three wrong or near-empty answers;
-0.10.0 needs 535 MB and gives none of those three. With a declared version file
-([`docs/LABELS.md`](docs/LABELS.md)) every tag of the kernel is compared: `clean`, 947 of 947.
+first. Every tag of the kernel: 6.5 GB for the whole process tree with 0.9.1, 900 MB with 1.0.0.
+0.9.1 gave three wrong or near-empty answers there; 1.0.0 gives none of them. With a declared
+version file ([`docs/LABELS.md`](docs/LABELS.md)) every tag of the kernel is compared: `clean`,
+947 of 947, in four minutes.
 [`tools/benchmark/READING.md`](tools/benchmark/READING.md).
 
 ## Send a result
@@ -172,11 +188,11 @@ or write to lfnsilva.invest@gmail.com. A result showing the tool is wrong is the
 
 ## Version
 
-**0.10.0.** Script sha256 `91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990`.
-It fixes the four failures the large-repository benchmark found: `clean` now needs at least as
-many tags compared as not; a version file that no tag agrees with decides nothing; a version
-spread over several lines can be read with named groups; memory no longer grows with history.
-A `clean` or `drift` from 0.9.x can now be `incomplete`. [`CHANGELOG.md`](CHANGELOG.md).
+**1.0.0.** Script sha256 `74309fe6db463a53e2dce112596b425a596a1a38dce413054e2db32a23f99f0d`.
+1.0 adds nothing to impress: every open item that could give a wrong answer is fixed or declared
+in [`SCOPE.md`](SCOPE.md), which also says what stays stable until 2.0. What it had to meet was
+written first ([`tests/PREREGISTRATION.md`](tests/PREREGISTRATION.md) §11).
+[`CHANGELOG.md`](CHANGELOG.md).
 
 Apache-2.0. Cite the version DOI, under concept DOI `10.5281/zenodo.21763931`
 ([`CITATION.cff`](CITATION.cff)). Planned next: [`ROADMAP.md`](ROADMAP.md).

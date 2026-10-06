@@ -24,14 +24,38 @@ LIMIT = 40 * 60
 KEEP = 4 << 20          # a report larger than this is recorded by hash and size only
 
 
+def tree_rss_kb(root_pid):
+    """Resident memory of a process and all its descendants, now, in kB (Linux /proc)."""
+    children, rss = {}, {}
+    for d in os.listdir("/proc"):
+        if not d.isdigit():
+            continue
+        try:
+            with open("/proc/%s/status" % d) as f:
+                fields = dict(line.split(":", 1) for line in f if ":" in line)
+            children.setdefault(int(fields["PPid"]), []).append(int(d))
+            rss[int(d)] = int(fields.get("VmRSS", "0 kB").split()[0])
+        except (OSError, ValueError, KeyError):
+            continue
+    total, todo = 0, [root_pid]
+    while todo:
+        pid = todo.pop()
+        total += rss.get(pid, 0)
+        todo += children.get(pid, [])
+    return total
+
+
 def timed(cmd, out_path, limit=LIMIT):
-    """Run cmd with stdout to a file. → dict(exit, seconds, peak_mb, stderr_first, timed_out)."""
+    """Run cmd with stdout to a file. → dict(exit, seconds, peak_mb (largest single process),
+    tree_peak_mb (the process and its children together, sampled), stderr_first, timed_out)."""
     err_path = str(out_path) + ".stderr"
     with open(out_path, "wb") as out, open(err_path, "wb") as err:
         start = time.monotonic()
         p = subprocess.Popen(cmd, stdout=out, stderr=err, stdin=subprocess.DEVNULL)
-        timed_out, status, usage = False, None, None
+        timed_out, status, usage, tree_peak, sampled = False, None, None, 0, os.path.isdir("/proc")
         while True:
+            if sampled:
+                tree_peak = max(tree_peak, tree_rss_kb(p.pid))
             pid, status, usage = os.wait4(p.pid, os.WNOHANG)
             if pid:
                 break
@@ -51,6 +75,7 @@ def timed(cmd, out_path, limit=LIMIT):
     stderr = Path(err_path).read_bytes().decode("utf-8", "replace")
     os.unlink(err_path)
     return {"exit": code, "seconds": round(seconds, 2), "peak_mb": round(peak, 1),
+            "tree_peak_mb": round(tree_peak / 1024, 1) if sampled else None,
             "stderr_first": (stderr.strip().splitlines() or [""])[0][:300],
             "stderr_has_traceback": "Traceback" in stderr or "internal error" in stderr,
             "timed_out": timed_out}
@@ -76,10 +101,13 @@ def summary(path):
         return {}
     keep = ("verdict", "labels", "labels_covering_multiple_closures", "max_closures_per_label",
             "publication_points_scanned", "publication_points_compared", "points_without_label",
-            "points_with_empty_closure", "range_truncated", "version_file", "label_at_head")
+            "points_with_empty_closure", "points_label_contradicted", "range_truncated", "version_file",
+            "label_at_head")
     out = {k: r[k] for k in keep if k in r}
     if "stamp" in r:
         out["detector_closure"] = r["stamp"].get("detector_closure")
+    if "diagnostics" in r:
+        out["objects_read"] = r["diagnostics"].get("objects_read")
     return out
 
 
@@ -141,13 +169,13 @@ def main():
     det = [sys.executable, str(DETECTOR), str(clone)]
     recipes = json.loads((Path(__file__).parent / "recipes.json").read_text(encoding="utf-8"))
     plan = [("B1", det + ["--json"]), ("B2", det + ["--json"]),
-            ("B3", det + ["--json", "--max-commits", "1000000"]),
+            ("B3", det + ["--json", "--max-commits", "1000000", "--diagnose"]),
             ("B4", det + ["--would-tag", "--json"]),
             ("B5", det + ["--at", "commits", "--json"])]
     if a.baseline:
         plan.append(("B3_baseline", [sys.executable, a.baseline, str(clone), "--json", "--max-commits", "1000000"]))
     if a.slug in recipes:
-        plan.append(("B8", det + ["--json", "--max-commits", "1000000"] + recipes[a.slug]))
+        plan.append(("B8", det + ["--json", "--max-commits", "1000000", "--diagnose"] + recipes[a.slug]))
     pairs = []
     if len(tags) >= 2:
         oldest, median, newest = tags[0], tags[len(tags) // 2], tags[-1]

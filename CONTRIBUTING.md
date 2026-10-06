@@ -30,15 +30,14 @@ A change to `closure_drift.py` is accepted with three things, in this order:
 3. **Nothing else red.** Run all of it:
 
 ```bash
-python3 examples/demo.py              # the three answers, in a minute
-python3 tests/battery.py              # the acceptance proofs
-python3 tests/negative_controls.py    # the battery must go red on a broken detector
-python3 tests/adversarial.py          # hostile repositories and hostile input
+./reproduce.sh
 ```
 
-Each prints one summary line and exits `0` only when nothing failed. They need CPython 3.9+ and
-git, nothing else, and build every repository they measure in a temporary folder. CI runs the same
-four on Linux, macOS and Windows.
+It runs the battery, the mutation controls, the adversarial campaign, the oracle's own check, the
+properties and their controls, and the checks of the deposit and of `docs/`. Each prints one
+summary line and exits `0` only when nothing failed. They need CPython 3.9+ and git, nothing else,
+and build every repository they measure in a temporary folder. CI runs the same on Linux, macOS and
+Windows.
 
 A proof the platform cannot stage must come out `not run` with the reason named — never green. An
 error must never end at exit `1`, which means drift. The report format is a contract:
@@ -57,7 +56,7 @@ python3 tools/verify_deposit.py                # offline, against the manifest
 python3 tools/verify_deposit.py --from-zenodo   # re-fetch the record and compare
 ```
 
-CI enforces this on every push. If the two ever disagreed, a measurement citing the DOI could not be
+CI checks this on every push to `main`, every tag and every pull request. If the two ever disagreed, a measurement citing the DOI could not be
 checked against the code that produced it — which is precisely the failure this tool exists to
 detect, happening in its own repository.
 

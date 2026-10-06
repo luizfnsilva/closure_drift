@@ -1,0 +1,25 @@
+{
+ "detector_sha256": "91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990",
+ "expected": {
+  "drift": {},
+  "exit": 0,
+  "labels": 5,
+  "labels_covering_multiple_closures": 0,
+  "points_label_contradicted": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points_compared": 5,
+  "publication_points_scanned": 5,
+  "verdict": "clean"
+ },
+ "head": "6996e05d9b9debe32f42f709c8041e744f850478",
+ "rank": 72,
+ "repository": "python-trio/sniffio",
+ "tags": {
+  "v1.0.0": "b9efedb680cb15241f63e564e46b346161c41ca1",
+  "v1.1.0": "f65149ebc4f7afdf461d32de23a466747c737159",
+  "v1.2.0": "cbf555bfb9aa3d1f7ced6e9751d60d6a49dc7170",
+  "v1.3.0": "cb8a03d45371efb20156ec895003a9bd988ac89b",
+  "v1.3.1": "ae020e13b98d276a6558ffc25e82509fd4c288f0"
+ }
+}

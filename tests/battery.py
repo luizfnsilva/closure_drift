@@ -1119,6 +1119,21 @@ def dg03(root):
     check("not a git repository" in err and "Traceback" not in err, "the refusal is not the named one")
 
 
+@proof("DG04")
+def dg04(root):
+    r = Repo(root, "dg04")
+    for tag, version in (("v1.0.0", "1.0.0"), ("v1.1.0", "1.1.0"), ("v1.2.0", "1.2.0")):
+        r.release(tag, version, {"src/a.py": "# %s\n" % tag})
+    _rc, one, _o, _e = run(r, "--diagnose")
+    _rc, two, _o, _e = run(r, "--diagnose")
+    _rc, plain, _o, _e = run(r)
+    n = (one or {}).get("diagnostics", {}).get("objects_read")
+    check(isinstance(n, int) and n > 0, "objects_read is %r" % n)
+    check(n == (two or {}).get("diagnostics", {}).get("objects_read"), "objects_read differs between two runs")
+    one.pop("diagnostics")
+    check(one == plain, "--diagnose changed the report")
+
+
 # ---------------------------------------------------------------- VER — version
 
 @proof("VER01")
@@ -1724,6 +1739,152 @@ def ag12(root):
     for tag, version in (("v1.0", "0.9.0"), ("v1.1", "1.0.0"), ("v1.1.1", "1.0.0")):
         r.release(tag, version, {"src/a.py": "# %s\n" % tag})
     expect(r, "drift", 1, points_label_contradicted=0)
+
+
+def one_path_changes(root, name, path):
+    r = Repo(root, name)
+    for tag in ("v1.0", "v1.1"):
+        r.release(tag, "1.0.0", {"src/keep.py": "k\n", path: "# %s\n" % tag})
+    return r
+
+
+@proof("EX10")
+def ex10(root):
+    expect(one_path_changes(root, "ex10", "src/x_test.d/real.py"), "drift", 1)
+
+
+@proof("EX11")
+def ex11(root):
+    expect(one_path_changes(root, "ex11", "src/a.test.utils/core.js"), "drift", 1)
+
+
+@proof("EX12")
+def ex12(root):
+    expect(one_path_changes(root, "ex12", "pkg/notes.md/run.py"), "drift", 1)
+
+
+@proof("EX13")
+def ex13(root):
+    rc, doc, _o, _e = run(one_path_changes(root, "ex13", "src/foo_test.py"))
+    check(doc is not None and doc.get("verdict") != "drift", "a change confined to src/foo_test.py was drift")
+
+
+@proof("SP01")
+def sp01(root):
+    r = Repo(root, "sp01")
+    marker = root / "setup-py-ran"
+    body = ("import pathlib\npathlib.Path(%r).write_text('ran')\n"
+            "from setuptools import setup\nsetup(name='pkg', version='%%s')\n" % str(marker))
+    for tag, version in (("v1.0", "1.0"), ("v1.1", "1.1")):
+        r.write("setup.py", body % version)
+        r.write("pkg/a.py", "# %s\n" % tag)
+        r.commit()
+        r.tag(tag)
+    rc, doc, _o, err = run(r)
+    check(doc is not None, "no report: %s" % err[:160])
+    check(not marker.exists(), "the detector ran setup.py")
+    subprocess.run([sys.executable, str(r.path / "setup.py")], capture_output=True, stdin=subprocess.DEVNULL,
+                   cwd=str(r.path))
+    check(marker.exists(), "positive control failed: running setup.py did not create the marker")
+
+
+COMPS = {"python": {"tags": ["py-*"], "version_file": "py/pyproject.toml", "closure": ["py/**"]},
+         "rust": {"tags": ["rs-*"], "version_file": "rs/Cargo.toml", "closure": ["rs/**"]}}
+
+
+def monorepo(root, name, rs_versions=("0.1.0", "0.1.0"), py_versions=("1.0.0", "1.1.0"), comps=None,
+             rs_has_version=True):
+    r = Repo(root, name)
+    r.write(".closure-drift.json", json.dumps({"components": comps or COMPS}))
+    for i, (pv, rv) in enumerate(zip(py_versions, rs_versions)):
+        r.write("py/pyproject.toml", '[project]\nname = "p"\nversion = "%s"\n' % pv)
+        r.write("py/p/a.py", "# py %d\n" % i)
+        r.write("rs/Cargo.toml", '[package]\nname = "r"\n' + ('version = "%s"\n' % rv if rs_has_version else ""))
+        r.write("rs/src/lib.rs", "// rs %d\n" % i)
+        r.commit()
+        r.tag("py-%s" % pv)
+        r.tag("rs-%s-%d" % (rv, i))
+    return r
+
+
+@proof("CM01")
+def cm01(root):
+    doc = expect(monorepo(root, "cm01"), "drift", 1, mode="components")
+    check(doc.get("stamp", {}).get("detector_closure"), "the components report carries no detector_closure")
+    check(doc["components"]["python"]["verdict"] == "clean", "python: %r" % doc["components"]["python"]["verdict"])
+    check(doc["components"]["rust"]["verdict"] == "drift", "rust: %r" % doc["components"]["rust"]["verdict"])
+
+
+@proof("CM02")
+def cm02(root):
+    expect(monorepo(root, "cm02", rs_versions=("0.1.0", "0.2.0")), "clean", 0, mode="components")
+
+
+@proof("CM03")
+def cm03(root):
+    doc = expect(monorepo(root, "cm03", rs_has_version=False), "incomplete", 2, mode="components")
+    check(doc["components"]["python"]["verdict"] == "clean", "python: %r" % doc["components"]["python"]["verdict"])
+
+
+@proof("CM04")
+def cm04(root):
+    doc = expect(monorepo(root, "cm04"), "drift", 1, "--component", "rust")
+    check(doc.get("component") == "rust" and "components" not in doc, "not the rust report alone: %r" % list(doc)[:8])
+
+
+@proof("CM05")
+def cm05(root):
+    rc, _d, out, err = run(monorepo(root, "cm05"), "--component", "nope", text=True)
+    refusal(rc, out, err, "no such component")
+    check("python" in err and "rust" in err, "the refusal does not name the components")
+
+
+@proof("CM06")
+def cm06(root):
+    r = monorepo(root, "cm06")
+    rc, _d, out, err = run(r, "--would-tag", text=True)
+    refusal(rc, out, err, "answer about one component")
+    check(not out.strip(), "a report was printed instead of the refusal")
+    rc, doc, _o, err = run(r, "--would-tag", "--component", "rust")
+    check(doc is not None and doc.get("mode") == "would_tag" and doc.get("component") == "rust",
+          "no would-tag answer for rust: %s" % err[:160])
+
+
+@proof("CM07")
+def cm07(root):
+    bad = [{"components": {"rust": {"tags": ["rs-*"], "colour": "red"}}},
+           {"components": {}},
+           {"components": {"rust": {"version_file": "rs/Cargo.toml"}}},
+           {"components": {"rust": {"tags": ["rs-*"]}}, "tags": ["v*"]}]
+    for n, cfg in enumerate(bad):
+        r = monorepo(root, "cm07-%d" % n, comps=COMPS)
+        r.write(".closure-drift.json", json.dumps(cfg))
+        rc, _d, out, err = run(r, text=True)
+        check(rc == 2 and "Traceback" not in err and "broken" in err, "config %d: exit %d, %r" % (n, rc, err[:120]))
+
+
+@proof("CM08")
+def cm08(root):
+    rc, _d, out, err = run(monorepo(root, "cm08"), "--tags", "x*", text=True)
+    refusal(rc, out, err, "--component")
+
+
+@proof("CM09")
+def cm09(root):
+    rc, _d, out, _e = run(monorepo(root, "cm09"), text=True)
+    check(rc == 1, "exit %d" % rc)
+    for needle in ("python", "rust", "DRIFT"):
+        check(needle in out, "the text report does not show %r" % needle)
+
+
+@proof("CM10")
+def cm10(root):
+    comps = {"all": {"tags": ["*"], "version_file": "py/pyproject.toml", "closure": ["py/**"]},
+             "python": {"tags": ["py-*"], "version_file": "py/pyproject.toml", "closure": ["py/**"]}}
+    doc = expect(monorepo(root, "cm10", comps=comps), "clean", 0, mode="components")
+    check(doc["components"]["all"]["publication_points_scanned"] == 4
+          and doc["components"]["python"]["publication_points_scanned"] == 2,
+          "a tag matching both was not counted in both")
 
 
 def many_trees(root, name, n=8):

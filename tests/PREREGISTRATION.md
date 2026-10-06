@@ -680,3 +680,167 @@ repositories and the 60 seeds of the property suite.
 
 Where §10 and its amendments say "the benchmark of 0.9.1", run 1 of the benchmark was measured with
 0.9.0; 0.9.1 gives the same reports there (it differs only on Windows). Nothing else changes.
+
+## 11. Added 2026-10-06, before any of it was written — what 1.0 has to meet
+
+1.0 adds no capability to impress. It is the release that a reviewer who examines it cannot
+discredit. Every line below is checked by a command or a file; a line that cannot be met is
+written down as scope, with the reason, or 1.0 does not ship.
+
+| id | requirement | how it is checked |
+|---|---|---|
+| R1 | No proof red, every mutant caught, no loose adversarial case outside the closed known list, every property green — on Linux, macOS and Windows | `tests/RECORD.md`, CI run named there |
+| R2 | The same on every Python the package declares: 3.9, 3.10, 3.11, 3.12, 3.13, 3.14 | CI matrix; `pyproject.toml` classifiers equal to it |
+| R3 | A regression corpus: the 100 repositories of the study, each pinned to a recorded HEAD and set of tags; the release must reproduce the recorded classification of every repository whose snapshot is intact | `tools/regression/`; a repository whose upstream moved or deleted a recorded tag is reported, by name, as not checkable |
+| R4 | No known correctness defect left unresolved: every open item of `docs/FAILURES.md` that can produce a wrong `clean` or `drift` is fixed, or declared in `SCOPE.md` with the condition under which it applies and the way to avoid it | `docs/FAILURES.md` against `SCOPE.md` |
+| R5 | Monorepos: components declared in `.closure-drift.json`, each with its own tags, version file and closure, one verdict each. Declared, never inferred | proofs CP*, mutants, adversarial pass |
+| R6 | Scale, measured by a recurring job: every tag of `torvalds/linux`, `llvm/llvm-project`, `python/cpython`, `rust-lang/rust`, `nodejs/node`, with time, peak memory of the whole process tree, tags scanned, compared, without label, and objects read; the kernel under 1 GB | `.github/workflows/benchmark.yml`, scheduled |
+| R7 | Every quantitative claim of the public pages traceable to a file of the repository; no "production-grade", "secure", "enterprise" or similar without a measurable definition | an independent review of the whole repository, committed as delivered |
+| R8 | Reproducibility: `reproduce.sh` runs every suite; the release's script hash in `DEPOSIT.sha256` matches the Zenodo record | `tools/verify_deposit.py --from-zenodo` |
+
+Not required, and why: incremental analysis (every tag of the kernel takes about two minutes;
+nothing measured asks for it, and it would add state); inferring components (declaring them is
+what R5 asks for); a guarantee for the label rules without `--version-file` (they refuse on
+contradiction, and are best effort otherwise — R4 writes that down).
+
+The proofs, mutants and cases for R3–R6 are written in sections 12 onward, each before its code.
+
+## 12. Added 2026-10-06, before any of it was written — the regression corpus (R3)
+
+The 100 repositories of the study become a regression corpus. The study answers "what is out
+there"; the corpus answers "does this release still say what the last one said, on the same
+bytes".
+
+**Snapshot.** For each repository of `tools/study/selection.tsv`: a full bare clone; its HEAD
+commit; every tag with the object it points to (`for-each-ref refs/tags`); and the report of
+the detector that took the snapshot, at its defaults. Stored as `tools/regression/corpus/<repo>.json`
+with the detector's sha256. Taken once, on GitHub's runners, with 0.10.0.
+
+**Check.** Clone again; if the recorded HEAD commit is missing, or a recorded tag is missing or
+points elsewhere, the repository is *not checkable* and is reported by name with the cause. Tags
+added since are deleted from the clone; HEAD is set to the recorded commit. Then the detector runs
+at its defaults and these fields are compared with the snapshot: `verdict`, exit code, `labels`,
+`labels_covering_multiple_closures`, `publication_points_scanned`, `publication_points_compared`,
+`points_without_label`, `points_with_empty_closure`, `points_label_contradicted`, and, for every
+label in drift, the set of full closure ids.
+
+**Rule for a release.** Every checkable repository matches, or the difference is one this
+pre-registration predicted for that release, by repository and field, before the check ran. An
+unpredicted difference is a regression; the release does not ship with it. After a release whose
+predicted differences were confirmed, the snapshot's expected values are updated by a separate,
+named commit.
+
+Required of the check itself, on its first run against the detector that took the snapshot: every
+checkable repository matches. Required of its controls: run with 0.9.1, `coveragepy`, `idna`,
+`scipy` and `tqdm` must be reported as differing (`clean` against `incomplete`) and nothing else
+in those fields — the four that study run 3 found.
+
+### Note to §12, 2026-10-06, before the first snapshot
+
+A field that the older of two reports does not carry is not compared (0.9.1 has no
+`points_label_contradicted`). Nothing else changes.
+
+## 13. Added 2026-10-06, before any of it was written — closing the open correctness items (R4)
+
+Every open row of `docs/FAILURES.md` that can produce a wrong `clean` or `drift`:
+
+| row | decision | why |
+|---|---|---|
+| O6 — file-name exclusions also matched folders (`src/x_test.d/real.py` left out by `**/*_test.*`) | **fixed** | a closure must not lose code because of a folder's name |
+| O2a — a wrong version file believed when one tag agrees by chance | **declared** in `SCOPE.md` | the agreement rule is evidence, not proof; every stronger rule tried refused real drift (amendment 3 to §10). A gate passes `--version-file`, which is never second-guessed |
+| O2b — build-number tags read as versions can refuse a correct file | **declared** | the answer is exit 2, never a wrong 0 or 1 |
+| O2c — `--at commits` has no tag to check a file against | **declared** | the same as O2a, for that mode |
+| O10 — a tag that was never released counts as a publication point | **declared** | which tags were released is in a package index, not in the repository; this tool reads only the repository. `--tags` selects the tags that are releases |
+| O8 — no test asserts that `setup.py` is never run | **proof added** | |
+
+**O6, the rule.** An exclusion whose pattern is `**/` followed by a name with no `/`
+(`**/*_test.*`, `**/*.test.*`, `**/*.md`) is matched against the file name only. Folder exclusions
+(`**/tests/**`, `**/docs/**`, …) are unchanged. `--closure` globs are unchanged.
+
+| id | setup | required |
+|---|---|---|
+| EX10 | two tags, one label; only `src/x_test.d/real.py` changes | `drift` (in 0.10.0: not compared) |
+| EX11 | the same with `src/a.test.utils/core.js` | `drift` |
+| EX12 | the same with `pkg/notes.md/run.py` | `drift` |
+| EX13 | only `src/foo_test.py` changes | not `drift`: still excluded |
+| SP01 | a `setup.py` that writes a marker file when run, and declares the version | the marker never appears; positive control: `python setup.py --version` creates it |
+
+Mutants: M36 (O6 reverted → EX10), M37 (the name rule applied to folder patterns too, so
+`**/tests/**` stops excluding → an existing proof of root-level `tests/` exclusion).
+
+Effect predicted on the regression corpus (§12): **no repository changes**. Any that does is named,
+with the path that moved, and decides whether this prediction was wrong.
+
+The oracle's specification is amended for O6 by its author before the comparison.
+
+## 14. Added 2026-10-06, before any of it was written — components declared (R5)
+
+A monorepo releases several artefacts, each with its own tags, version file and code. One
+verdict over all of them mixes families (`polars`, `lodash`, the SDK monorepos of the benchmark).
+The project says which components it has; the tool never guesses them.
+
+```json
+{"components": {
+  "python": {"tags": ["py-*"], "version_file": "py/pyproject.toml", "closure": ["py/**"]},
+  "rust":   {"tags": ["rs-*"], "version_file": "rs/Cargo.toml", "closure": ["rs/**"]}
+}}
+```
+
+- Each component has `tags` (required, a non-empty list of globs) and may have `version_file`,
+  `version_regex` and `closure`, with the meaning they have at the top level. Anything else, an
+  empty `components`, or a component without `tags`, is a refusal. `components` cannot be combined
+  with top-level `tags`, `version_file`, `version_regex` or `closure`.
+- Without `--component`, every component is measured and the answer is one report per component
+  plus one verdict: `drift` (exit 1) if any component is in drift; `clean` (exit 0) if every one
+  is clean; otherwise `incomplete` (exit 2). `--json` gives
+  `{"mode": "components", "verdict", "components": {name: report}}`.
+- `--component NAME` measures that component only and prints its ordinary report, with
+  `"component": NAME`. An unknown name is a refusal.
+- `--would-tag`, `--compare` and `--explain` answer about one component: without `--component` they
+  are refused. `--tags`, `--closure`, `--version-file` and `--version-regex` on the command line,
+  with `components` in the file and no `--component`, are refused as ambiguous.
+- A tag that matches the globs of two components is measured in both. Nothing is exclusive unless
+  the globs make it so.
+
+| id | setup | required |
+|---|---|---|
+| CM01 | `py-*` tags clean, `rs-*` tags in drift | `drift`, exit 1; `components.python.verdict` `clean`, `components.rust.verdict` `drift` |
+| CM02 | both clean | `clean`, exit 0 |
+| CM03 | one clean, one where no version is found | `incomplete`, exit 2 |
+| CM04 | `--component rust` | the rust report only, `drift`, exit 1, `"component": "rust"` |
+| CM05 | `--component nope` | refusal, exit 2, naming the components that exist |
+| CM06 | `--would-tag` without `--component`; then with `--component rust` | refusal; then the would-tag answer for rust |
+| CM07 | a component with an unknown key; `components` empty; a component without `tags`; `components` beside a top-level `tags` | four refusals |
+| CM08 | `--tags 'x*'` on the command line, `components` in the file, no `--component` | refusal |
+| CM09 | the text report of CM01 | names each component with its verdict |
+| CM10 | one tag matching both components' globs | counted in both |
+
+Mutants: M38 (a component without a version counts as clean → CM03), M39 (`--component` ignored →
+CM04), M40 (`--would-tag` allowed without `--component` → CM06). An adversarial pass on components
+by a reviewer who did not write them, committed as delivered before any fix.
+
+## 15. Added 2026-10-06, before any of it was written — the benchmark as a recurring job (R6)
+
+The benchmark (`tools/benchmark/`) runs on the 2nd of every month, and by hand. Run 3, the first
+under this section, is the one 1.0 is judged on.
+
+- `--diagnose` reports `objects_read`: how many git objects the run read. It changes no other
+  output; the count is the same for the same repository and options.
+- B3 (every tag, defaults) and B8 (every tag, the recipe of `recipes.json`) run with `--diagnose`,
+  and the result records, for each: time, peak memory of the process tree, tags scanned, compared,
+  without label, contradicted, and objects read.
+- Required for 1.0 (R6), on B8 of `torvalds/linux`, `llvm/llvm-project`, `python/cpython`,
+  `rust-lang/rust` and `nodejs/node`: no run past its limit, no crash, the kernel under 1 GB.
+
+| id | setup | required |
+|---|---|---|
+| DG04 | a repository of three tags, `--diagnose --json` | `diagnostics.objects_read` is a positive integer; the same on a second run; the rest of the report equals the run without `--diagnose` apart from `diagnostics` |
+
+### Amendment to §15, 2026-10-06 — after the review of the whole repository, before run 3
+
+The harness read the peak of the largest single process (`ru_maxrss` from `wait4`), not of the
+process tree that §10 amendment 5 and R6 name. It now also samples, every 50 ms on Linux, the
+resident memory of the detector and all its children together (`tree_peak_mb`). R6's "under 1 GB"
+is judged on `tree_peak_mb`. Sampling can miss a peak shorter than the interval; that is said with
+the result. Run 3 is the first run that records it. Also corrected: R5 names proofs "CP*"; they
+are CM01–CM10.

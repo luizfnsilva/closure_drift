@@ -16,13 +16,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: luizfnsilva/closure_drift@v0.10.0        # mode: would-tag (default)
+      - uses: luizfnsilva/closure_drift@v1.0.0        # mode: would-tag (default)
 ```
 
 The whole tag history, on a schedule, with a family of tags and a strict verdict:
 
 ```yaml
-      - uses: luizfnsilva/closure_drift@v0.10.0
+      - uses: luizfnsilva/closure_drift@v1.0.0
         with:
           mode: measure
           args: --tags 'v*' --strict
@@ -32,10 +32,10 @@ The action writes annotations and a job summary from the JSON report, and expose
 `exit-code` as outputs. `allow-undetermined: true` lets exit `2` pass; the default is to fail,
 because an absence of measurement is not a pass.
 
-Without the action:
+Without the action (the package is installed from the release; it is not on PyPI):
 
 ```yaml
-      - run: pipx run closure-drift --would-tag
+      - run: pipx run --spec https://github.com/luizfnsilva/closure_drift/releases/download/v1.0.0/closure_drift-1.0.0-py3-none-any.whl closure-drift --would-tag
 ```
 
 ## GitLab CI
@@ -47,7 +47,8 @@ version-label:
     GIT_DEPTH: "0"              # full history, so the tags are there
   script:
     - git fetch --tags --force
-    - pipx run closure-drift --would-tag || pip install closure-drift && closure-drift --would-tag
+    - pip install https://github.com/luizfnsilva/closure_drift/releases/download/v1.0.0/closure_drift-1.0.0-py3-none-any.whl
+    - closure-drift --would-tag
 ```
 
 ## A release script, a Makefile, a pre-push hook
@@ -66,7 +67,7 @@ check-version-label:
 ```yaml
 # .pre-commit-config.yaml — runs on git push
 - repo: https://github.com/luizfnsilva/closure_drift
-  rev: v0.10.0
+  rev: v1.0.0
   hooks:
     - id: closure-drift-would-tag
 ```

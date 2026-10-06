@@ -1,0 +1,34 @@
+{
+ "detector_sha256": "91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990",
+ "expected": {
+  "drift": {
+   "0": [
+    "c4b7539f5f8ed4bbededeae3a8cddbfebf6c4d2a0964339d27f6cb84bd02364e",
+    "e2bc00de55dc67145c9595051b757f68ea95a3ea16d8742d5c3145a22cb2855d",
+    "ebae01443f59528d3136706abccd5a3034c59952ced599e8701e44928c724e8b"
+   ]
+  },
+  "exit": 1,
+  "labels": 6,
+  "labels_covering_multiple_closures": 1,
+  "points_label_contradicted": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points_compared": 8,
+  "publication_points_scanned": 8,
+  "verdict": "drift"
+ },
+ "head": "ceb950e81a79403c911990ce960ecc6f46733508",
+ "rank": 26,
+ "repository": "annotated-types/annotated-types",
+ "tags": {
+  "v0.2.0": "6ffb7ab53f14449dffacc402c25a4b1f561bfadd",
+  "v0.3.0": "bacee2d374396d7e649d9d6bfbe30785762ec7a4",
+  "v0.3.1": "832acf931a527f34a2b6e6b7ce6bb304b609dde9",
+  "v0.4.0": "cfe6ddfd69cd973d47b52c34b089398d72498b23",
+  "v0.5.0": "a31912d536cd2a4e4e05d243bdbc941515633293",
+  "v0.6.0": "18584dffd31a845c25b92857b73ea76d10ea3d0d",
+  "v0.7.0": "0735cd3d4c272b88405b6b04009716b691115210",
+  "v0.8.0": "9eb96680138269811a39d838d720abc3dce33954"
+ }
+}

@@ -1,0 +1,34 @@
+{
+ "detector_sha256": "91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990",
+ "expected": {
+  "drift": {},
+  "exit": 0,
+  "labels": 14,
+  "labels_covering_multiple_closures": 0,
+  "points_label_contradicted": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points_compared": 14,
+  "publication_points_scanned": 14,
+  "verdict": "clean"
+ },
+ "head": "248ef2ac370acd2cb5ead7c2b988e9b53e0e156e",
+ "rank": 66,
+ "repository": "aio-libs/aiosignal",
+ "tags": {
+  "v1.0.0": "f65f91c9c2d60d971701ae87efdfd224261582ab",
+  "v1.0.0a0": "75a703636ceb8a558a2a3ce90d94c1ab9b770971",
+  "v1.1.0": "f9824714bd35c47d40f8031f442de799a3744421",
+  "v1.1.1": "669366c198689d39f1f5fd1c0d9b20a7fe758756",
+  "v1.1.2": "6d7f939e3181aa8e4df073e94af3fcf415632116",
+  "v1.1.3a0": "9e9a8dc3e5610e2241a63b995efe02da4fd6cf56",
+  "v1.1.3a1": "61dd63c8e0c2079914877b0d6871b37ebfcc0ac5",
+  "v1.1.3a2": "304926e87619c71c7f785385127f00c7254bcfb4",
+  "v1.2.0": "c4eccb985c610ecbc41d0751303184178bf5fc23",
+  "v1.2.0a0": "9ea0a15e5dcd7104a249637f1f30d40ef71d16c6",
+  "v1.3.0": "8f9565e29a571449f3b1624fa40ee04b00065817",
+  "v1.3.1": "2b8907dc15f976d3747a16bd65f1681ae54249a3",
+  "v1.3.2": "d56b249388d442250033cb01b0965a6747c25072",
+  "v1.4.0": "276062fe55c31c3a770278876d52e527b6aa2b72"
+ }
+}

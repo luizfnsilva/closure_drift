@@ -20,9 +20,10 @@ specific way:
 > it does not make the reproducibility question fail. It makes it **unaskable** — and unaskable in a
 > shape that looks exactly like it was asked and answered.
 
-That is the same failure the rest of this README keeps circling: *the system cannot notice, because
-the label is the only thing it recorded.* Two of the three repositories measured on 2026-08-23 are
-in drift by a property of their release scheme, not by anyone's oversight. Neither could have
+That is the same failure the rest of this page keeps circling: *the system cannot notice, because
+the label is the only thing it recorded.* Two of the three repositories measured on 2026-08-23
+(`lodash`, `polars`; the measurement is in the 0.4.0 entry of `CHANGELOG.md`) are in drift by a
+property of their release scheme, not by anyone's oversight. Neither could have
 noticed from what it records.
 
 This tool checks that precondition, in one command, and then stops.
@@ -59,11 +60,11 @@ where you publish?* — and nothing else. In particular, keep two claims apart:
 
 A `clean` verdict means your addresses are unambiguous over the range scanned — it does not mean
 your outputs were replayed or verified. Reading (A) as (B) is a defect we paid to learn about in
-our own system: a 26-year, 4,756-record production ledger of ours is 100% label-only under a
-single catalogue label — every record carries a content hash, none carries its closure — so replay
+our own system: a 26-year, 4,756-address production ledger of ours (the working paper (doi:10.5281/zenodo.21765404), §3.5) is 100%
+label-only under a single catalogue label — every record carries a content hash, none carries its closure — so replay
 of the originating code states is impossible from the record alone, a fact no amount of (A)-shape
-checking can repair. The shape of that corpus is what this tool's negative fixture reproduces (see *Tests* below): a
-detector that stays quiet on that shape is broken.
+checking can repair. The shape of that corpus is what this tool's negative fixture, `tests/fixture_label_only.py`,
+reproduces: a detector that stays quiet on that shape is broken.
 
 ## Where your publication points are
 
@@ -76,7 +77,7 @@ This is the setting that matters, and getting it wrong makes the tool useless.
   commit is a point.
 
 An earlier version of this tool compared at every commit unconditionally. It reported drift in every
-repository it was pointed at, including four healthy ones — because measured that way, every project
+repository it was pointed at, including four healthy ones (the working paper (doi:10.5281/zenodo.21765404), §2.7) — because measured that way, every project
 on earth is guilty. A detector whose alarm always fires is worth what a test that never fails is
 worth. If you are reading the source and wondering why the publication-point logic exists, that is
 why.

@@ -1,0 +1,27 @@
+{
+ "detector_sha256": "91ecd5d1437632b3db65fe606b39b3c924351ac555eb4d5b2704d33785065990",
+ "expected": {
+  "drift": {},
+  "exit": 0,
+  "labels": 7,
+  "labels_covering_multiple_closures": 0,
+  "points_label_contradicted": 0,
+  "points_with_empty_closure": 0,
+  "points_without_label": 0,
+  "publication_points_compared": 7,
+  "publication_points_scanned": 7,
+  "verdict": "clean"
+ },
+ "head": "a6221ad1533d9da93fbe56cead43b253fdf66482",
+ "rank": 111,
+ "repository": "python/mypy_extensions",
+ "tags": {
+  "0.4.0": "7f4ac911a26f4840bd073a4f1136e10336494459",
+  "0.4.1": "39b7c08602d206550e0c04b373108d43297c9aa3",
+  "0.4.2": "6a9721260eac93a6456f111aa5ef1ee75a71cc44",
+  "0.4.3": "4be1606656115c76e978c9400ef5312e29c74646",
+  "0.4.4": "0525ca84578ea37fdbe29f06a93565e10270f141",
+  "1.0.0": "4161db8f25f87b034a7498bfc575ef2df3e2b3fe",
+  "1.1.0": "70d9435779df27a522b146f2c5dee06ccacae373"
+ }
+}

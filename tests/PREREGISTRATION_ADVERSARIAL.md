@@ -777,3 +777,98 @@ LR02 and LR03 are **superseded**: by AG the automatic run refuses a source no ta
 no longer equals the `--version-file` run on a fixture whose tags `v1`, `v2` disagree with
 `0.1.0`, `0.2.0`. Every other case keeps its requirement, the hardening ones included; those still
 loose are listed in `docs/FAILURES.md`.
+
+## Extension 4, 2026-10-06 — components and file-name exclusions
+
+Written 2026-10-06 by an independent reviewer who did not write the detector, the proofs CM01–CM10
+and EX10–EX13, the mutants M36–M40 or any case above, **before any case below was run**. Nothing
+above is changed. The detector under attack is `closure_drift.py` (`__version__` 0.10.0) at commit
+`94dc8df` on branch `one-zero`, sha256 `b7656a0c83b37d5a2880fd9e767ef0e281b671f9293cea27d3aa59710bc45ebc`.
+The parts under attack are `PREREGISTRATION.md` §14 (`read_config`'s `components` validation, the
+`--component` handling in `run()`, `components()`, `_Captured`, `emit()` adding `COMPONENT`) and
+§13's O6 rule (`excluded()` and its two callers, `Closure.holds` and `Sources.attribute`).
+
+**Id prefixes.** `KC` components · `KE` file-name exclusions.
+
+**The contract under attack**, from README "The answer", docs/REPORT.md, §13 and §14: exit 0 only
+for `clean` / `would_be_clean` / `identical` / `differs_under_two_labels`; exit 1 only for `drift` /
+`would_drift` / `differs_under_one_label`; everything else exit 2; never a traceback, and the
+catch-all `internal error` is a defect. Components: `drift` if any component is in drift, `clean` if
+every one is clean, otherwise `incomplete` (exit 2); `--component NAME` gives that component's
+ordinary report with `"component": NAME`; a broken declaration is a refusal; the tool never guesses
+components. Exclusions: a `**/name` pattern (no `/` after `**/`) matches the file's own name; folder
+patterns match the path; a closure must not lose code because of a folder's name.
+
+**The fixture `MONO`** (built through fast-import, no working tree; `.closure-drift.json` written
+untracked at the repository root): every commit carries `py/pyproject.toml` (`version = "X"`),
+`py/a.py`, `rs/Cargo.toml` (`version = "Y"`), `rs/a.rs`. Tags `py-1.0` (py 1.0), `rs-0.1.0` (rs
+0.1.0), `py-1.1` (py 1.1, `py/a.py` changed), `rs-0.2.0` (rs 0.2.0), `rs-0.2.1` (rs still 0.2.0,
+`rs/a.rs` changed). Components `python` = `{"tags": ["py-*"], "version_file": "py/pyproject.toml",
+"closure": ["py/**"]}` (clean) and `rust` = the same with `rs` (drift on 0.2.0). "Different code" in
+the KE rows = only the named path differs; the label is `package.json` `1.0` at both tags `v1`, `v2`,
+and an unchanged `src/a.py` keeps the closure non-empty.
+
+`(hardening)` marks a requirement that §13/§14 do not state in words but that follows from "the tool
+never guesses" or "a closure must not lose code because of a folder's name"; a loose result there is
+a finding about the rule, not a contract breach.
+
+### KC — components
+
+| id | attacker controls / does | required outcome |
+|---|---|---|
+| KC01 | `MONO`, but `python`'s `tags` is `["[z-a]"]` (a glob that cannot compile). | `drift`, exit 1; `components.python.verdict` `refused`, `components.rust.verdict` `drift`: a refused component does not hide another's drift. |
+| KC02 | `MONO`, both components refused: `python` with `tags` `["[z-a]"]`, `rust` with `version_regex` and no `version_file`. | `incomplete`, exit 2; never `clean`. |
+| KC03 | `MONO` with `rust`'s `tags` `["rs-0.1.0"]` (one tag, so `rust` is `inconclusive`); `python` clean. | `incomplete`, exit 2: the aggregate does not hide an `inconclusive`. |
+| KC04 | `MONO` with `rust` clean over `rs-0.1.0`, `rs-0.2.0` plus a third tag `rs-x` at which `rs/Cargo.toml` is absent; `--strict`. | `components.rust.verdict` `incomplete`, aggregate `incomplete`, exit 2: `--strict` reaches every component. |
+| KC05 | `MONO`, `rust`'s `tags` is `["nothing-*"]` (matches no tag), `python` clean. | `incomplete`, exit 2. |
+| KC06 | `MONO`, `rust`'s `closure` is `["nowhere/**"]`, `python` clean. | `incomplete`, exit 2. |
+| KC07 | `MONO`, `.closure-drift.json` also holds top-level `"at": "commits"`; `--component rust`. | refusal, exit 2: a component is a set of tags (the aggregate refuses `--at commits`; `--component` must not measure every commit under the component's name). |
+| KC08 | `MONO`; `--component rust --at commits` on the command line. | refusal, exit 2 (as KC07). |
+| KC09 | `MONO`, `.closure-drift.json` also holds top-level `"at": "bogus"`; no `--component`. | refusal, exit 2, as the same value is refused without `components`. |
+| KC10 | `components` is a JSON list; a JSON string; `{"a": "py-*"}` (a component that is not an object); a component named `""`. | four refusals, exit 2, no traceback, no `internal error`. |
+| KC11 | *(hardening)* `.closure-drift.json` holds the key `"rust"` twice inside `components` (the first with `rs-*` tags, the second with `py-*`). | refusal, exit 2: a declaration that names one component twice is ambiguous, and the tool never guesses components. |
+| KC12 | No `.closure-drift.json`; `--component rust`. | refusal, exit 2. |
+| KC13 | `MONO` with components named `"py\nthon"`, `"\x1b[31mrust"` and `"a\u202eb"` (a newline, an ANSI escape, a bidi override; the third a copy of `python`); text report; then `--component` with a name holding `\x1b[2J`. | no raw control or bidi character on stdout or stderr; aggregate exit 1; the `--component` run refuses, exit 2. |
+| KC14 | `MONO` with the components renamed `python-component-long-a` and `python-component-long-b` (equal in their first 20 characters), the first clean, the second in drift; text report. | exit 1 and each full name appears in the text report (CM09: the report names each component with its verdict). |
+| KC15 | Components named `__proto__` and `constructor`. | `--json` keys `components.__proto__` and `components.constructor` present with their verdicts; exit 1. |
+| KC16 | `MONO`, `--json`, no `--component`. | top-level `mode` `components` and no top-level `component` key; no component report holds `component` or `diagnostics`; each component report's `exit` is the one its verdict calls for. |
+| KC17 | `MONO` with `--diagnose` (text), `--diagnose --json` and `--badge`. | exit 1 in all three; `--json` has top-level `diagnostics` and none inside a component; `--badge` prints one line naming `drift`. |
+| KC18 | `MONO` with `--max-commits 1`. | each component is measured over its own most recent tag: `inconclusive` both; `incomplete`, exit 2. |
+| KC19 | `MONO`, `--component rust --tags 'py-*'`. | not a traceback; if measured, the report's `tag_globs` is `["py-*"]` and `component` is `rust` (the report says which tags it measured); a refusal (exit 2) also meets this. |
+| KC20 | `MONO`, `--component rust --json`, against a second repository with the same history whose `.closure-drift.json` holds `rust`'s keys at the top level. | the two reports are equal except for `component` (`"rust"`) and `repo`. |
+| KC21 | `MONO`, the aggregate `--json` report's `components.rust`, against `--component rust --json`. | equal except for `component` and `exit`. |
+| KC22 | `MONO`, `--compare py-1.0 py-1.1`; `--explain 0.2.0`; `--closure 'x/**'`; `--version-file rs/Cargo.toml`; each without `--component`. | four refusals, exit 2. |
+| KC23 | `MONO`, `python`'s `version_regex` is `(` with `version_file` set; `rust` in drift. | `drift`, exit 1; `components.python.verdict` `refused`. |
+| KC24 | `MONO`, `--component python --compare py-1.0 py-1.1 --json`; and `--component python --explain 1.1 --json` on a `MONO` variant where `python` drifts on `1.1` (`py-1.1.1` declares 1.1 over changed `py/a.py`). | `differs_under_two_labels`, exit 0, `component` `python`; then `drift`, exit 1, every `--explain` path starts with `py/`. |
+| KC25 | `MONO`, top-level `"at": "tags"` beside `components`. | `drift`, exit 1 (an `at` of `tags` is not a clash). |
+
+### KE — file-name exclusions
+
+| id | attacker controls / does | required outcome |
+|---|---|---|
+| KE01 | Only root `x.md` differs; then only root `docs.md`; `--closure '**'`. | not `drift`, both: excluded by `**/*.md` at the root. |
+| KE02 | Only `src/.md` (a file named `.md`) differs. | not `drift`: the name matches `*.md`. |
+| KE03 | Only `src/README.MD` differs. | `drift`, exit 1: every glob of the tool is case-sensitive, and the exclusion list names `*.md`, not `*.MD`; a closure does not lose a file the list does not name. |
+| KE04 | Only `src/**` (a file literally named `**`) differs; then only `src/a.md.py`; then only `src/foo_test` (no dot after `test`). | `drift`, exit 1, all three. |
+| KE05 | Only `src/foo_test.py/inner.py` (a folder named like an excluded file) differs. | `drift`, exit 1. |
+| KE06 | Only `src/x_test.d\real.py` differs (a backslash in a POSIX file name; not run on Windows). | not `drift`: on POSIX that is one file name, and it matches `*_test.*`. |
+| KE07 | `--closure src/foo_test.py` naming an excluded file explicitly; only that file differs. Then `--closure '**/*.md'` with only `src/n.md` differing. | `empty_closure`, exit 2, both: never `clean`, never `drift`. |
+| KE08 | `v1`→`v2` change `src/x_test.d/real.py`, `src/foo_test.py` and `docs/x.py`; `--explain 1.0`. | `drift`, exit 1; the paths listed as changed are exactly `["src/x_test.d/real.py"]`. |
+| KE09 | KE08's repository, `--compare v1 v2`. | `differs_under_one_label`, exit 1; `changed` exactly `["src/x_test.d/real.py"]`. |
+| KE10 | Tag `v1`; HEAD (untagged) declares the same label and differs only in `src/x_test.d/real.py`, `--would-tag`; then a HEAD differing only in `src/foo_test.py`. | `would_drift`, exit 1; then `would_be_clean`, exit 0. |
+| KE11 | `setup.py` `setup(version=mod.__version__)`, the module at `pkgs/core_test.d/mod.py` (no `mod` at the root, `src/` or `lib/`), declaring 1.0 at `v1`, 2.0 at `v2`. | `clean`, exit 0, `label_sources` names `pkgs/core_test.d/mod.py`: the label search leaves in what the closure leaves in. |
+| KE12 | Only `tests/a.py` differs; then only `src/tests/a.py`. | not `drift`, both (M37: folder patterns still exclude at the root and below). |
+| KE13 | *(hardening)* A submodule pointer at `src/lib_test.d` changes between `v1` and `v2`; nothing else. | `drift`, exit 1: a submodule is a folder, and a closure must not lose it because of its name. |
+| KE14 | Only `src/x_test.d/y.md/z.py` differs; `--closure 'src/x_test.d/**'`. | `drift`, exit 1. |
+| KE15 | A component whose closure is `py/**`; only `py/x_test.d/real.py` differs between two `py-*` tags under one label. | aggregate `drift`, exit 1; `components.python.verdict` `drift`. |
+
+### Amendment by the maintainer after extension 4, 2026-10-06
+
+Extension 4 was committed as delivered (11 loose, DG09 among them) before any fix. Fixed in the
+detector: KC01 (a range written backwards is refused), KC07–KC09 (`at` other than `tags` with
+components is refused, with or without `--component`), KC11 (a key repeated in
+`.closure-drift.json` is refused), KC14 (component names are never cut in the text table), KE13
+(the file-name rule applies to files only; a submodule pointer is a folder). DG09 required the
+diagnostics keys of 0.10.0; §15 added `objects_read` and `docs/REPORT.md` now documents it, so the
+case requires it. KC19 stands as written: with `--component`, a flag on the command line overrides
+that component's setting, as it does at the top level; `docs/REPORT.md` and `README.md` say so.

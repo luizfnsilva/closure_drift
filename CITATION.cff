@@ -8,17 +8,17 @@ title: "closure_drift: does your version label name exactly one version of your 
 abstract: >-
   A read-only, zero-dependency tool that measures, over any git repository,
   whether a declared version label identifies exactly one state of the code at
-  the points where that repository publishes. 0.10.0 corrects the four failures a
-  benchmark of ten large repositories found: clean resting on a few tags, a
-  wrong version file believed, versions spread over several lines, memory
-  growing with history. Exit 0 means clean and nothing
+  the points where that repository publishes. 1.0.0 adds no measurement it cannot
+  defend: every open item that could give a wrong answer is fixed or declared
+  as scope, the 100 projects of the study are a regression corpus, monorepos
+  declare their components, and the scale benchmark runs every month. Exit 0 means clean and nothing
   else. Each report stamps the commit measured and the hash of the tool.
 type: software
 authors:
   - family-names: "Silva"
     given-names: "Luiz F. Nunes da"
     orcid: "https://orcid.org/0009-0002-5409-7074"
-version: 0.10.0
+version: 1.0.0
 date-released: "2026-10-06"
 license: Apache-2.0
 doi: 10.5281/zenodo.21763931
