@@ -1,7 +1,7 @@
 # Where this tool has failed
 
-Every failure found so far, by anyone, with how it was found. Newest first. Nobody outside the
-author has reported one yet; when someone does, it goes here with their name if they want it.
+Every failure found so far, by anyone, with how it was found. Newest first. O10 is the first one
+reported from outside.
 
 ## Open
 
@@ -16,6 +16,7 @@ author has reported one yet; when someone does, it goes here with their name if 
 | O7 | Labels are compared as text (`1.0` ≠ `1.0.0`); a mode-only change is not seen; a submodule's content is not read | declared since 0.9.0 | `SCOPE.md` |
 | O8 | `setup.py` is never run by construction, and no test asserts it | writing the threat model | — |
 | O9 | `RESULTS.md` is empty: no measurement by anyone else | — | send one |
+| O10 | **A tag that was never released counts as a publication point.** `astral-sh/ruff` `v0.0.268` was tagged before the version bump and never published; the collision it makes names no second artefact | a participant in [ruff discussion 29122](https://github.com/astral-sh/ruff/discussions/29122), 2026-10-06 — the first failure reported from outside | `--tags` to the tags that are releases |
 
 ## Fixed
 
