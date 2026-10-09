@@ -180,16 +180,16 @@ Four suites, each pre-registered before the code. Scores are never added togethe
 
 | suite | macOS, Python 3.14 |
 |---|---|
-| `tests/battery.py` — acceptance proofs | 161 declared · 160 green · 0 red · 1 not run |
-| `tests/negative_controls.py` — the battery must fail on a broken detector | 40 mutants · 40 caught · 0 not caught |
-| `tests/adversarial.py` — written by reviewers who did not write the fixes | 315 attacks · 303 as required · 3 loose · 9 not run; the 3 loose are declared limits ([`docs/FAILURES.md`](docs/FAILURES.md) O2a–O2c) |
+| `tests/battery.py` — acceptance proofs | 199 declared · 198 green · 0 red · 1 not run |
+| `tests/negative_controls.py` — the battery must fail on a broken detector | 56 mutants · 56 caught · 0 not caught |
+| `tests/adversarial.py` — written by reviewers who did not write the fixes | 315 attacks · 304 as required · 2 loose · 9 not run; the 2 loose are declared limits ([`docs/FAILURES.md`](docs/FAILURES.md) O2a, O2b) |
 | `tests/properties.py` — 60 generated repositories against `tests/oracle.py`, a second implementation written from a specification by someone who did not read this one | 17 properties · 17 green · 0 red · 10 controls · 10 caught |
 
 CI runs the same four on Linux (Python 3.9 to 3.14), macOS and Windows; what each platform could not
 run is in
 [`tests/RECORD.md`](tests/RECORD.md). These scores describe the cases executed, not inputs nobody
 tried. `./reproduce.sh` runs all of it. The 100 projects of the study are also a regression corpus,
-pinned to recorded commits: 1.0.0 gives the recorded answer on all 100
+pinned to recorded commits: 1.1.0 gives the recorded answer on all 100, as predicted before it ran
 ([`tools/regression/`](tools/regression/)).
 
 **Ten large repositories** (the Linux kernel, LLVM, CPython and seven more), protocol written
@@ -208,11 +208,12 @@ or write to lfnsilva.invest@gmail.com. A result showing the tool is wrong is the
 
 ## Version
 
-**1.0.0.** Script sha256 `74309fe6db463a53e2dce112596b425a596a1a38dce413054e2db32a23f99f0d`.
-1.0 adds nothing to impress: every open item that could give a wrong answer is fixed or declared
-in [`SCOPE.md`](SCOPE.md), which also says what stays stable until 2.0. What it had to meet was
-written first ([`tests/PREREGISTRATION.md`](tests/PREREGISTRATION.md) §11).
-[`CHANGELOG.md`](CHANGELOG.md).
+**1.1.0.** Script sha256 `e2a67a5a9148fe273d2c95ad4bcce9bc589a43711fc34443a4a9491fde575913`.
+It adds `--published`, three version sources, an earlier refusal and two opt-in comparisons; with
+no new option, results change only under `--at commits` ([`CHANGELOG.md`](CHANGELOG.md)). What it
+had to meet was written first ([`tests/PREREGISTRATION.md`](tests/PREREGISTRATION.md) §16), and a
+reviewer who did not write it found 13 problems before the tag ([`docs/REVIEW-1.1.0.md`](docs/REVIEW-1.1.0.md)).
+[`SCOPE.md`](SCOPE.md) says what stays stable until 2.0.
 
 Apache-2.0. Cite the version DOI, under concept DOI `10.5281/zenodo.21763931`
 ([`CITATION.cff`](CITATION.cff)). Planned next: [`ROADMAP.md`](ROADMAP.md).
