@@ -660,8 +660,9 @@ CONTROLS = [
     ("K01", "`**/docs/**` removed from the exclusions", ("PR01", "PR05"),
      '"**/docs/**", ', ""),
     ("K02", "the full id leaves out the entry type", ("PR06",),
-     'full.update(raw + b"\\0" + kind.encode() + b" " + oid.encode() + b"\\n")',
-     'full.update(raw + b"\\0" + oid.encode() + b"\\n")'),
+     # 1.1.0: the line gained the optional mode (§16.4); the mutation is the same
+     'full.update(raw + b"\\0" + kind.encode() + b" " + oid.encode() + mode + b"\\n")',
+     'full.update(raw + b"\\0" + oid.encode() + mode + b"\\n")'),
     ("K03", "paths are matched without regard to case", ("PR01", "PR15"),
      "            got = matches(path, self.include) and not excluded(path, is_file)",
      "            got = (matches(path.lower(), [g.lower() for g in self.include])\n"
