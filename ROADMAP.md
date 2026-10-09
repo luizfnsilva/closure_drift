@@ -5,11 +5,12 @@ ships with pre-registered proofs and an entry in `CHANGELOG.md`; nothing here is
 
 ## Next
 
-From `docs/FAILURES.md`:
+Done in 1.1.0: `--published` (O10, and O2a with the list), the refusal before the scan (O5),
+`--label-equality` and `--modes` (O7), `--at commits` voted by tags (O2c), `Chart.yaml`, gemspec
+and `go.mod` (O3).
 
-1. **A refusal before the scan, not after** (O5).
-2. Labels compared as versions (`1.0` = `1.0.0`), opt-in; file modes in the closure, opt-in (O7).
-3. More version sources for the rules (O3), each with a proof.
+From `docs/FAILURES.md`, still open: more version sources (O3), each with a proof, when someone
+asks for one; a measurement by someone else in `RESULTS.md` (O9).
 
 ## Known problems, still open
 
@@ -18,8 +19,8 @@ size, network file systems, git older than 2.24.
 
 ## Small, self-contained tasks — a good place to start
 
-- Add `go.mod`, `Chart.yaml` or `*.gemspec` to the version sources, each with a battery proof.
-- A proof for a tag that points at an annotated tag that points at a commit.
+- Add another ecosystem's version file to the rules (`mix.exs`, `pubspec.yaml`, `*.csproj`…), with
+  a battery proof and a mutant.
 - Translate nothing: the tool's output is English only, by decision.
 
 ## Not planned

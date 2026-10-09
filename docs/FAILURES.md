@@ -7,24 +7,26 @@ reported from outside.
 
 | | what | found by | what to do meanwhile |
 |---|---|---|---|
-| O3 | **No label found outside the listed ecosystems.** The rules still know only the files in `docs/LABELS.md`; recipes for five large projects are there | benchmark | `--version-file`, `--version-regex` |
-| O5 | **A refusal for want of a label comes after the whole scan** (68 s on the kernel with 0.10.0) | benchmark | — |
+| O3 | **No label found outside the listed ecosystems.** 1.1.0 adds `Chart.yaml`, `*.gemspec` (and `lib/**/version.rb`) and `go.mod` (the version is the tag); others are still unknown | benchmark | `--version-file`, `--version-regex` |
 | O9 | `RESULTS.md` is empty: no measurement by anyone else | — | send one |
 
 ## Declared as scope (`SCOPE.md`), not as defects
 
 | | what | found by | what to do |
 |---|---|---|---|
-| O2a | **A wrong file is still believed when one tag agrees by chance** with its first number (a helper crate's `0.1.0` and an old tag `v0.1`) | adversarial ZA04 | `--version-file` in any gate |
-| O2b | **Build-number tags (`release-41`) read as versions**: a correct file can be refused, exit 2 | adversarial ZA02 | `--version-file` |
-| O2c | **`--at commits` has no tag to check a version file against** | adversarial ZX03 | `--version-file` |
-| O10 | **A tag that was never released counts as a publication point.** `astral-sh/ruff` `v0.0.268` was tagged before the version bump and never published; the collision it makes names no second artefact | a participant in [ruff discussion 29122](https://github.com/astral-sh/ruff/discussions/29122), 2026-10-06 — the first failure reported from outside; the same shape in `openai-python` ([discussion 4031](https://github.com/openai/openai-python/discussions/4031)): the published `0.26.5` was built from the commit after the tag | `--tags` to the tags that are releases |
-| O7 | Labels are compared as text (`1.0` ≠ `1.0.0`); a mode-only change is not seen; a submodule's content is not read | declared since 0.9.0 | `SCOPE.md`, with what to do for each |
+| O2b | **Build-number tags (`release-41`) read as versions**: a correct file can be refused, exit 2. Kept in 1.1.0: taking their vote away would turn this refusal into a possible wrong 0 or 1 (§16.6) | adversarial ZA02 | `--version-file`, or `--published` |
+| O2a | **Without a list, a wrong file is still believed when one tag agrees by chance** (ZA04). The repository alone cannot tell it from real drift (LR01); with `--published` it is decided (1.1.0) | adversarial ZA04 | `--published`, or `--version-file` in any gate |
+| O7 | A submodule's content is not read. (Labels as versions and file modes: opt-in since 1.1.0) | declared since 0.9.0 | `SCOPE.md` |
 
 ## Fixed
 
 | release | what failed | found by |
 |---|---|---|
+| 1.1.0 | **a tag never released counted as a publication point** (O10): `--published FILE` lists the versions released; a tag off the list is left out of the analysis, not shown unpublished | a participant in ruff discussion 29122, 2026-10-06 |
+| 1.1.0 | **the refusal for want of a label came after the whole scan** (O5): it now comes after reading the root of each publication point | benchmark |
+| 1.1.0 | **`--at commits` had no tag to check a version file against** (O2c): the repository's tags vote on it, as in `--at tags` | adversarial ZX03 |
+| 1.1.0 | labels compared only as text, a mode-only change unseen (O7): `--label-equality version`, `--modes`, both opt-in | declared since 0.9.0 |
+| 1.1.0 | the first form of the refusal before the scan read a damaged repository's git failure as "no source" | the existing proof D14, before release |
 | 1.0.0 | **file-name exclusions also matched folders**: `**/*_test.*` left out everything under `src/x_test.d/` (O6) | writing the oracle's specification |
 | 1.0.0 | no test asserted that `setup.py` is never run (O8); proof SP01, with a positive control | writing the threat model |
 | 1.0.0 | the first form of components and file-name exclusions: a component measured under an invalid range; `--at commits` accepted with components; a key repeated in `.closure-drift.json` silently dropped (once giving `clean` over a component in drift); component names cut in the text report; a submodule excluded by its name | adversarial extension 4, before release |

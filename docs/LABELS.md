@@ -17,7 +17,10 @@ turns all of it off and reads that one file.
    `version.py`, `__about__.py`, `__init__.py` in the package the project names, the packages
    `setup.py` lists, or the only top-level package there is.
 
-**Otherwise**: `Cargo.toml`, `package.json`, `composer.json`, `build.gradle`, `VERSION`, `version.txt`.
+**Otherwise**: `Cargo.toml`, `package.json`, `composer.json`, `build.gradle`, `VERSION`, `version.txt`,
+`Chart.yaml` (its top-level `version:`); then the first `*.gemspec` at the root (`.version = "…"`, or,
+when it reads `Foo::VERSION`, `VERSION = "…"` in the shallowest `lib/**/version.rb`); then `go.mod`,
+which declares no version: a Go module's version is its tag, as with `setuptools_scm`. (1.1.0)
 
 ## What counts as a label
 
@@ -30,6 +33,8 @@ the whole right-hand side: `__version__ = "1.2"` yes, `__version__ = ".".join(..
 From 0.10.0 a file found by the rules is not believed when no tag named for a version has ever
 agreed with it (`v1` agrees with `1.2.3`; `v2.52` does not agree with `0.1.0`). The report names it
 under `contradicted_sources`. A file you pass with `--version-file` is never second-guessed.
+With `--published`, the list decides instead of the tag's first number: a file agrees at a tag
+when its label is on the list. With `--at commits` the repository's tags vote the same way. (1.1.0)
 
 A version spread over several lines: name the groups `part1`, `part2`, … Their values are joined
 with `.`, and a value starting with `-` or `+` is attached as it is. Otherwise group 1 is the label.

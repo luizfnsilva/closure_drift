@@ -47,19 +47,20 @@ These are not gaps waiting to be filled. They are the boundary, and the boundary
   told it about.
 - **Without `--version-file`, finding the label is best effort.** The rules read the files a
   build declares and refuse a file that no tag named for a version agrees with. They can still be
-  fooled: a helper file that agrees with one old tag by chance is believed; build-number tags
-  (`release-41`) can make a correct file look contradicted, which ends at exit 2; `--at commits`
-  has no tag to check against. A file given with `--version-file` is never second-guessed. **In a
-  gate, pass it.**
-- **Three things the closure does not see** (declared since 0.9.0). Labels are compared as written:
-  `1.0` and `1.0.0` are two labels, so two tags building the same version under those spellings
-  are not compared — write versions one way. A change of file mode alone keeps the object id —
-  check modes separately (`git diff --summary A B`). A submodule's content is not read, only its
-  pointer — measure the submodule's repository on its own.
+  fooled: without a list of published versions, a helper file that agrees with one old tag by
+  chance is believed (the repository alone cannot tell it from real drift; `--published` can);
+  build-number tags (`release-41`) can make a correct file look contradicted, which ends at exit 2.
+  With `--at commits` the repository's tags vote, as with `--at tags`. A file given with
+  `--version-file` is never second-guessed. **In a gate, pass it.**
+- **What the closure does not see by default.** Labels are compared as written: `1.0` and `1.0.0`
+  are two labels, unless `--label-equality version`. A change of file mode alone keeps the object
+  id, unless `--modes`. A submodule's content is not read, only its pointer — measure the
+  submodule's repository on its own.
 - **A publication point is a tag.** Whether a tag was ever released is recorded in a package
   index, not in the repository, and this tool reads only the repository. A tag never released is
-  still compared (`astral-sh/ruff` `v0.0.268`). Pass `--tags` to select the tags that are
-  releases.
+  still compared (`astral-sh/ruff` `v0.0.268`), unless `--published FILE` lists the versions that
+  were: then only their tags are publication points. The tool never queries an index and never
+  writes the list. A tag left off it is left out of this analysis; it is not shown unpublished.
 
 ## The distinction that governs all of the above
 

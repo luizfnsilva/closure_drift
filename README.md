@@ -3,10 +3,25 @@
 **Does `v1.4.2` mean one thing in your repository?**
 
 ```
-$ closure-drift lodash
-DRIFT: 60 of 67 labels name more than one closure
-at a publication point. The worst covers 3.
+$ git clone -q https://github.com/psf/requests && cd requests
+$ closure-drift --compare v2.16.0 v2.16.1
+A  v2.16.0  (commit bcd0e170ac20)
+   label    2.16.0
+   closure  3d2886b87c2a7b94   17 file(s)
+B  v2.16.1  (commit f687e9f3d8b0)
+   label    2.16.0
+   closure  696b71ed6023f563   18 file(s)
+   changed    requests/__init__.py
+   only in B  requests/packages.py
+
+==============================================================
+DIFFERS UNDER ONE LABEL: both declare 2.16.0, and the code differs
+in 2 path(s). If both were published, that label names two things.
 ```
+
+Check it without this tool: `git show v2.16.1:requests/__version__.py` says `2.16.0`. closure_drift reads
+the git history, not a package index: it shows what the tags contain, not which commit a published package
+was built from.
 
 A version is a string a human edits. When two releases share a version and differ in code, one
 address names two artefacts — and nothing notices, because the version is all that was recorded.
@@ -16,11 +31,11 @@ One command checks it. Read-only, one file, no dependencies, no network.
 ## Run it
 
 ```bash
-curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.0.0/closure_drift.py
+curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.1.0/closure_drift.py
 python3 closure_drift.py            # inside any git repository
 ```
 
-or `pipx run --spec git+https://github.com/luizfnsilva/closure_drift@v1.0.0 closure-drift`.
+or `pipx run --spec git+https://github.com/luizfnsilva/closure_drift@v1.1.0 closure-drift`.
 Needs Python 3.9+ and git. To see the three possible answers first: `python3 examples/demo.py`, or read [`docs/DEMOS.md`](docs/DEMOS.md).
 
 ## Check before you tag
@@ -31,13 +46,13 @@ Needs Python 3.9+ and git. To see the three possible answers first: `python3 exa
 # GitHub Actions
 - uses: actions/checkout@v4
   with: { fetch-depth: 0 }
-- uses: luizfnsilva/closure_drift@v1.0.0
+- uses: luizfnsilva/closure_drift@v1.1.0
 ```
 
 ```yaml
 # pre-commit, on git push
 - repo: https://github.com/luizfnsilva/closure_drift
-  rev: v1.0.0
+  rev: v1.1.0
   hooks: [{ id: closure-drift-would-tag }]
 ```
 
@@ -72,6 +87,9 @@ The report also says how many tags it could **not** compare.
 | `--explain LABEL` | which paths differ under a label in drift |
 | `--compare A B` | two tags side by side |
 | `--version-file`, `--version-regex` | where the label is |
+| `--published FILE` | only tags of versions you published: a local list, one per line |
+| `--label-equality version` | `1.0`, `1.0.0` and `v1` are one label |
+| `--modes` | a file's mode (executable bit, symlink) is part of the closure |
 | `--component NAME` | one component of a monorepo (below) |
 | `--json`, `--badge`, `--diagnose` | report ([contract](docs/REPORT.md)), README badge, bug-report block |
 
@@ -135,15 +153,17 @@ one version file (`lodash`). Neither project is badly run. `--would-tag` address
 ## Limits
 
 - It never runs your code and attests nothing. `clean` is about addressing, not reproducibility.
-- A change of file mode alone is not seen.
+- A change of file mode alone is not seen, unless `--modes`.
 - Never in the closure: folders `test/`, `tests/`, `spec/`, `docs/`, `vendor/`, `node_modules/`,
   `.git/`; files named `*_test.*`, `*.test.*`, `*.md`.
 - The default closure globs are a guess. Pass `--closure`.
-- Labels are compared as written: `1.0` and `1.0.0` are two labels.
+- Labels are compared as written: `1.0` and `1.0.0` are two labels, unless `--label-equality version`.
+- It reads git, not a package index: a tag never released counts, unless `--published` lists what
+  was. A tag left off the list is left out of the analysis, not shown unpublished.
 - How the label is found is a set of rules, not a build: [`docs/LABELS.md`](docs/LABELS.md).
 
-- In a gate, pass `--version-file`: the rules can still read the wrong file when one tag happens to
-  agree with it.
+- In a gate, pass `--version-file`, or `--published`: the rules can still read the wrong file when
+  one tag happens to agree with it.
 
 Every failure found so far: [`docs/FAILURES.md`](docs/FAILURES.md). More: [`SCOPE.md`](SCOPE.md),
 [`docs/WHY.md`](docs/WHY.md).
