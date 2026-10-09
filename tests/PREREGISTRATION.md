@@ -983,3 +983,14 @@ reference table with its explanation.
 - The oracle's specification is not extended in 1.1.0: its properties cover the rules that 1.1.0
   leaves unchanged by default. Said in `tests/RECORD.md`.
 - Deposit on Zenodo first, then the tag on GitHub.
+
+### Amendment to §16, 2026-10-09 — after a first form of 16.3, before any new proof
+
+The first form asked git for the whole history (`git log --all -- <root files>`). Two things
+were wrong with it. On a damaged repository git fails, and the failure was read as "no source":
+the refusal named the label, not git (existing proof D14 went red). And on a history of a million
+commits the walk can cost more than the scan it replaces. The rules read files only at publication
+points, so the check reads only there: the root tree of each point, before any full tree.
+ER01 becomes: exit 2 with the same message, and `--diagnose` shows `objects_read` at most the
+objects of HEAD's tree plus two per publication point. A point whose root cannot be read is a
+refusal that names git, as before (D14).
