@@ -844,3 +844,142 @@ resident memory of the detector and all its children together (`tree_peak_mb`). 
 is judged on `tree_peak_mb`. Sampling can miss a peak shorter than the interval; that is said with
 the result. Run 3 is the first run that records it. Also corrected: R5 names proofs "CP*"; they
 are CM01–CM10.
+
+## 16. Added 2026-10-09, before any of it was written — 1.1.0
+
+1.1.0 adds and never changes: with no new option, every result of 1.0.0 stays the same. The
+promise of `SCOPE.md` (options, exit codes, verdict names, `report_format: 2`) holds; new report
+fields are additions.
+
+### 16.1 A list of published versions (O10)
+
+`--published FILE`: one version per line; blank lines and lines starting with `#` are ignored;
+surrounding spaces are stripped. A tag is a publication point only when its name, or the version
+a tag-derived build gives it (`tag_label`), is on the list. A tag left out is **not included in
+this analysis**; it is never reported as unpublished. The tool reads only the file: it does not
+query a package index, does not write the file, and does not look for listed versions without a
+tag. It applies with `--tags` (both must hold) and with `--would-tag`; with `--at commits` or a
+`.closure-drift.json` that declares components it is refused, exit 2. An unreadable file, or a
+list with no version, is refused, exit 2.
+
+Report: `coverage.published` = `{"sha256", "versions", "tags_included", "tags_left_out"}`; the
+stamp carries `published_sha256`. Text: the publication-point line says how many tags the list
+left out.
+
+**O2a, with the list.** A source found by the rules agrees at a tag when its label is on the list;
+it is contradicted when, at the included tags, it agrees at none. Without `--published` the rule of
+§10 amendment 3 is unchanged. Why only with the list: LR01 (`v1`, `v2`, `v3` over `1.0`, `1.0`,
+`2.0`, real drift) and ZA04 (a helper file `0.1.0` at `v0.1`, `v2.1.0`…) carry the same evidence
+in the repository; only a source outside it tells them apart.
+
+| id | setup | required |
+|---|---|---|
+| PUB01 | tags `v1.0.0`, `v1.0.1` (never released), `v1.1.0`; `v1.0.1` declares `1.0.0` with different code; list `1.0.0`, `1.1.0` | `clean`; `tags_left_out` 1 |
+| PUB02 | the same without `--published` | `drift` (1.0.0 behaviour) |
+| PUB03 | list `1.0.0`, `1.0.1`, `1.1.0` | `drift` |
+| PUB04 | tag `py-v2.0.0` and list line `2.0.0` | included |
+| PUB05 | list with blank lines, `#` comments, spaces | the same result as the clean list |
+| PUB06 | missing file; a file with only comments | exit 2, cause named |
+| PUB07 | `--published` with `--at commits` | exit 2, cause named |
+| PUB08 | the stamp and `coverage.published` | `sha256` of the file bytes; counts add up to the tags scanned |
+| PUB09 | ZA04's repository with list `2.1.0`, `2.2.0`, `2.3.0` | not exit 1: the helper file is contradicted |
+| PUB10 | LR01's repository with list `1.0`, `2.0` | `drift`, as without the list |
+| PUB11 | `--would-tag` with a list that leaves out the colliding tag | `would_be_clean` |
+
+### 16.2 More version sources (issue #2, corrected)
+
+`go.mod` declares no version: a Go module's version is its tag. A repository whose only source is
+a root `go.mod` is read as tag-derived (`(the tag)`), as for `setuptools_scm`. A root `Chart.yaml`
+gives its top-level `version:`. A root `*.gemspec` (the first by name) gives `.version = "…"`; when
+it reads a constant (`= Foo::VERSION`), the label is `VERSION = "…"` in the shallowest
+`lib/**/version.rb`. Order: after the sources of 1.0.0, so no repository that has one of them
+changes.
+
+| id | setup | required |
+|---|---|---|
+| VS01 | `Chart.yaml` `version: 1.2.0` at two tags, different code | `drift`; label from `Chart.yaml` |
+| VS02 | an indented `version:` under a dependency, top-level `version: 2.0.0` | label `2.0.0` |
+| VS03 | `x.gemspec` with `spec.version = "1.0.0"` at two tags, different code | `drift` |
+| VS04 | `x.gemspec` with `s.version = X::VERSION` and `lib/x/version.rb` | label from `version.rb` |
+| VS05 | only `go.mod`, tags `v1.0.0`, `v1.1.0` | `clean`; source `(the tag)` |
+| VS06 | `package.json` and `Chart.yaml` both present | label from `package.json` (order) |
+
+### 16.3 Refusal before the scan (O5)
+
+When no `--version-file` is given and no commit reachable from any ref has, at its root, a file
+the rules read (`pyproject.toml`, `setup.cfg`, `setup.py`, `Cargo.toml`, `package.json`,
+`composer.json`, `build.gradle`, `VERSION`, `version.txt`, `Chart.yaml`, `go.mod`, `*.gemspec`),
+the refusal for want of a label comes before any publication point is read. Same message, same
+exit 2.
+
+| id | setup | required |
+|---|---|---|
+| ER01 | 30 tags, only `src/a.py` | exit 2, the same message as before; `--diagnose` shows `objects_read` 0 |
+| ER02 | the same with `VERSION` at one old tag only | not refused before the scan |
+
+### 16.4 Labels as versions, file modes (O7), opt-in
+
+`--label-equality version`: labels are compared after dropping a leading `v`, leading zeros in
+each number and trailing `.0` components (`1.0` = `1.0.0` = `v1`). Default `text`, unchanged.
+`--modes`: the closure includes each file's mode (an executable bit or a symlink change is a
+change). Default off, unchanged. Both are named in the report (`label_equality`, `closure_modes`).
+
+| id | setup | required |
+|---|---|---|
+| EQ01 | tags over labels `1.0` and `1.0.0`, different code | `clean` by default; `drift` with the option |
+| EQ02 | labels `1.10` and `1.1` | different with the option too |
+| MD01 | one label, two tags, only a `chmod +x` between them | `clean` by default; `drift` with `--modes` |
+| MD02 | `--modes` on a repository with no mode change | the same verdict and counts as without it |
+
+### 16.5 `--at commits` checks the source against the tags (O2c)
+
+With `--at commits`, a source found by the rules is voted on by the repository's tags exactly as
+in `--at tags`. A contradicted source decides nothing; the verdict can then be `incomplete`, never
+`clean`. With no tags, nothing changes.
+
+| id | setup | required |
+|---|---|---|
+| AC01 | AG01's repository with `--at commits` (ZX03) | not exit 1; `contradicted_sources` names the file |
+| AC02 | a repository with no tags, `--at commits` | as in 1.0.0 |
+
+### 16.6 Not changed: O2b
+
+Build-number tags (`release-41`) still vote. Taking their vote away would turn a refusal (exit 2)
+into a possible wrong 0 or 1 when the file is wrong; this tool prefers the refusal. The answer
+stays `--version-file`, or `--published`, which now decides the agreement instead of the tag's
+first number.
+
+### 16.7 The badge says the regime (issue #4); a tag that points at a tag (issue #3)
+
+With `--at commits` the badge reads `<verdict> @ <head> (commits)`; with tags it is unchanged.
+
+| id | setup | required |
+|---|---|---|
+| G05 | `--badge --at commits` | one line, names `(commits)`, exit as the verdict |
+| K02 | `git tag -a outer inner`, `inner` annotated on a commit | the commit is the publication point, as for K01 |
+
+### 16.8 README
+
+The first example becomes `psf/requests` (`--compare v2.16.0 v2.16.1`), with the check by plain
+git and the limit that the tool reads git, not a package index. The `lodash` row stays in the
+reference table with its explanation.
+
+### 16.9 The bar
+
+- Every proof above green on Linux (Python 3.9–3.14), macOS and Windows; the existing proofs
+  unchanged except G04's neighbour G05.
+- Mutants, one per rule: M41 the list ignored (PUB01), M42 a left-out tag counted (PUB08), M43
+  the list does not decide agreement (PUB09), M44 the new sources removed (VS01), M45 the early
+  refusal skipped (ER01's `objects_read`), M46 the early refusal taken when a source exists (ER02),
+  M47 `--label-equality` ignored (EQ01), M48 `--modes` ignored (MD01), M49 `--at commits` not
+  voted (AC01), M50 the badge regime missing (G05).
+- Adversarial: ZA04 with `--published` and ZX03 move to "as required"; ZA02 stays a declared
+  limit. A reviewer who did not write 16.1–16.5 attacks them before the tag; findings committed
+  as delivered.
+- **Regression corpus: no repository changes.** The seven refused for want of a label have none
+  of the new sources at the root of the recorded HEAD (checked 2026-10-09); the defaults are
+  unchanged. Any repository that differs is named with its cause and decides whether this
+  prediction was wrong.
+- The oracle's specification is not extended in 1.1.0: its properties cover the rules that 1.1.0
+  leaves unchanged by default. Said in `tests/RECORD.md`.
+- Deposit on Zenodo first, then the tag on GitHub.
