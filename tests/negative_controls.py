@@ -44,8 +44,9 @@ MUTANTS = [
                      'collides = [][:0]')]),
     ("M12", "T01", [('if tag_globs and not any(fnmatch.fnmatchcase(name, g) for g in tag_globs):', 'if False:')]),
     ("M13", "S01", [(' or (a.strict and (no_label or empty or truncated)) or', ' or')]),
-    ("M14", "U02", [('        short, full, nfiles = closure.ids(entries)\n        if nfiles == 0:\n            empty += 1',
-                     '        short, full, nfiles = closure.ids(entries)\n        full = short\n        if nfiles == 0:\n            empty += 1')]),
+    # 1.1.0: ids() takes the commit (for --modes, §16.4); the mutation is the same
+    ("M14", "U02", [('        short, full, nfiles = closure.ids(entries, sha)\n        if nfiles == 0:\n            empty += 1',
+                     '        short, full, nfiles = closure.ids(entries, sha)\n        full = short\n        if nfiles == 0:\n            empty += 1')]),
     ("M15", "X04", [('"label_sources": dict(sorted(labels.counts.items())),\n        }',
                      '"label_sources": dict(sorted(labels.counts.items())),\n            "paths": [e[0] for e in closure.members(head_entries)],\n        }')]),
     ("M16", "CMP01", [('    changed = sorted(p for p in ma if p in mb and ma[p] != mb[p])',
