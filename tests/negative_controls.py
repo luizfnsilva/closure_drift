@@ -79,10 +79,10 @@ MUTANTS = [
     ("M39", "CM04", [('    if comps and a.component is not None:\n', '    if False:\n')]),
     ("M40", "CM06", [('        if a.would_tag or a.compare or a.explain is not None:\n', '        if a.compare or a.explain is not None:\n')]),
     # §16 — 1.1.0
-    ("M41", "PUB01", [('if published is not None and version_key(name) not in keys and version_key(tag_label(name)) not in keys:',
+    ("M41", "PUB01", [('if published is not None and not tag_versions(name) & keys:',
                        'if False:')]),
     ("M42", "PUB08", [('"tags_included": total, "tags_left_out": left_out}', '"tags_included": total, "tags_left_out": 0}')]),
-    ("M43", "PUB09", [('            if self.published is not None and tag and src[0] != TAG_SOURCE:', '            if False:')]),
+    ("M43", "PUB12", [('            if self.published is not None and tag and src[0] != TAG_SOURCE:', '            if False:')]),
     ("M44", "VS01", [('("version.txt", "token"),\n                    ("Chart.yaml", "helm"))', '("version.txt", "token"))')]),
     ("M45", "ER01", [('    if not vfile and vsrc is None and not a.would_tag and not any(root_has_source(objects, s) for s, _d, _n in pts):',
                       '    if False:')]),
@@ -91,6 +91,14 @@ MUTANTS = [
     ("M48", "MD01", [('mode = b" " + modes.get(path, b"?") if modes is not None else b""', 'mode = b""')]),
     ("M49", "AC01", [('    if at == "commits" and not vfile:', '    if False:')]),
     ("M50", "G05", [('+ (" (commits)" if at == "commits" else "")', '+ ""')]),
+    # §16 amendment 3 — the review's findings
+    ("M51", "RV01", [('text.lstrip("\\ufeff").splitlines()', 'text.splitlines()')]),
+    ("M52", "RV02", [('if len(v.split()) != 1 or not any(c.isdigit() for c in v):', 'if False:')]),
+    ("M53", "RV03", [('if published is not None and not tag_versions(name) & keys:',
+                      'if published is not None and version_key(name) not in keys and version_key(tag_label(name)) not in keys:')]),
+    ("M54", "RV04", [('m = re.match(r"^([0-9]+(?:\\.[0-9]+)*)(.*)$", s, re.S)', 'm = re.match(r"^(.*)()$", s, re.S)')]),
+    ("M55", "RV08", [('label = (tag if src[1] == "go" else tag_label(tag)) if tag else None', 'label = tag_label(tag) if tag else None')]),
+    ("M56", "RV11", [('or (published is not None and left_out)):', '):')]),
     ("M33", "MM03", [('        self.held += len(out) + 1\n', '        self.held += 0\n')]),
 ]
 

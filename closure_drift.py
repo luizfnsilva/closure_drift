@@ -603,8 +603,13 @@ class Sources:
                     value = m.group(1)
                     break
         elif how == "gem":
-            m = re.search(r'\.version[ \t]*=[ \t]*["\']([^"\'\n]+)["\']', text)
-            value = m.group(1) if m else None
+            for line in text.split("\n"):
+                if line.lstrip().startswith("#"):
+                    continue                              # a commented-out version is not the version
+                m = re.search(r'\.version[ \t]*=[ \t]*["\']([^"\'\n]+)["\']', line)
+                if m:
+                    value = m.group(1)
+                    break
         elif how == "rbconst":
             m = re.search(r'^[ \t]*VERSION[ \t]*=[ \t]*["\']([^"\'\n]+)["\']', text, re.M)
             value = m.group(1) if m else None
@@ -630,12 +635,15 @@ class Sources:
         if gemspecs:
             if self.read(blobs, gemspecs[0], "gem"):
                 return gemspecs[0], "gem"
-            if re.search(r'\.version[ \t]*=[ \t]*[A-Z]\w*(?:::\w+)*::VERSION\b', self.text(blobs, gemspecs[0])):
-                for path in depth_first(p for p in blobs if p.startswith("lib/") and p.endswith("/version.rb")):
+            if re.search(r'^[ \t]*[^#\s][^#\n]*\.version[ \t]*=[ \t]*[A-Z]\w*(?:::\w+)*::VERSION\b',
+                         self.text(blobs, gemspecs[0]), re.M):
+                # the shallowest version.rb, and only it: a deeper one may be a vendored gem's
+                shallowest = depth_first(p for p in blobs if p.startswith("lib/") and p.endswith("/version.rb"))[:1]
+                for path in shallowest:
                     if self.read(blobs, path, "rbconst"):
                         return path, "rbconst"
         if "go.mod" in blobs:
-            return TAG_SOURCE, None                       # a Go module's version is its tag
+            return TAG_SOURCE, "go"                       # a Go module's version is its whole tag
         return None
 
     def python(self, blobs: dict):
@@ -771,7 +779,7 @@ def publication_points(repo: str, at: str, limit: int, tag_globs: list[str] | No
             filtered += 1
             continue
         # a tag not on the list is left out of this analysis; that does not say it was never published
-        if published is not None and version_key(name) not in keys and version_key(tag_label(name)) not in keys:
+        if published is not None and not tag_versions(name) & keys:
             left_out += 1
             continue
         # resolve annotated tags; a tag that points at a blob or a tree is counted, not scanned
@@ -793,12 +801,30 @@ def declared_version(objects: Objects, entries, path: str, pattern: str, seen: d
 
 
 def version_key(label: str) -> str:
-    """`--label-equality version`: `v1`, `1.0` and `1.0.0` are one label; `1.1` and `1.10` are two."""
+    """`--label-equality version`: `v1`, `1.0` and `1.0.0` are one label; `1.1` and `1.10` are two.
+    Only the leading numbers are normalised: `1.0.0-rc.0` and `1.0.0-rc` stay two (§16 amendment 3)."""
     s = label[1:] if label[:1] in "vV" and label[1:2].isdigit() else label
-    parts = [(p.lstrip("0") or "0") if p.isdigit() else p for p in s.split(".")]
+    m = re.match(r"^([0-9]+(?:\.[0-9]+)*)(.*)$", s, re.S)
+    if not m:
+        return s
+    parts = [p.lstrip("0") or "0" for p in m.group(1).split(".")]
     while len(parts) > 1 and parts[-1] == "0":
         parts.pop()
-    return ".".join(parts)
+    return ".".join(parts) + m.group(2)
+
+
+def tag_versions(name: str) -> set:
+    """The versions a tag can name, as written: the whole name, without a leading `v`, after a prefix
+    ending in `-v`, `_v` or `/`, or after a `word-` prefix when what follows has a dot. A date or a
+    build number (`nightly-2024-02-01`, `build-1`) names no version here (§16 amendment 3)."""
+    out = {name}
+    m = re.match(r"^.*?(?:[-_]v|/)(\d.*)$", name, re.S)
+    if m:
+        out.add(m.group(1))
+    m = re.match(r"^[A-Za-z][\w]*-(\d[^-_/]*\.[^/]*)$", name)
+    if m:
+        out.add(m.group(1))
+    return {version_key(v) for v in out}
 
 
 NO_LABEL = ("could not find a version label. Pass --version-file / --version-regex.\n"
@@ -827,7 +853,16 @@ def read_published(path: str) -> tuple[set, str]:
         text = raw.decode("utf-8")
     except (OSError, UnicodeDecodeError) as e:
         raise Refusal(f"--published {printable(path)}: cannot be read ({type(e).__name__})")
-    versions = {line.strip() for line in text.splitlines() if line.strip() and not line.strip().startswith("#")}
+    versions = set()
+    for n, line in enumerate(text.lstrip("\ufeff").splitlines(), 1):
+        v = line.strip()
+        if not v or v.startswith("#"):
+            continue
+        # one version per line, nothing else: a line no tag can match would leave tags out in silence
+        if len(v.split()) != 1 or not any(c.isdigit() for c in v):
+            raise Refusal(f"--published {printable(path)}, line {n}: {printable(v[:60])!s} is not one version "
+                          "(one per line; # starts a comment line)")
+        versions.add(v)
     if not versions:
         raise Refusal(f"--published {printable(path)}: lists no version (one per line; # starts a comment)")
     return versions, hashlib.sha256(raw).hexdigest()
@@ -842,6 +877,7 @@ class Labels:
         # with --published, a source agrees at a tag when its label is on the list (§16.1)
         self.published = {version_key(v) for v in published} if published is not None else None
         self.equality = equality
+        self.spellings: dict[str, set] = defaultdict(set)   # version key -> the labels as declared
         self.sources, self.seen = Sources(objects), {}
         self.counts: dict[str, int] = {}
         self.previous, self.conflicts = None, 0
@@ -871,7 +907,8 @@ class Labels:
             if src is None:
                 return None
             if src[0] == TAG_SOURCE:
-                label = tag_label(tag) if tag else None
+                # setuptools_scm drops a `word-` prefix and a `v`; a Go module's version is the whole tag
+                label = (tag if src[1] == "go" else tag_label(tag)) if tag else None
             else:
                 label = self.sources.read(blobs, *src)
             # the source changed since the last point, and the earlier one still declares
@@ -895,7 +932,9 @@ class Labels:
                     tally = self.agreement.setdefault(src[0], [0, 0])
                     tally[0 if nums[0] == tag_nums[0] else 1] += 1   # the first number: `v1.1` agrees with 1.0.0
         if label and self.equality == "version":
-            label = version_key(label)
+            key = version_key(label)
+            self.spellings[key].add(label)
+            label = key
         self.last = src[0] if label else None
         return label
 
@@ -1242,7 +1281,7 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
     # --would-tag looks at every tag: a collision with an old tag is a collision
     limit = a.max_commits if not a.would_tag else 10 ** 9
     pts, total, not_commits, filtered, left_out = publication_points(a.repo, at, limit, tag_globs, published)
-    if not pts and (not a.would_tag or (tag_globs and filtered)):
+    if not pts and (not a.would_tag or (tag_globs and filtered) or (published is not None and left_out)):
         msg = ("no tags found — this repository publishes nothing addressable by tag. "
                "If it publishes continuously, rerun with --at commits.")
         if tag_globs and filtered:
@@ -1250,7 +1289,8 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
                    f"{filtered} tag(s) were left out and none remain.")
         if published is not None and left_out:
             msg = (f"no tag is on the --published list: {left_out} tag(s) were left out of this "
-                   "analysis and none remain.")
+                   "analysis" + (f", and {filtered} by --tags" if tag_globs and filtered else "")
+                   + "; none remain.")
         if a.json:
             emit({"report_format": REPORT_FORMAT, "verdict": "no_publication_points", "note": msg})
         else:
@@ -1288,11 +1328,15 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
     # a source the rules found that no tag agrees with decides nothing: its points are counted, and
     # the verdict can then be `drift` (over the other sources) or `incomplete`, never `clean`
     contradicted = labels.contradicted()
+    not_voting = 0
     if at == "commits" and not vfile:
         # --at commits has no tag at each point: the repository's tags vote on the source (§16.5)
         voter = Labels(objects, None, published)
         for tsha, _tdate, tname in publication_points(a.repo, "tags", a.max_commits, None)[0]:
-            voter.at(objects.entries(tsha), tname)
+            try:
+                voter.at(objects.entries(tsha), tname)
+            except Refusal:
+                not_voting += 1                           # a tag that cannot be read does not vote, and is counted
         contradicted = sorted(set(contradicted) | {s for s in voter.contradicted() if s in labels.counts})
     rejected = 0
     for v, src, sha, date, name, short, full in labelled:
@@ -1324,6 +1368,12 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
               + (f"\n                  {left_out} tag(s) not on --published left out of this analysis "
                  "(not shown unpublished)" if published is not None else "") + "\n")
 
+    if labels.equality == "version" and not a.would_tag:
+        # the report names labels as the files declare them: `1.0 = 1.0.0`, never a key no file wrote
+        by_label = defaultdict(dict, {" = ".join(sorted(labels.spellings.get(k) or {k})): cs for k, cs in by_label.items()})
+        if a.explain is not None:
+            a.explain = next((k for k in by_label if version_key(a.explain) in {version_key(s) for s in k.split(" = ")}),
+                             a.explain)
     drifting = {v: cs for v, cs in by_label.items() if len(cs) > 1}
     worst = max((len(cs) for cs in by_label.values()), default=0)
     truncated = total > len(pts)
@@ -1360,6 +1410,8 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
     }
     if contradicted:
         coverage["contradicted_sources"] = contradicted
+    if not_voting:
+        coverage["tags_not_voting"] = not_voting
     if tag_globs:
         coverage["tag_globs"] = tag_globs
         coverage["tags_filtered_out"] = filtered

@@ -1820,6 +1820,152 @@ def k03(root):
     expect(r, "clean", 0, publication_points_scanned=3, publication_points_compared=3)
 
 
+# ---------------------------------------------------------------- §16 amendment 3 — the review's findings
+
+def vfile_history(root, name, steps):
+    """steps: (tag, VERSION content or None to keep, code)."""
+    r = Repo(root, name)
+    for tag, version, code in steps:
+        if version is not None:
+            r.write("VERSION", version + "\n")
+        r.write("src/a.py", code + "\n")
+        r.commit()
+        r.tag(tag)
+    return r
+
+
+def r1_repo(root, name):
+    return vfile_history(root, name, [("v1.0.0", "1.0.0", "a"), ("v1.0.1", None, "b"), ("v1.1.0", "1.1.0", "c")])
+
+
+@proof("PUB12")
+def pub12(root):
+    r = Repo(root, "pub12")
+    for tag, code in (("v2.1.0", "a"), ("v2.2.0", "b")):
+        r.write("Cargo.toml", '[package]\nname = "helper"\nversion = "2.0.0"\n')
+        r.write("src/a.rs", code + "\n")
+        r.commit()
+        r.tag(tag)
+    rc, doc, _o, _e = run(r)
+    check(rc == 1, "control: without the list the first number agrees and the file is believed (exit %d)" % rc)
+    rc, doc, _o, _e = run(r, "--published", listing(root, "pub12", "2.1.0", "2.2.0"))
+    check(rc != 1 and doc is not None and doc.get("contradicted_sources") == ["Cargo.toml"],
+          "the list did not decide against the helper file (exit %d)" % rc)
+
+
+@proof("RV01")
+def rv01(root):
+    r = r1_repo(root, "rv01")
+    path = root / "rv01.txt"
+    path.write_bytes(b"\xef\xbb\xbf1.0.0\n1.0.1\n1.1.0\n")
+    expect(r, "drift", 1, "--published", str(path))
+
+
+@proof("RV02")
+def rv02(root):
+    r = r1_repo(root, "rv02")
+    for name, lines in (("a", ("1.0.0  # first release", "1.0.1", "1.1.0")), ("b", ("1.0.0 1.0.1", "1.1.0"))):
+        rc, _d, out, err = run(r, "--published", listing(root, "rv02" + name, *lines))
+        refusal(rc, out, err, "line 1")
+
+
+@proof("RV03")
+def rv03(root):
+    a = vfile_history(root, "rv03a", [("v1.0", "1.0", "a"), ("nightly-2024-02-01", None, "b"), ("v1.1", "1.1", "c")])
+    doc = expect(a, "clean", 0, "--published", listing(root, "rv03a", "1.0", "1.1"))
+    check(doc["published"]["tags_left_out"] == 1, "%r" % doc["published"])
+    b = vfile_history(root, "rv03b", [("v1.0", "1.0", "a"), ("build-1", None, "b"), ("v2.0", "2.0", "c")])
+    doc = expect(b, "clean", 0, "--published", listing(root, "rv03b", "1.0", "2.0"))
+    check(doc["published"]["tags_left_out"] == 1, "%r" % doc["published"])
+
+
+@proof("RV04")
+def rv04(root):
+    r = vfile_history(root, "rv04", [("t1", "1.0.0-rc.0", "a"), ("t2", "1.0.0-rc", "b"), ("t3", "1.0.0", "c")])
+    expect(r, "clean", 0, "--label-equality", "version")
+    s = vfile_history(root, "rv04b", [("t1", "1.0-rc", "a"), ("t2", "1.0.0-rc", "b"), ("t3", "1.0.0", "c")])
+    expect(s, "drift", 1, "--label-equality", "version")
+
+
+@proof("RV05")
+def rv05(root):
+    r = vfile_history(root, "rv05", [("v1.0", "1.0", "a"), ("v1.0.0", "1.0.0", "b"), ("v1.1.0", "1.1.0", "c")])
+    doc = expect(r, "drift", 1, "--label-equality", "version")
+    check(list(doc["drift"]) == ["1.0 = 1.0.0"], "the report names %r" % list(doc["drift"]))
+    for spelling in ("1.0", "1.0.0"):
+        rc, d, _o, err = run(r, "--label-equality", "version", "--explain", spelling)
+        check(rc == 1 and d is not None and "explain" in d, "--explain %s: exit %d %s" % (spelling, rc, err[:80]))
+
+
+@proof("RV06")
+def rv06(root):
+    r = Repo(root, "rv06")
+    for v in ("0.1.0", "0.2.0", "0.3.0"):
+        r.write("foo.gemspec", 'Gem::Specification.new do |spec|\n  # spec.version = "0.1.0"   # old\n'
+                               '  spec.version = Foo::VERSION\nend\n')
+        r.write("lib/foo/version.rb", 'module Foo\n  VERSION = "%s"\nend\n' % v)
+        r.write("lib/foo/a.rb", v + "\n")
+        r.commit()
+        r.tag("v" + v)
+    rc, doc, _o, _e = run(r, "--closure", "lib/**")
+    check(rc == 0, "exit %d: a commented line was read (%r)" % (rc, (doc or {}).get("drift")))
+
+
+@proof("RV07")
+def rv07(root):
+    r = Repo(root, "rv07")
+    for v in ("1.0.0", "1.1.0", "1.2.0"):
+        r.write("foo.gemspec", 'Gem::Specification.new do |s|\n  s.version = Foo::VERSION\nend\n')
+        r.write("lib/foo/vendor/thor/version.rb", 'class Thor\n  VERSION = "1.2.1"\nend\n')
+        r.write("lib/foo/version.rb", 'module Foo\n  VERSION = Gem::Version.new("%s")\nend\n' % v)
+        r.write("lib/foo/a.rb", v + "\n")
+        r.commit()
+        r.tag("v" + v)
+    rc, doc, _o, _e = run(r, "--closure", "lib/**")
+    check(rc != 1, "exit 1: a vendored version.rb was read (%r)" % (doc or {}).get("version_file"))
+
+
+@proof("RV08")
+def rv08(root):
+    for name, tags in (("rv08a", ("v1.0.0", "1.0.0", "v1.1.0")), ("rv08b", ("server-v1.0.0", "cli-v1.0.0", "v1.1.0"))):
+        r = Repo(root, name)
+        for i, tag in enumerate(tags):
+            r.write("go.mod", "module example.com/x\n\ngo 1.21\n")
+            r.write("main.go", "%d\n" % i)
+            r.commit()
+            r.tag(tag)
+        rc, doc, _o, _e = run(r, "--closure", "*.go")
+        check(rc != 1, "%s: exit 1 (%r)" % (name, (doc or {}).get("drift")))
+
+
+@proof("RV10")
+def rv10(root):
+    r = Repo(root, "rv10")
+    r.write("VERSION", "1.0.0\n"); r.write("src/a.py", "a\n"); r.commit()
+    r.write("VERSION", "1.1.0\n"); r.write("src/a.py", "b\n"); r.commit()
+    r.git("checkout", "-q", "--orphan", "side")
+    r.git("rm", "-rq", "--cached", ".")
+    r.write("old/deep/f", "x\n"); r.git("add", "old/deep/f"); r.git("commit", "-q", "-m", "side")
+    r.tag("v0.9.0")
+    tree = r.git("rev-parse", "HEAD:old/deep")
+    r.git("checkout", "-q", "-f", "main")
+    loose = r.path / ".git" / "objects" / tree[:2] / tree[2:]
+    if not loose.is_file():
+        raise NotRun("the tree object is not a loose object here")
+    os.chmod(loose, stat.S_IWRITE | stat.S_IREAD)
+    loose.unlink()
+    rc, doc, _o, err = run(r, "--at", "commits")
+    check(doc is not None, "a damaged tag outside the measured range refused the run: %s" % err[:120])
+
+
+@proof("RV11")
+def rv11(root):
+    r = vfile_history(root, "rv11", [("v1.0.0", "1.0.0", "a"), ("v1.1.0", "1.1.0", "b")])
+    r.write("src/a.py", "c\n"); r.commit()
+    rc, _d, out, err = run(r, "--would-tag", "--published", listing(root, "rv11", "9.9.9"))
+    refusal(rc, out, err, "--published")
+
+
 # ---------------------------------------------------------------- runner
 
 def remove(path):
