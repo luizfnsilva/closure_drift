@@ -15,7 +15,7 @@ reported from outside.
 | | what | found by | what to do |
 |---|---|---|---|
 | O2b | **Build-number tags (`release-41`) read as versions**: a correct file can be refused, exit 2. Kept in 1.1.0: taking their vote away would turn this refusal into a possible wrong 0 or 1 (§16.6) | adversarial ZA02 | `--version-file`, or `--published` |
-| O2a | **Without a list, a wrong file is still believed when one tag agrees by chance** (ZA04). The repository alone cannot tell it from real drift (LR01); with `--published` it is decided (1.1.0) | adversarial ZA04 | `--published`, or `--version-file` in any gate |
+| O2a | **A wrong file is still believed when one tag agrees by chance** (ZA04). The repository alone cannot tell it from real drift (LR01). With `--published` (1.1.0) it is decided when the file's label was never published; when that label was itself a real release (a helper stuck at a real `0.1.0`), the list cannot tell it from a tag cut before the bump either (review R12) | adversarial ZA04, review R12 | `--version-file` in any gate |
 | O7 | A submodule's content is not read. (Labels as versions and file modes: opt-in since 1.1.0) | declared since 0.9.0 | `SCOPE.md` |
 
 ## Fixed

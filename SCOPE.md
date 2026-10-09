@@ -47,8 +47,8 @@ These are not gaps waiting to be filled. They are the boundary, and the boundary
   told it about.
 - **Without `--version-file`, finding the label is best effort.** The rules read the files a
   build declares and refuse a file that no tag named for a version agrees with. They can still be
-  fooled: without a list of published versions, a helper file that agrees with one old tag by
-  chance is believed (the repository alone cannot tell it from real drift; `--published` can);
+  fooled: a helper file that agrees with one old tag by chance is believed (the repository alone
+  cannot tell it from real drift; `--published` can, when the helper's label was never published);
   build-number tags (`release-41`) can make a correct file look contradicted, which ends at exit 2.
   With `--at commits` the repository's tags vote, as with `--at tags`. A file given with
   `--version-file` is never second-guessed. **In a gate, pass it.**

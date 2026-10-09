@@ -3,6 +3,36 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 1.1.0 — 2026-10-09
+
+What 1.1.0 adds was written down before any of it (`tests/PREREGISTRATION.md` §16, three
+amendments). A reviewer who did not write it found 13 problems in the candidate
+(`docs/REVIEW-1.1.0.md`); each has a decision and, where fixed, a proof that was red before the fix.
+
+### Added
+
+- **`--published FILE`**: a local list of the versions you released, one per line. Only tags that
+  name a version on it are publication points. A tag left off is left out of the analysis, not
+  shown unpublished. The tool never queries a package index and never writes the list. The report
+  gives the list's sha256 and how many tags it included and left out. With the list, a version
+  file found by the rules is believed only if its label was published (O10; O2a, narrowed).
+- **More version sources**: `Chart.yaml`, a root `*.gemspec` (or the shallowest
+  `lib/**/version.rb` it points to), and `go.mod`, whose version is the whole tag.
+- **`--label-equality version`** (`1.0` = `1.0.0` = `v1`; the report keeps the spellings as
+  declared) and **`--modes`** (a file's mode is part of the closure). Both opt-in.
+- The badge says `(commits)` with `--at commits`.
+
+### Changed — a result of 1.0.0 can change only here
+
+- **`--at commits`: the repository's tags vote on the version file** (O2c), as with `--at tags`.
+  A run can move from 0 or 1 to `incomplete` (exit 2) when the tags contradict the file; never
+  the other way. A tag that cannot be read does not vote, and is counted.
+- **The refusal for want of a label comes before the scan** (O5): same message, same exit 2,
+  after reading only the root of each publication point.
+
+With no new option and outside `--at commits`, every result of 1.0.0 stays the same: the
+regression corpus gives the recorded answer on all 100.
+
 ## 1.0.0 — 2026-10-06
 
 What 1.0 had to meet was written down before any of it was done (`tests/PREREGISTRATION.md` §11):
