@@ -1,3 +1,21 @@
+# Record of the battery runs — closure_drift 1.1.0
+
+Detector 1.1.0: `closure_drift.py`, sha256 `e2a67a5a9148fe273d2c95ad4bcce9bc589a43711fc34443a4a9491fde575913`. CI run 37976952891.
+
+| platform | CPython | battery | mutants | adversarial | oracle | properties |
+|---|---|---|---|---|---|---|
+| Ubuntu | 3.9, 3.10, 3.11, 3.12, 3.13, 3.14 | 199 · 199 green · 0 red · 0 not run | 56 of 56 | 315 · 304 as required · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 controls |
+| macOS | 3.10, 3.14 | 199 · 198 green · 0 red · 1 not run | 56 of 56 | 315 · 304 · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+| Windows | 3.9, 3.14 | 199 · 194 green · 0 red · 5 not run | 56 of 56 | 315 · 281 · 2 loose · 32 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+
+The 2 loose are ZA02 and ZA04 (`docs/FAILURES.md` O2b, O2a); ZX03 (O2c) is now as required. The
+review's findings R1–R13 are in `docs/REVIEW-1.1.0.md`; their proofs (PUB12, RV01–RV11) were red
+on the candidate before the fixes. A first matrix (run 37973430775) found mutant M14 no longer
+applying after a change of `closure.ids()`; it was re-anchored, the mutation unchanged.
+
+Regression corpus (`tools/regression/`), the same script: 100 of 100 match, as predicted in §16
+(`checks/v1.1.0-candidate-e2a67a5a.json`). The benchmark was not rerun for 1.1.0.
+
 # Record of the battery runs — closure_drift 1.0.0
 
 Detector 1.0.0: `closure_drift.py`, sha256 `74309fe6db463a53e2dce112596b425a596a1a38dce413054e2db32a23f99f0d`. CI run 37506080583.
