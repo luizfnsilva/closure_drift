@@ -78,6 +78,19 @@ MUTANTS = [
     ("M38", "CM03", [('else "clean" if all(v == "clean" for v in verdicts)', 'else "clean" if all(v in ("clean", "refused", "no_labels") for v in verdicts)')]),
     ("M39", "CM04", [('    if comps and a.component is not None:\n', '    if False:\n')]),
     ("M40", "CM06", [('        if a.would_tag or a.compare or a.explain is not None:\n', '        if a.compare or a.explain is not None:\n')]),
+    # §16 — 1.1.0
+    ("M41", "PUB01", [('if published is not None and version_key(name) not in keys and version_key(tag_label(name)) not in keys:',
+                       'if False:')]),
+    ("M42", "PUB08", [('"tags_included": total, "tags_left_out": left_out}', '"tags_included": total, "tags_left_out": 0}')]),
+    ("M43", "PUB09", [('            if self.published is not None and tag and src[0] != TAG_SOURCE:', '            if False:')]),
+    ("M44", "VS01", [('("version.txt", "token"),\n                    ("Chart.yaml", "helm"))', '("version.txt", "token"))')]),
+    ("M45", "ER01", [('    if not vfile and vsrc is None and not a.would_tag and not any(root_has_source(objects, s) for s, _d, _n in pts):',
+                      '    if False:')]),
+    ("M46", "ER02", [('    return bool(names & set(ROOT_SOURCES)) or any(n.endswith(".gemspec") for n in names)', '    return False')]),
+    ("M47", "EQ01", [('        if label and self.equality == "version":', '        if False:')]),
+    ("M48", "MD01", [('mode = b" " + modes.get(path, b"?") if modes is not None else b""', 'mode = b""')]),
+    ("M49", "AC01", [('    if at == "commits" and not vfile:', '    if False:')]),
+    ("M50", "G05", [('+ (" (commits)" if at == "commits" else "")', '+ ""')]),
     ("M33", "MM03", [('        self.held += len(out) + 1\n', '        self.held += 0\n')]),
 ]
 

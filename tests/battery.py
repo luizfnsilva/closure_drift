@@ -1507,6 +1507,319 @@ def k02(root):
     check(rc == 2 and not out.strip() and err.strip(), "a refusal must leave standard output empty")
 
 
+# ---------------------------------------------------------------- §16 — 1.1.0
+
+def listing(root, name, *lines):
+    path = root / (name + ".txt")
+    path.write_text("".join(l + "\n" for l in lines), encoding="utf-8")
+    return str(path)
+
+
+def unreleased(root, name):
+    """v1.0.0 and v1.1.0 released; v1.0.1 tagged before the bump, never released."""
+    r = Repo(root, name)
+    r.release("v1.0.0", "1.0.0", {"src/a.py": "a\n"})
+    r.release("v1.0.1", "1.0.0", {"src/a.py": "b\n"})
+    r.release("v1.1.0", "1.1.0", {"src/a.py": "c\n"})
+    return r
+
+
+@proof("PUB01")
+def pub01(root):
+    r = unreleased(root, "pub01")
+    doc = expect(r, "clean", 0, "--published", listing(root, "pub01", "1.0.0", "1.1.0"))
+    check(doc["published"]["tags_left_out"] == 1, "tags_left_out %r" % doc["published"])
+
+
+@proof("PUB02")
+def pub02(root):
+    expect(unreleased(root, "pub02"), "drift", 1)
+
+
+@proof("PUB03")
+def pub03(root):
+    r = unreleased(root, "pub03")
+    expect(r, "drift", 1, "--published", listing(root, "pub03", "1.0.0", "1.0.1", "1.1.0"))
+
+
+@proof("PUB04")
+def pub04(root):
+    r = Repo(root, "pub04")
+    r.release("py-v2.0.0", "2.0.0", {"src/a.py": "a\n"})
+    r.release("py-v2.0.1", "2.0.0", {"src/a.py": "b\n"})
+    r.release("py-v2.1.0", "2.1.0", {"src/a.py": "c\n"})
+    doc = expect(r, "clean", 0, "--published", listing(root, "pub04", "2.0.0", "2.1.0"))
+    check(doc["published"]["tags_included"] == 2, "py-v2.0.0 was not included: %r" % doc["published"])
+
+
+@proof("PUB05")
+def pub05(root):
+    r = unreleased(root, "pub05")
+    a = expect(r, "clean", 0, "--published", listing(root, "pub05a", "1.0.0", "1.1.0"))
+    b = expect(r, "clean", 0, "--published", listing(root, "pub05b", "# released", "", "  1.0.0  ", "1.1.0", ""))
+    check({k: v for k, v in a["published"].items() if k != "sha256"}
+          == {k: v for k, v in b["published"].items() if k != "sha256"}, "comments or spaces changed the result")
+
+
+@proof("PUB06")
+def pub06(root):
+    r = unreleased(root, "pub06")
+    rc, _d, out, err = run(r, "--published", str(root / "absent.txt"))
+    refusal(rc, out, err, "--published")
+    rc, _d, out, err = run(r, "--published", listing(root, "pub06", "# nothing", ""))
+    refusal(rc, out, err, "lists no version")
+
+
+@proof("PUB07")
+def pub07(root):
+    r = unreleased(root, "pub07")
+    rc, _d, out, err = run(r, "--at", "commits", "--published", listing(root, "pub07", "1.0.0"))
+    refusal(rc, out, err, "--at commits")
+
+
+@proof("PUB08")
+def pub08(root):
+    r = unreleased(root, "pub08")
+    path = listing(root, "pub08", "1.0.0", "1.1.0")
+    doc = expect(r, "clean", 0, "--published", path)
+    sha = hashlib.sha256(Path(path).read_bytes()).hexdigest()
+    p = doc["published"]
+    check(p["sha256"] == sha == doc["stamp"]["published_sha256"], "the list's sha256 is not recorded")
+    check(p["tags_included"] + p["tags_left_out"] == 3 and p["versions"] == 2, "counts %r" % p)
+
+
+@proof("PUB09")
+def pub09(root):
+    r = cargo_history(root, "pub09", ["v0.1", "v2.1.0", "v2.2.0", "v2.3.0"])
+    rc, doc, _o, err = run(r, "--published", listing(root, "pub09", "2.1.0", "2.2.0", "2.3.0"))
+    check(rc != 1, "exit 1: the helper file was believed against the list")
+    check(doc is not None and doc.get("contradicted_sources") == ["Cargo.toml"],
+          "the helper file is not named contradicted: %r" % (doc or {}).get("contradicted_sources"))
+
+
+@proof("PUB10")
+def pub10(root):
+    r = Repo(root, "pub10")
+    for tag, version, code in (("v1", "1.0", "a"), ("v2", "1.0", "b"), ("v3", "2.0", "c")):
+        r.release(tag, version, {"src/a.py": code + "\n"})
+    expect(r, "drift", 1, "--published", listing(root, "pub10", "1.0", "2.0"))
+
+
+@proof("PUB11")
+def pub11(root):
+    r = Repo(root, "pub11")
+    r.release("v1.0.0", "1.0.0", {"src/a.py": "a\n"})
+    r.release("v1.0.0-rc", "1.0.0", {"src/a.py": "b\n"})
+    r.write("src/a.py", "a\n")
+    r.commit()
+    rc, doc, _o, _e = run(r, "--would-tag")
+    check(doc is not None and doc.get("verdict") == "would_drift", "control: %r" % (doc or {}).get("verdict"))
+    expect(r, "would_be_clean", 0, "--would-tag", "--published", listing(root, "pub11", "1.0.0"))
+
+
+def chart(version, dep="9.9.9"):
+    return ("apiVersion: v2\nname: x\ndependencies:\n  - name: y\n    version: %s\nversion: %s\n" % (dep, version))
+
+
+@proof("VS01")
+def vs01(root):
+    r = Repo(root, "vs01")
+    for tag, code in (("v1", "a"), ("v2", "b")):
+        r.write("Chart.yaml", "apiVersion: v2\nname: x\nversion: 1.2.0\n")
+        r.write("src/a.py", code + "\n")
+        r.commit()
+        r.tag(tag)
+    doc = expect(r, "drift", 1)
+    check(doc["label_sources"] == {"Chart.yaml": 2}, "label_sources %r" % doc["label_sources"])
+
+
+@proof("VS02")
+def vs02(root):
+    r = Repo(root, "vs02")
+    for tag, dep, code in (("v1", "1.0.0", "a"), ("v2", "3.0.0", "b")):
+        r.write("Chart.yaml", chart("2.0.0", dep))
+        r.write("src/a.py", code + "\n")
+        r.commit()
+        r.tag(tag)
+    doc = expect(r, "drift", 1)
+    check(list(doc["drift"]) == ["2.0.0"], "the label is not the top-level version: %r" % list(doc["drift"]))
+
+
+@proof("VS03")
+def vs03(root):
+    r = Repo(root, "vs03")
+    for tag, code in (("v1", "a"), ("v2", "b")):
+        r.write("x.gemspec", 'Gem::Specification.new do |spec|\n  spec.name = "x"\n  spec.version = "1.0.0"\nend\n')
+        r.write("lib/x.rb", code + "\n")
+        r.commit()
+        r.tag(tag)
+    doc = expect(r, "drift", 1, "--closure", "lib/**")
+    check(doc["label_sources"] == {"x.gemspec": 2}, "label_sources %r" % doc["label_sources"])
+
+
+@proof("VS04")
+def vs04(root):
+    r = Repo(root, "vs04")
+    for tag, code in (("v3.1.0", "a"), ("v3.1.1", "b")):
+        r.write("x.gemspec", 'Gem::Specification.new do |s|\n  s.name = "x"\n  s.version = X::VERSION\nend\n')
+        r.write("lib/x/version.rb", 'module X\n  VERSION = "3.1.0"\nend\n')
+        r.write("lib/x.rb", code + "\n")
+        r.commit()
+        r.tag(tag)
+    doc = expect(r, "drift", 1, "--closure", "lib/**")
+    check(doc["label_sources"] == {"lib/x/version.rb": 2} and list(doc["drift"]) == ["3.1.0"],
+          "%r %r" % (doc["label_sources"], list(doc["drift"])))
+
+
+@proof("VS05")
+def vs05(root):
+    r = Repo(root, "vs05")
+    for tag, code in (("v1.0.0", "a"), ("v1.1.0", "b")):
+        r.write("go.mod", "module example.com/x\n\ngo 1.22\n")
+        r.write("src/a.go", code + "\n")
+        r.commit()
+        r.tag(tag)
+    doc = expect(r, "clean", 0)
+    check(doc["label_sources"] == {"(the tag)": 2}, "label_sources %r" % doc["label_sources"])
+
+
+@proof("VS06")
+def vs06(root):
+    r = Repo(root, "vs06")
+    for tag, code in (("v5.0.0", "a"), ("v5.0.1", "b")):
+        r.write("package.json", '{"version": "5.0.0"}\n')
+        r.write("Chart.yaml", "version: 7.0.0\n")
+        r.write("src/a.js", code + "\n")
+        r.commit()
+        r.tag(tag)
+    doc = expect(r, "drift", 1)
+    check(list(doc["drift"]) == ["5.0.0"], "package.json lost its place: %r" % list(doc["drift"]))
+
+
+@proof("ER01")
+def er01(root):
+    r = Repo(root, "er01")
+    for i in range(8):
+        r.write("src/a.py", "%d\n" % i)
+        r.commit()
+        r.tag("v%d" % i)
+    oid = r.git("rev-parse", "v0:src")
+    loose = r.path / ".git" / "objects" / oid[:2] / oid[2:]
+    if not loose.is_file():
+        raise NotRun("the tree object is not a loose object here")
+    os.chmod(loose, stat.S_IWRITE | stat.S_IREAD)
+    loose.unlink()
+    rc, _d, out, err = run(r)
+    refusal(rc, out, err, "could not find a version label")
+
+
+@proof("ER02")
+def er02(root):
+    r = Repo(root, "er02")
+    r.write("VERSION", "1.0.0\n")
+    r.write("src/a.py", "a\n")
+    r.commit()
+    r.tag("v1.0.0")
+    r.remove("VERSION")
+    for i in range(3):
+        r.write("src/a.py", "%d\n" % i)
+        r.commit()
+        r.tag("v2.%d" % i)
+    rc, doc, out, err = run(r)
+    check("could not find a version label" not in err, "refused before the scan although VERSION exists at a tag")
+    check(doc is not None, "no report (exit %d): %s" % (rc, err[:120]))
+
+
+def eq_repo(root, name, v1, v2):
+    r = Repo(root, name)
+    r.release("t1", v1, {"src/a.py": "a\n"})
+    r.release("t2", v2, {"src/a.py": "b\n"})
+    return r
+
+
+@proof("EQ01")
+def eq01(root):
+    r = eq_repo(root, "eq01", "1.0", "1.0.0")
+    expect(r, "clean", 0)
+    doc = expect(r, "drift", 1, "--label-equality", "version")
+    check(doc.get("label_equality") == "version", "the option is not named in the report")
+
+
+@proof("EQ02")
+def eq02(root):
+    expect(eq_repo(root, "eq02", "1.10", "1.1"), "clean", 0, "--label-equality", "version")
+
+
+@proof("MD01")
+def md01(root):
+    r = Repo(root, "md01")
+    r.release("v1", "1.0.0", {"src/run.py": "x\n"})
+    r.git("update-index", "--chmod=+x", "src/run.py")
+    r.git("commit", "-q", "-m", "chmod")
+    r.tag("v2")
+    r.release("v3", "1.1.0", {"src/run.py": "y\n"})
+    expect(r, "clean", 0)
+    doc = expect(r, "drift", 1, "--modes")
+    check(doc.get("closure_modes") is True, "the option is not named in the report")
+
+
+@proof("MD02")
+def md02(root):
+    r = two_tags(root, "md02")
+    a, b = expect(r, "drift", 1), expect(r, "drift", 1, "--modes")
+    for k in ("labels", "labels_covering_multiple_closures", "publication_points_compared", "drift"):
+        check(a[k] == b[k], "%s differs with --modes" % k)
+
+
+@proof("AC01")
+def ac01(root):
+    r = cargo_history(root, "ac01", ["v2.1.0", "v2.2.0"], head=True)
+    rc, doc, _o, err = run(r, "--at", "commits")
+    check(rc != 1, "exit 1: the file the tags contradict was believed")
+    check(doc is not None and doc.get("contradicted_sources") == ["Cargo.toml"],
+          "%r" % (doc or {}).get("contradicted_sources"))
+
+
+@proof("AC02")
+def ac02(root):
+    r = Repo(root, "ac02")
+    for i, v in enumerate(("1.0.0", "1.0.0")):
+        r.write("package.json", '{"version": "%s"}\n' % v)
+        r.write("src/a.js", "%d\n" % i)
+        r.commit()
+    expect(r, "drift", 1, "--at", "commits")
+
+
+@proof("G05")
+def g05(root):
+    r = Repo(root, "g05")
+    for i in range(2):
+        r.write("package.json", '{"version": "1.0.0"}\n')
+        r.write("src/a.js", "%d\n" % i)
+        r.commit()
+    rc, _, out, err = run(r, "--badge", "--at", "commits", text=True)
+    lines = out.splitlines()
+    check(rc == 1 and len(lines) == 1 and not err.strip(), "exit %d, %d lines" % (rc, len(lines)))
+    check("(commits)" in lines[0] and "%28commits%29" in lines[0].replace("(commits)", "", 1) or "commits" in lines[0],
+          "the badge does not say the regime: %r" % lines[0][:100])
+    check(lines[0].startswith("![version labels: drift @ ") and "(commits)]" in lines[0],
+          "the badge text does not end with the regime: %r" % lines[0][:100])
+
+
+@proof("K03")
+def k03(root):
+    r = Repo(root, "k03")
+    r.write("package.json", '{"version":"1"}\n')
+    r.write("src/a.py", "1\n")
+    r.commit()
+    r.tag("inner", annotated=True)
+    r.git("tag", "-a", "outer", "-m", "outer", "inner")
+    check(r.git("cat-file", "-t", "outer") == "tag" and r.git("rev-parse", "outer^{}") == r.git("rev-parse", "HEAD"),
+          "the fixture is not a tag of a tag")
+    r.release("v2", "2", {"src/a.py": "2\n"})
+    expect(r, "clean", 0, publication_points_scanned=3, publication_points_compared=3)
+
+
 # ---------------------------------------------------------------- runner
 
 def remove(path):

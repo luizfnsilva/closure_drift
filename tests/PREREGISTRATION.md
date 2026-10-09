@@ -994,3 +994,18 @@ points, so the check reads only there: the root tree of each point, before any f
 ER01 becomes: exit 2 with the same message, and `--diagnose` shows `objects_read` at most the
 objects of HEAD's tree plus two per publication point. A point whose root cannot be read is a
 refusal that names git, as before (D14).
+
+### Amendment 2 to §16, 2026-10-09 — while writing the proofs, before any CI run
+
+- **A tag is on the list as a version**, not as text: `v1` is on a list that says `1.0` (both read
+  as `1` under `--label-equality version`'s rule). Without it PUB10's real drift (`v1`, `v2` over
+  `1.0`) would leave the analysis and the list could hide what it was meant to sharpen.
+- **K02 of 16.7 is K03**: K02 already names "the report is a contract".
+- **ER01 is observed by a damaged inner tree**: refusals carry no `--diagnose` body, so
+  `objects_read` cannot be read there. ER01 deletes the tree object of `src/` at one tag and keeps
+  every root: the refusal before the scan never reads it and names the label; 1.0.0 reads it and
+  names git. M45 (the early refusal skipped) turns ER01 red the same way.
+- Proofs that keep a single label get a second tag: one label is `inconclusive` by design (§2).
+- Against the 1.0.0 script, 22 of the 27 new proofs are red; the 5 green are controls by design:
+  PUB02 (defaults), VS06 (order), ER02 (no early refusal when a source exists), AC02 (no tags),
+  K03 (issue #3 said the detector already peels a tag of a tag).

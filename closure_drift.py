@@ -39,7 +39,11 @@ REPORT_FORMAT = 2
 # them is a Python project, and only then are the other ecosystems' files consulted.
 BUILD_FILES = ("pyproject.toml", "setup.cfg", "setup.py")
 OTHER_ECOSYSTEMS = (("Cargo.toml", "cargo"), ("package.json", "json"), ("composer.json", "json"),
-                    ("build.gradle", "gradle"), ("VERSION", "token"), ("version.txt", "token"))
+                    ("build.gradle", "gradle"), ("VERSION", "token"), ("version.txt", "token"),
+                    ("Chart.yaml", "helm"))
+# Root files whose presence anywhere in history means a label might be found (refusal before the
+# scan, §16.3). `*.gemspec` is matched as a glob.
+ROOT_SOURCES = BUILD_FILES + tuple(p for p, _ in OTHER_ECOSYSTEMS) + ("go.mod",)
 VERSION_MODULES = ("__version__.py", "_version.py", "version.py", "__about__.py", "__init__.py")
 VERSION_NAMES = ("__version__", "VERSION", "version")
 TAG_SOURCE = "(the tag)"      # the version is derived from the tag at build time: the label is the tag
@@ -309,9 +313,10 @@ class Objects:
 class Closure:
     """Decides, once per distinct path, whether it is in the closure — and computes both ids."""
 
-    def __init__(self, include: list[str]):
+    def __init__(self, include: list[str], modes_repo: str | None = None):
         self.include = include
         self.known: dict[str, bool] = {}
+        self.modes_repo = modes_repo        # --modes: each file's mode is part of the full id (§16.4)
 
     def holds(self, path: str, is_file: bool = True) -> bool:
         got = self.known.get((path, is_file))
@@ -323,17 +328,34 @@ class Closure:
     def members(self, entries: list[tuple[str, str, str]]) -> list[tuple[str, str, str]]:
         return [e for e in entries if e[1] in ("blob", "commit") and self.holds(e[0], e[1] == "blob")]
 
-    def ids(self, entries: list[tuple[str, str, str]]) -> tuple[str, str, int]:
+    def modes(self, commit: str) -> dict[str, bytes]:
+        """path -> mode at a commit, read with `git ls-tree` only when --modes asks for it."""
+        out = git_bytes(["ls-tree", "-r", "-z", "--full-tree", commit], self.modes_repo) or b""
+        got = {}
+        for rec in out.split(b"\0"):
+            if b"\t" in rec:
+                meta, path = rec.split(b"\t", 1)
+                got[path.decode("utf-8", "surrogateescape")] = meta.split(b" ", 1)[0]
+        return got
+
+    def member_map(self, entries, commit: str | None = None) -> dict:
+        """path -> (kind, object id[, mode]) of the members; the mode only with --modes."""
+        modes = self.modes(commit) if self.modes_repo and commit else None
+        return {p: (k, o) if modes is None else (k, o, modes.get(p, b"?")) for p, k, o in self.members(entries)}
+
+    def ids(self, entries: list[tuple[str, str, str]], commit: str | None = None) -> tuple[str, str, int]:
         """(short id, full id, number of files). The short id is the 16-hex value of every version
         since 0.3.0, kept for comparability; it joins path and object id with nothing between
         them, so identity is decided by the full id, over `path NUL type SP id LF`. Submodule
         pointers are part of the closure."""
         short, full, n = hashlib.sha256(), hashlib.sha256(), 0
+        modes = self.modes(commit) if self.modes_repo and commit else None
         for path, kind, oid in self.members(entries):
             raw = path.encode("utf-8", "surrogateescape")
             short.update(raw)
             short.update(oid.encode())
-            full.update(raw + b"\0" + kind.encode() + b" " + oid.encode() + b"\n")
+            mode = b" " + modes.get(path, b"?") if modes is not None else b""
+            full.update(raw + b"\0" + kind.encode() + b" " + oid.encode() + mode + b"\n")
             n += 1
         return short.hexdigest()[:16], full.hexdigest(), n
 
@@ -574,6 +596,18 @@ class Sources:
                 value = None
         elif how == "token":
             value = text.strip() if len(text.split()) == 1 else None
+        elif how == "helm":
+            for line in text.split("\n"):
+                m = re.match(r'version:[ \t]*["\']?([^"\'\s#]+)', line)    # top level only: no indent
+                if m:
+                    value = m.group(1)
+                    break
+        elif how == "gem":
+            m = re.search(r'\.version[ \t]*=[ \t]*["\']([^"\'\n]+)["\']', text)
+            value = m.group(1) if m else None
+        elif how == "rbconst":
+            m = re.search(r'^[ \t]*VERSION[ \t]*=[ \t]*["\']([^"\'\n]+)["\']', text, re.M)
+            value = m.group(1) if m else None
         elif how == "gradle":
             for line in text.split("\n"):
                 m = re.match(r'[ \t]*version[ \t]*=?[ \t]*["\']([^"\'\n]+)["\']', line)
@@ -592,6 +626,16 @@ class Sources:
         for path, how in OTHER_ECOSYSTEMS:
             if self.read(blobs, path, how):
                 return path, how
+        gemspecs = sorted(p for p in blobs if "/" not in p and p.endswith(".gemspec"))
+        if gemspecs:
+            if self.read(blobs, gemspecs[0], "gem"):
+                return gemspecs[0], "gem"
+            if re.search(r'\.version[ \t]*=[ \t]*[A-Z]\w*(?:::\w+)*::VERSION\b', self.text(blobs, gemspecs[0])):
+                for path in depth_first(p for p in blobs if p.startswith("lib/") and p.endswith("/version.rb")):
+                    if self.read(blobs, path, "rbconst"):
+                        return path, "rbconst"
+        if "go.mod" in blobs:
+            return TAG_SOURCE, None                       # a Go module's version is its tag
         return None
 
     def python(self, blobs: dict):
@@ -705,16 +749,18 @@ def tag_label(name: str) -> str:
     return m.group(1) if m else name
 
 
-def publication_points(repo: str, at: str, limit: int, tag_globs: list[str] | None):
+def publication_points(repo: str, at: str, limit: int, tag_globs: list[str] | None, published: set | None = None):
     """→ ([(commit, date, name)] oldest first, how many there were before the cut, tags that do
-    not point at a commit, tags left out by --tags). This is the design decision of all of v2."""
+    not point at a commit, tags left out by --tags, tags left out by --published). This is the
+    design decision of all of v2."""
     if at == "commits":
         total = int(git(["rev-list", "--count", "HEAD"], repo).strip() or 0)
         log = git(["log", f"-{limit}", "--format=%H\t%ad\t%s", "--date=short"], repo)
-        return [tuple(l.split("\t", 2)) for l in log.splitlines() if l.count("\t") >= 2][::-1], total, 0, 0
+        return [tuple(l.split("\t", 2)) for l in log.splitlines() if l.count("\t") >= 2][::-1], total, 0, 0, 0
     out = git(["for-each-ref", "--sort=creatordate",
                "--format=%(objectname)\t%(creatordate:short)\t%(refname)", "refs/tags"], repo)
-    pts, not_commits, filtered = [], 0, 0
+    pts, not_commits, filtered, left_out = [], 0, 0, 0
+    keys = {version_key(v) for v in published} if published is not None else set()   # `v1` is on a list that says `1.0`
     for l in out.splitlines():
         if l.count("\t") < 2:
             continue
@@ -724,13 +770,17 @@ def publication_points(repo: str, at: str, limit: int, tag_globs: list[str] | No
         if tag_globs and not any(fnmatch.fnmatchcase(name, g) for g in tag_globs):
             filtered += 1
             continue
+        # a tag not on the list is left out of this analysis; that does not say it was never published
+        if published is not None and version_key(name) not in keys and version_key(tag_label(name)) not in keys:
+            left_out += 1
+            continue
         # resolve annotated tags; a tag that points at a blob or a tree is counted, not scanned
         c = git(["rev-parse", "--verify", "--quiet", sha + "^{commit}"], repo, may_fail=True).strip()
         if not c:
             not_commits += 1
             continue
         pts.append((c, date, name))
-    return pts[-limit:], len(pts), not_commits, filtered
+    return pts[-limit:], len(pts), not_commits, filtered, left_out
 
 
 def declared_version(objects: Objects, entries, path: str, pattern: str, seen: dict) -> str | None:
@@ -742,11 +792,56 @@ def declared_version(objects: Objects, entries, path: str, pattern: str, seen: d
     return None
 
 
+def version_key(label: str) -> str:
+    """`--label-equality version`: `v1`, `1.0` and `1.0.0` are one label; `1.1` and `1.10` are two."""
+    s = label[1:] if label[:1] in "vV" and label[1:2].isdigit() else label
+    parts = [(p.lstrip("0") or "0") if p.isdigit() else p for p in s.split(".")]
+    while len(parts) > 1 and parts[-1] == "0":
+        parts.pop()
+    return ".".join(parts)
+
+
+NO_LABEL = ("could not find a version label. Pass --version-file / --version-regex.\n"
+            "tried: pyproject.toml, setup.cfg, setup.py and the project's own package; "
+            "Cargo.toml, package.json, composer.json, build.gradle, VERSION, version.txt, Chart.yaml, "
+            "*.gemspec; go.mod (the version is the tag).\n"
+            "A version spread over several lines: name the groups part1, part2, ..., e.g. "
+            "'VERSION = (?P<part1>\\d+)\\nPATCHLEVEL = (?P<part2>\\d+)' reads 6.1. Recipes: docs/LABELS.md.\n"
+            "If your version is the tag itself, a tag names one commit and there is nothing "
+            "to measure here.")
+
+
+def root_has_source(objects, commit: str) -> bool:
+    """Whether a commit has, at its root, a file the rules read. The rules read nothing else, so a
+    range of publication points none of which has one gives no label, and the refusal comes before
+    the full trees are read (§16.3): two objects per point instead of every tree."""
+    names = {n.decode("utf-8", "surrogateescape") for n, kind, _o in objects.children(objects.root_tree(commit))
+             if kind == "blob"}
+    return bool(names & set(ROOT_SOURCES)) or any(n.endswith(".gemspec") for n in names)
+
+
+def read_published(path: str) -> tuple[set, str]:
+    """`--published`: one version per line; blank lines and `#` lines ignored. → (versions, sha256)."""
+    try:
+        raw = Path(path).read_bytes()
+        text = raw.decode("utf-8")
+    except (OSError, UnicodeDecodeError) as e:
+        raise Refusal(f"--published {printable(path)}: cannot be read ({type(e).__name__})")
+    versions = {line.strip() for line in text.splitlines() if line.strip() and not line.strip().startswith("#")}
+    if not versions:
+        raise Refusal(f"--published {printable(path)}: lists no version (one per line; # starts a comment)")
+    return versions, hashlib.sha256(raw).hexdigest()
+
+
 class Labels:
     """The label at a publication point, and where it was read from."""
 
-    def __init__(self, objects: Objects, fixed: tuple[str, str] | None):
+    def __init__(self, objects: Objects, fixed: tuple[str, str] | None,
+                 published: set | None = None, equality: str = "text"):
         self.objects, self.fixed = objects, fixed
+        # with --published, a source agrees at a tag when its label is on the list (§16.1)
+        self.published = {version_key(v) for v in published} if published is not None else None
+        self.equality = equality
         self.sources, self.seen = Sources(objects), {}
         self.counts: dict[str, int] = {}
         self.previous, self.conflicts = None, 0
@@ -790,11 +885,17 @@ class Labels:
                 self.previous = src
         if label and count:
             self.counts[src[0]] = self.counts.get(src[0], 0) + 1
-            tag_nums = release_numbers(tag) if tag and src[0] != TAG_SOURCE else None
-            if tag_nums is not None:
-                nums = release_numbers(label) or ("",)
+            if self.published is not None and tag and src[0] != TAG_SOURCE:
                 tally = self.agreement.setdefault(src[0], [0, 0])
-                tally[0 if nums[0] == tag_nums[0] else 1] += 1   # the first number: `v1.1` agrees with 1.0.0
+                tally[0 if version_key(label) in self.published else 1] += 1
+            else:
+                tag_nums = release_numbers(tag) if tag and src[0] != TAG_SOURCE else None
+                if tag_nums is not None:
+                    nums = release_numbers(label) or ("",)
+                    tally = self.agreement.setdefault(src[0], [0, 0])
+                    tally[0 if nums[0] == tag_nums[0] else 1] += 1   # the first number: `v1.1` agrees with 1.0.0
+        if label and self.equality == "version":
+            label = version_key(label)
         self.last = src[0] if label else None
         return label
 
@@ -883,10 +984,12 @@ def explain(objects: Objects, closure: Closure, states: dict) -> dict:
     """Which paths differ between the first closure a label named and each of the others.
     Printed only when asked for: the report otherwise lists no file of the closure."""
     fulls = list(states)
-    first = {p: (k, o) for p, k, o in closure.members(objects.entries(states[fulls[0]]["commit"]))}
+    c0 = states[fulls[0]]["commit"]
+    first = closure.member_map(objects.entries(c0), c0)
     out = {"first": {"closure": states[fulls[0]]["key"], "point": states[fulls[0]]["where"]}, "others": []}
     for full in fulls[1:]:
-        other = {p: (k, o) for p, k, o in closure.members(objects.entries(states[full]["commit"]))}
+        c1 = states[full]["commit"]
+        other = closure.member_map(objects.entries(c1), c1)
         out["others"].append({
             "closure": states[full]["key"], "point": states[full]["where"],
             "changed": sorted(p for p in first if p in other and first[p] != other[p]),
@@ -896,10 +999,10 @@ def explain(objects: Objects, closure: Closure, states: dict) -> dict:
     return out
 
 
-def badge(verdict: str, head: str) -> str:
+def badge(verdict: str, head: str, at: str = "tags") -> str:
     colour = {"clean": "brightgreen", "would_be_clean": "brightgreen",
               "drift": "red", "would_drift": "red"}.get(verdict, "lightgrey")
-    message = f"{verdict} @ {head}"
+    message = f"{verdict} @ {head}" + (" (commits)" if at == "commits" else "")
     quoted = message.replace("-", "--").replace("_", "__").replace(" ", "_").replace("@", "%40")
     return (f"![version labels: {message}]"
             f"(https://img.shields.io/badge/version_labels-{quoted}-{colour})")
@@ -933,6 +1036,13 @@ def run() -> int:
                     help="add what a bug report needs: versions, options, what could not be read")
     ap.add_argument("--component", metavar="NAME",
                     help="measure one of the components declared in .closure-drift.json")
+    ap.add_argument("--published", metavar="FILE",
+                    help="a local list of published versions, one per line: only tags on it are "
+                         "publication points (a tag left out is not shown unpublished)")
+    ap.add_argument("--label-equality", choices=["text", "version"], default="text",
+                    help="'version' compares labels as versions: 1.0 = 1.0.0 = v1 (default: text)")
+    ap.add_argument("--modes", action="store_true",
+                    help="file modes are part of the closure: an executable bit or symlink change counts")
     ap.add_argument("--version", action="store_true", help="print the version and exit")
     a = ap.parse_args()
 
@@ -966,6 +1076,9 @@ def run() -> int:
     # settings committed in the repository; command-line flags override them
     cfg = read_config(a.repo)
     comps = cfg.get("components")
+    if a.published is not None and comps:
+        raise Refusal("--published lists the versions of one release line; it cannot be combined with "
+                      "components declared in .closure-drift.json")
     if comps and (a.at or cfg.get("at") or "tags") != "tags":
         raise Refusal("components are sets of tags; they cannot be combined with --at "
                       f"{printable(a.at or cfg.get('at'))}")
@@ -995,11 +1108,14 @@ def run() -> int:
         raise Refusal("--would-tag asks about a tag; it cannot be combined with --at commits")
     if at == "commits" and a.tags:
         raise Refusal("--tags selects tags; it cannot be combined with --at commits")
+    if at == "commits" and a.published is not None:
+        raise Refusal("--published selects tags; it cannot be combined with --at commits")
     if a.would_tag and (a.strict or a.explain):
         raise Refusal("--would-tag answers about one commit; --strict and --explain do not apply to it")
-    if a.compare and (a.would_tag or a.explain or a.strict or a.tags or a.at == "commits"):
+    if a.compare and (a.would_tag or a.explain or a.strict or a.tags or a.at == "commits"
+                      or a.published is not None):
         raise Refusal("--compare looks at exactly two references; --would-tag, --explain, --strict, "
-                      "--tags and --at commits do not apply to it")
+                      "--tags, --published and --at commits do not apply to it")
     tag_globs = (a.tags or cfg.get("tags")) if at == "tags" else None
     check_globs(tag_globs or [], "--tags")
     check_globs(a.closure or cfg.get("closure") or [], "--closure")
@@ -1009,6 +1125,8 @@ def run() -> int:
     if vregex and not vfile:
         raise Refusal("--version-regex needs --version-file (or version_file in "
                       ".closure-drift.json): on its own it would be discarded, unchecked.")
+
+    a.published_set, a.published_sha = read_published(a.published) if a.published is not None else (None, None)
 
     objects = Objects(a.repo)
     try:
@@ -1099,7 +1217,9 @@ def components(a, head_sha: str, cfg: dict, comps: dict) -> int:
 
 def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vregex, cfg) -> int:
     head_entries = objects.entries(head_sha)
-    labels = Labels(objects, (vfile, vregex or DEFAULT_VERSION_REGEX) if vfile else None)
+    published = getattr(a, "published_set", None)
+    labels = Labels(objects, (vfile, vregex or DEFAULT_VERSION_REGEX) if vfile else None,
+                    published, getattr(a, "label_equality", "text"))
     vsrc = labels.source(head_entries)
     vpath, vpat = (vsrc[0], vsrc[1] if vfile else None) if vsrc else (None, None)
     if vpath == TAG_SOURCE and at == "commits":
@@ -1114,25 +1234,31 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
         raise Refusal(f"--version-regex {vpat!r} has no capture group: "
                       "the pattern must capture the version label, e.g. 'version = \"([^\"]+)\"'.")
     include = a.closure or cfg.get("closure") or CLOSURE_DEFAULTS
-    closure = Closure(include)
+    closure = Closure(include, a.repo if getattr(a, "modes", False) else None)
 
     if a.compare:
         return compare(a, objects, closure, labels, vpath, include, head_sha)
 
     # --would-tag looks at every tag: a collision with an old tag is a collision
     limit = a.max_commits if not a.would_tag else 10 ** 9
-    pts, total, not_commits, filtered = publication_points(a.repo, at, limit, tag_globs)
+    pts, total, not_commits, filtered, left_out = publication_points(a.repo, at, limit, tag_globs, published)
     if not pts and (not a.would_tag or (tag_globs and filtered)):
         msg = ("no tags found — this repository publishes nothing addressable by tag. "
                "If it publishes continuously, rerun with --at commits.")
         if tag_globs and filtered:
             msg = (f"no tag matches --tags {printable(' '.join(tag_globs))}: "
                    f"{filtered} tag(s) were left out and none remain.")
+        if published is not None and left_out:
+            msg = (f"no tag is on the --published list: {left_out} tag(s) were left out of this "
+                   "analysis and none remain.")
         if a.json:
             emit({"report_format": REPORT_FORMAT, "verdict": "no_publication_points", "note": msg})
         else:
             print(msg, file=sys.stderr)
         return 2
+
+    if not vfile and vsrc is None and not a.would_tag and not any(root_has_source(objects, s) for s, _d, _n in pts):
+        raise Refusal(NO_LABEL)
 
     # label -> full closure id -> {key (the 16-hex id), where it was first seen, commit}
     by_label: dict[str, dict[str, dict]] = defaultdict(dict)
@@ -1142,7 +1268,7 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
     prev = None
     for sha, date, name in pts:
         entries = objects.entries(sha)
-        short, full, nfiles = closure.ids(entries)
+        short, full, nfiles = closure.ids(entries, sha)
         if nfiles == 0:
             empty += 1
             if a.would_tag:
@@ -1162,6 +1288,12 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
     # a source the rules found that no tag agrees with decides nothing: its points are counted, and
     # the verdict can then be `drift` (over the other sources) or `incomplete`, never `clean`
     contradicted = labels.contradicted()
+    if at == "commits" and not vfile:
+        # --at commits has no tag at each point: the repository's tags vote on the source (§16.5)
+        voter = Labels(objects, None, published)
+        for tsha, _tdate, tname in publication_points(a.repo, "tags", a.max_commits, None)[0]:
+            voter.at(objects.entries(tsha), tname)
+        contradicted = sorted(set(contradicted) | {s for s in voter.contradicted() if s in labels.counts})
     rejected = 0
     for v, src, sha, date, name, short, full in labelled:
         if src in contradicted:
@@ -1181,20 +1313,16 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
         empty_by_label[v].append(where)
 
     if not labels.counts and vsrc is None and not a.would_tag:
-        raise Refusal("could not find a version label. Pass --version-file / --version-regex.\n"
-                      "tried: pyproject.toml, setup.cfg, setup.py and the project's own package; "
-                      "Cargo.toml, package.json, composer.json, build.gradle, VERSION, version.txt.\n"
-                      "A version spread over several lines: name the groups part1, part2, ..., e.g. "
-                      "'VERSION = (?P<part1>\\d+)\\nPATCHLEVEL = (?P<part2>\\d+)' reads 6.1. Recipes: docs/LABELS.md.\n"
-                      "If your version is the tag itself, a tag names one commit and there is nothing "
-                      "to measure here.")
+        raise Refusal(NO_LABEL)
     if not (a.json or a.badge):
         print(f"repository        {printable(a.repo)}")
         print(f"version from      {printable(vpath or '(nothing at HEAD)')}")
         print(f"closure           {printable(', '.join(include))}")
         print(f"publication point {at} ({len(pts)} scanned"
               + (f", the most recent of {total}" if total > len(pts) else "")
-              + (f"; --tags {printable(' '.join(tag_globs))}" if tag_globs else "") + ")\n")
+              + (f"; --tags {printable(' '.join(tag_globs))}" if tag_globs else "") + ")"
+              + (f"\n                  {left_out} tag(s) not on --published left out of this analysis "
+                 "(not shown unpublished)" if published is not None else "") + "\n")
 
     drifting = {v: cs for v, cs in by_label.items() if len(cs) > 1}
     worst = max((len(cs) for cs in by_label.values()), default=0)
@@ -1235,6 +1363,14 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
     if tag_globs:
         coverage["tag_globs"] = tag_globs
         coverage["tags_filtered_out"] = filtered
+    if published is not None:
+        coverage["published"] = {"sha256": a.published_sha, "versions": len(published),
+                                 "tags_included": total, "tags_left_out": left_out}
+        stamp["published_sha256"] = a.published_sha
+    if getattr(a, "label_equality", "text") != "text":
+        coverage["label_equality"] = a.label_equality
+    if getattr(a, "modes", False):
+        coverage["closure_modes"] = True
 
     if a.would_tag:
         return would_tag(a, closure, head_entries, labels, vpath, by_label,
@@ -1268,7 +1404,7 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
         explained["label"] = a.explain
 
     if a.badge:
-        print(badge(verdict, stamp["measured_at_head"]))
+        print(badge(verdict, stamp["measured_at_head"], at))
         return code
 
     if a.json:
@@ -1365,7 +1501,7 @@ def would_tag(a, closure, head_entries, labels, vpath, by_label, drifting,
               stamp, coverage, at, include, dirty, dirty_note, empty_labelled, contradicted) -> int:
     """Before tagging: the label and closure of HEAD against the tags that exist. The answer is
     about the tag you are about to create; drift already in the history is counted, not judged."""
-    short, full, nfiles = closure.ids(head_entries)
+    short, full, nfiles = closure.ids(head_entries, "HEAD")
     label = labels.at(head_entries, None, count=False) if nfiles else None
     rejected = None
     if label and labels.last in contradicted:
@@ -1444,7 +1580,7 @@ def compare(a, objects, closure, labels, vpath, include, head_sha) -> int:
         if not sha:
             raise Refusal(f"--compare: {printable(repr(ref))} does not name a commit in this repository")
         entries = objects.entries(sha)
-        short, full, n = closure.ids(entries)
+        short, full, n = closure.ids(entries, sha)
         src = labels.source(entries)
         label = labels.at(entries, ref if tag else None, count=False)
         tag_nums = release_numbers(ref) if tag and label and not labels.fixed and src and src[0] != TAG_SOURCE else None
@@ -1454,7 +1590,7 @@ def compare(a, objects, closure, labels, vpath, include, head_sha) -> int:
                       "label_source": src[0] if src else None,
                       "closure": short if n else None, "closure_id": full if n else None,
                       "files": n,
-                      "members": {p: (k, o) for p, k, o in closure.members(entries)}})
+                      "members": closure.member_map(entries, sha)})
     one, two = sides
     ma, mb = one.pop("members"), two.pop("members")
     changed = sorted(p for p in ma if p in mb and ma[p] != mb[p])
