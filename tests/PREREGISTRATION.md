@@ -1009,3 +1009,29 @@ refusal that names git, as before (D14).
 - Against the 1.0.0 script, 22 of the 27 new proofs are red; the 5 green are controls by design:
   PUB02 (defaults), VS06 (order), ER02 (no early refusal when a source exists), AC02 (no tags),
   K03 (issue #3 said the detector already peels a tag of a tag).
+
+### Amendment 3 to §16, 2026-10-09 — after the review (docs/REVIEW-1.1.0.md) and the mutants, before any fix
+
+The preamble was wrong for `--at commits`: §16.5 changes results there by design. Corrected: with
+no new option, every result of 1.0.0 stays the same **except under `--at commits`**, where a run
+can move from 0 or 1 to `incomplete` (exit 2) when the tags contradict the file — never the other
+way, since a contradicted source only removes points (R9). Said in CHANGELOG under "Changed".
+
+| finding | decision | proof |
+|---|---|---|
+| R1 BOM | a leading U+FEFF is dropped from the list | RV01: R1's repository, BOM list → `drift` |
+| R2 not a version | every list line must be one token with a digit; otherwise refused, exit 2, with the line number. No inline comments | RV02: `1.0.0  # x` and `1.0.0 1.0.1` refused |
+| R3 snapshot and build tags | a tag matches a listed version when, as a version, it equals the version as written: the whole name, the name without a leading `v`, or the part after a prefix ending in `-v`, `_v` or `/`, or after a `word-` prefix when what follows contains a dot. `nightly-2024-02-01` and `build-1` match nothing | RV03: R3's two repositories → `clean`, `tags_left_out` 1 |
+| R4 pre-release | `version_key` drops trailing `.0` only in the leading numbers: `1.0.0-rc.0` ≠ `1.0.0-rc`, `1.0-rc` = `1.0.0-rc` | RV04 |
+| R5 spelling | with `--label-equality version` the report names the labels as declared, joined by ` = ` (`1.0 = 1.0.0`); `--explain` takes any of them | RV05 |
+| R6 comments | a line whose first non-blank character is `#` is not read in a gemspec or `version.rb` | RV06 |
+| R7 deeper file | only the shallowest `lib/**/version.rb`; when it gives no label, there is none | RV07 |
+| R8 Go tags | with `go.mod` the label is the whole tag name | RV08: R8's two repositories → not exit 1 |
+| R10 damaged tag | a tag whose tree cannot be read is left out of the `--at commits` vote and counted (`tags_not_voting`) | RV10 |
+| R11 empty list match | `--would-tag` with a list that leaves out every tag is refused, exit 2, as with `--tags` | RV11 |
+| R12 stale helper on a real release | **declared**: when the helper's label was itself a real release (`0.1.0`), the list cannot tell the helper from a tag cut before the bump (LR01). O2a is decided with the list only when the file's label was never published. FAILURES and SCOPE say so | — |
+| R13 counts | REPORT.md says what each count includes; the no-points note names both filters | — |
+| M43 missed | PUB09 is decided by the first-number rule too. New PUB12: a file stuck at `2.0.0` under `v2.1.0`, `v2.2.0`, list `2.1.0`, `2.2.0` → not exit 1 (the first number agrees; the list does not). M43 requires PUB12 | PUB12 |
+
+Each RV proof is red on the candidate `cc88631` before its fix, and the review's repositories are
+built in the proof as delivered.
