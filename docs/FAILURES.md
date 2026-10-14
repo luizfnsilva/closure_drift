@@ -9,6 +9,7 @@ reported from outside.
 |---|---|---|---|
 | O3 | **No label found outside the listed ecosystems.** 1.1.0 adds `Chart.yaml`, `*.gemspec` (and `lib/**/version.rb`) and `go.mod` (the version is the tag); others are still unknown | benchmark | `--version-file`, `--version-regex` |
 | O9 | `RESULTS.md` is empty: no measurement by anyone else | — | send one |
+| O11 | **A version file larger than 1 MB is not read**, and nothing says so: those publication points come out without a label and are not compared | an outside code review, 2026-10-14 | `--version-file` on a smaller file, or `--version-regex` |
 
 ## Declared as scope (`SCOPE.md`), not as defects
 
