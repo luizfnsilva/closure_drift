@@ -23,6 +23,19 @@ Claude Desktop, Cursor and other MCP clients (`mcpServers` in their config file)
 
 Tools: `would_tag` (run before tagging), `check_versions`, `explain_label`, `compare`. Each returns the JSON report and the exit code: 0 clean, 1 drift, 2 not decided, with the reason.
 
+### What the agent sees
+
+A repository whose `pyproject.toml` still says `1.0`, tagged `v1.0` earlier, with new code at HEAD:
+
+```text
+agent  → would_tag {"repo": "."}
+server ← {"exit": 1, "meaning": "drift: a label names more than one code state",
+          "output": {"verdict": "would_drift", "label_at_head": "1.0", ...}}
+agent: version 1.0 already names other code; I will bump the version before tagging.
+```
+
+The server makes the check available. It does not stop anything: the agent has to call it and respect the answer. For a barrier, use CI (section 3).
+
 ## 2. As a rule in the agent's instructions
 
 Paste into `AGENTS.md`, `CLAUDE.md`, `.cursorrules` or `.github/copilot-instructions.md`:
