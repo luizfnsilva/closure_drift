@@ -2353,6 +2353,92 @@ def many_trees(root, name, n=8):
     return r
 
 
+# ---------------------------------------------------------------- LG — a version file over the size limit (§17)
+
+LIMIT = 10 << 20                                       # MAX_BUILD_FILE, §17 amendment
+
+
+def _big(label, size=LIMIT + 16):
+    return label + "\n" + " " * (size - len(label) - 1)   # one token, `size` bytes
+
+
+def _three(root, name, middle):
+    r = Repo(root, name)
+    for tag, version, code in (("v1", "1.0\n", "1\n"), ("v2", middle, "2\n"), ("v3", "2.0\n", "3\n")):
+        r.write("VERSION", version)
+        r.write("src/a.py", code)
+        r.commit()
+        r.tag(tag)
+    return r
+
+
+@proof("LG04")
+def lg04(root):
+    """Below the limit: read, and the drift under 1.0 is found."""
+    expect(_three(root, "lg04", _big("1.0", LIMIT - 1)), "drift", 1)
+
+
+@proof("LG05")
+def lg05(root):
+    """Exactly at the limit: read."""
+    expect(_three(root, "lg05", _big("1.0", LIMIT)), "drift", 1)
+
+
+@proof("LG06")
+def lg06(root):
+    """One byte over: not read, said, exit 2."""
+    expect(_three(root, "lg06", _big("1.0", LIMIT + 1)), "incomplete", 2, version_files_not_read=["VERSION"])
+
+
+@proof("LG07")
+def lg07(root):
+    """--would-tag with the file at HEAD over the limit: not `no_label_at_head`, which reads as no version."""
+    r = Repo(root, "lg07")
+    r.write("VERSION", "1.0\n")
+    r.write("src/a.py", "1\n")
+    r.commit()
+    r.tag("v1")
+    r.write("VERSION", _big("1.1"))
+    r.write("src/a.py", "2\n")
+    r.commit()
+    expect(r, "incomplete", 2, "--would-tag", version_files_not_read=["VERSION"])
+
+
+@proof("LG01")
+def lg01(root):
+    r = Repo(root, "lg01")
+    for tag, version, code in (("v1", "1.0\n", "1\n"), ("v2", _big("1.0"), "2\n"), ("v3", "2.0\n", "3\n")):
+        r.write("VERSION", version)
+        r.write("src/a.py", code)
+        r.commit()
+        r.tag(tag)
+    expect(r, "incomplete", 2, version_files_not_read=["VERSION"])
+
+
+@proof("LG02")
+def lg02(root):
+    r = Repo(root, "lg02")
+    r.write("VERSION", _big("1.0"))
+    r.write("src/a.py", "1\n")
+    r.commit()
+    r.tag("v1")
+    r.write("VERSION", "1.0\n")
+    r.write("src/a.py", "2\n")
+    r.commit()
+    expect(r, "incomplete", 2, "--would-tag", version_files_not_read=["VERSION"])
+
+
+@proof("LG03")
+def lg03(root):
+    r = Repo(root, "lg03")
+    for tag, version, code in (("v1", "1.0\n", "1\n"), ("v2", _big("1.0"), "2\n"), ("v3", "2.0\n", "3\n")):
+        r.write("VERSION", version)
+        r.write("src/a.py", code)
+        r.commit()
+        r.tag(tag)
+    expect(r, "drift", 1, "--version-file", "VERSION")
+
+
 @proof("MM01")
 def mm01(root):
     r = many_trees(root, "mm01")

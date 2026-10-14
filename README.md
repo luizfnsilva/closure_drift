@@ -31,11 +31,11 @@ One command checks it. Read-only, one file, no dependencies, no network.
 ## Run it
 
 ```bash
-curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.1.0/closure_drift.py
+curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.1.1/closure_drift.py
 python3 closure_drift.py            # inside any git repository
 ```
 
-or `pipx run --spec git+https://github.com/luizfnsilva/closure_drift@v1.1.0 closure-drift`.
+or `pipx run --spec git+https://github.com/luizfnsilva/closure_drift@v1.1.1 closure-drift`.
 Needs Python 3.9+ and git. To see the three possible answers first: `python3 examples/demo.py`, or read [`docs/DEMOS.md`](docs/DEMOS.md).
 
 ## Check before you tag
@@ -46,17 +46,24 @@ Needs Python 3.9+ and git. To see the three possible answers first: `python3 exa
 # GitHub Actions
 - uses: actions/checkout@v4
   with: { fetch-depth: 0 }
-- uses: luizfnsilva/closure_drift@v1.1.0
+- uses: luizfnsilva/closure_drift@v1.1.1
 ```
 
 ```yaml
 # pre-commit, on git push
 - repo: https://github.com/luizfnsilva/closure_drift
-  rev: v1.1.0
+  rev: v1.1.1
   hooks: [{ id: closure-drift-would-tag }]
 ```
 
 Other pipelines: [`docs/CI.md`](docs/CI.md).
+
+## For AI agents
+
+An agent that tags and publishes can ask the same question first. [`integrations/`](integrations/)
+has an MCP server (standard library only) with a `would_tag` tool, and a rule to paste into
+`AGENTS.md`, `CLAUDE.md` or `.cursorrules`. The server makes the check available; the agent has to
+call it and respect the answer. The barrier is CI.
 
 ## The answer
 
@@ -208,8 +215,9 @@ or write to lfnsilva.invest@gmail.com. A result showing the tool is wrong is the
 
 ## Version
 
-**1.1.0.** Script sha256 `e2a67a5a9148fe273d2c95ad4bcce9bc589a43711fc34443a4a9491fde575913`.
-It adds `--published`, three version sources, an earlier refusal and two opt-in comparisons; with
+**1.1.1** fixes O11: a version file over the size limit (now 10 MB) is named and the answer is
+`incomplete`, never `clean`. It adds [`integrations/`](integrations/) for AI agents. **1.1.0** (script sha256 `e2a67a5a9148fe273d2c95ad4bcce9bc589a43711fc34443a4a9491fde575913`)
+adds `--published`, three version sources, an earlier refusal and two opt-in comparisons; with
 no new option, results change only under `--at commits` ([`CHANGELOG.md`](CHANGELOG.md)). What it
 had to meet was written first ([`tests/PREREGISTRATION.md`](tests/PREREGISTRATION.md) §16), and a
 reviewer who did not write it found 13 problems before the tag ([`docs/REVIEW-1.1.0.md`](docs/REVIEW-1.1.0.md)).

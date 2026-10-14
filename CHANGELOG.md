@@ -3,6 +3,24 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 1.1.1 — 2026-10-14
+
+What 1.1.1 had to meet is `tests/PREREGISTRATION.md` §17 and its amendment, written before the fix
+was tested.
+
+### Fixed
+- **A version file over the size limit counted as "no version"** (O11, from an outside review). A
+  scan could say `clean`, and `--would-tag` `would_be_clean`, over a label it had not read. Such a
+  path is now listed in `version_files_not_read`, and the answer is `incomplete`, exit 2, with the
+  reason. Proofs LG01–LG07 (LG01 and LG02 red on 1.1.0); mutant M57.
+
+### Changed
+- The limit on a build file read for a version goes from 1 MB to 10 MB.
+
+### Added
+- `integrations/`: an MCP server (standard library only) with `would_tag`, `check_versions`,
+  `explain_label` and `compare`, and a rule for agent instruction files. README section "For AI agents".
+
 ## 1.1.0 — 2026-10-09
 
 What 1.1.0 adds was written down before any of it (`tests/PREREGISTRATION.md` §16, three

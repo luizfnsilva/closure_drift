@@ -100,6 +100,7 @@ MUTANTS = [
     ("M54", "RV04", [('m = re.match(r"^([0-9]+(?:\\.[0-9]+)*)(.*)$", s, re.S)', 'm = re.match(r"^(.*)()$", s, re.S)')]),
     ("M55", "RV08", [('label = (tag if src[1] == "go" else tag_label(tag)) if tag else None', 'label = tag_label(tag) if tag else None')]),
     ("M56", "RV11", [('or (published is not None and left_out)):', '):')]),
+    ("M57", "LG01", [('self.too_large.add(path)      # not read is not "no version": said, and never clean', 'pass')]),
     ("M33", "MM03", [('        self.held += len(out) + 1\n', '        self.held += 0\n')]),
 ]
 

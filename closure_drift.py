@@ -32,7 +32,7 @@ import warnings
 from collections import OrderedDict, defaultdict
 from pathlib import Path
 
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 REPORT_FORMAT = 2
 
 # Where a version can be declared. Python build files are read first; a repository that has
@@ -57,7 +57,7 @@ SCM_TABLES = {"tool.setuptools_scm", "tool.versioneer", "tool.versioningit", "to
 NOT_PACKAGES = {"src", "lib", "tests", "test", "docs", "doc", "examples", "example", "scripts", "tools",
                 "benchmarks", "bench", "extern", "vendor", "_vendor", "third_party", "build", "dist"}
 PLACEHOLDERS = {"0.0.0", "0.0.0.dev0", "0+unknown"}
-MAX_BUILD_FILE = 1 << 20      # a build file larger than this is not read for a version
+MAX_BUILD_FILE = 10 << 20     # a build file larger than this is not read; it is listed, never clean
 
 DIAGNOSTICS: dict = {}     # filled only with --diagnose; added to every JSON report
 COMPONENT: dict = {}       # {"component": NAME} with --component; added to every JSON report
@@ -548,13 +548,17 @@ class Sources:
         self.objects = objects
         self.values: dict = {}        # (object id, how) -> label; a pure function of the bytes
         self.parsed: dict = {}
+        self.too_large: set = set()   # build files the rules wanted and did not read (O11)
 
     def text(self, blobs: dict, path: str) -> str:
         oid = blobs.get(path)
         if oid is None:
             return ""
         text = self.objects.text(oid)
-        return text if len(text) <= MAX_BUILD_FILE else ""
+        if len(text) > MAX_BUILD_FILE:
+            self.too_large.add(path)      # not read is not "no version": said, and never clean
+            return ""
+        return text
 
     def tables(self, blobs: dict, path: str) -> dict:
         oid = blobs.get(path)
@@ -1410,6 +1414,8 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
     }
     if contradicted:
         coverage["contradicted_sources"] = contradicted
+    if labels.sources.too_large:
+        coverage["version_files_not_read"] = sorted(labels.sources.too_large)
     if not_voting:
         coverage["tags_not_voting"] = not_voting
     if tag_globs:
@@ -1430,7 +1436,7 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
 
     if drifting:
         verdict = "drift"
-    elif contradicted:
+    elif contradicted or labels.sources.too_large:
         verdict = "incomplete"
     elif empty == len(pts):
         verdict = "empty_closure"
@@ -1523,6 +1529,11 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
     elif verdict == "empty_closure":
         print("EMPTY CLOSURE: the closure globs match no file at any publication point scanned.")
         print("Nothing was compared. Pass --closure with the files that determine your output.")
+    elif verdict == "incomplete" and labels.sources.too_large:
+        print(f"INCOMPLETE: {', '.join(printable(p) for p in sorted(labels.sources.too_large))} is larger than "
+              f"{MAX_BUILD_FILE // (1 << 20)} MB and was not read,")
+        print("so the version it may declare is unknown. Nothing is decided from it.")
+        print("Pass --version-file with the file that declares your version.")
     elif verdict == "incomplete" and contradicted:
         print(f"INCOMPLETE: no tag named for a version agrees with {', '.join(printable(p) for p in contradicted)},")
         print("so it is probably not your version. Nothing is decided from it.")
@@ -1567,6 +1578,10 @@ def would_tag(a, closure, head_entries, labels, vpath, by_label, drifting,
         collides = [s["where"] for f, s in by_label.get(label, {}).items() if f != full]
         collides += empty_labelled.get(label, [])        # same label, and no code where HEAD has some
         verdict = "would_drift" if collides else "would_be_clean"
+    if labels.sources.too_large:
+        coverage["version_files_not_read"] = sorted(labels.sources.too_large)
+        if verdict in ("would_be_clean", "no_label_at_head"):
+            verdict = "incomplete"            # unread is not "no version", and not clean
     code = {"would_be_clean": 0, "would_drift": 1}.get(verdict, 2)
 
     if a.badge:
@@ -1607,6 +1622,11 @@ def would_tag(a, closure, head_entries, labels, vpath, by_label, drifting,
     elif verdict == "no_label_at_head" and vpath == TAG_SOURCE:
         print("NO LABEL AT HEAD: this project derives its version from the tag, so the label will be")
         print("the tag you create. There is no version file to check before tagging.")
+    elif verdict == "incomplete" and labels.sources.too_large:
+        print(f"INCOMPLETE: "
+              f"{', '.join(printable(p) for p in sorted(labels.sources.too_large))} is larger than "
+              f"{MAX_BUILD_FILE // (1 << 20)} MB and was not read.")
+        print("A version it may declare is unknown. Pass --version-file with the file that declares it.")
     elif verdict == "no_label_at_head":
         print(f"NO LABEL AT HEAD: {printable(vpath)} declares no version at this commit.")
     else:

@@ -1035,3 +1035,47 @@ way, since a contradicted source only removes points (R9). Said in CHANGELOG und
 
 Each RV proof is red on the candidate `cc88631` before its fix, and the review's repositories are
 built in the proof as delivered.
+
+## 17. Added 2026-10-14, before the fix was tested — 1.1.1
+
+**O11.** A build file the rules want is not read when it is larger than 1 MB (`MAX_BUILD_FILE`).
+The limit stays: it bounds memory per file over long histories, and a version file that large is
+generated, not written. What changes is what follows from it. Until 1.1.0 the file counted as
+"no version", silently, and two wrong answers followed:
+
+- a scan where the version file is over the limit at one tag and not at others can say `clean`
+  when that label names two code states (the unread point is only "not compared");
+- `--would-tag` can say `would_be_clean` when the label at HEAD is held by a tag whose version file
+  was not read.
+
+1.1.1: every path not read for size is listed in the report, `version_files_not_read`; a scan with
+any such path is never `clean` (it is `incomplete`, exit 2, with the reason in the text), unless a
+drift is found elsewhere, which stands; `--would-tag` never says `would_be_clean` with such a path
+(it says `incomplete`, exit 2). A file given by `--version-file` is read whatever its size, as before.
+
+| proof | repository | required | on 1.1.0 |
+|---|---|---|---|
+| LG01 | `VERSION` 1.0 at `v1`, 1.0 padded over 1 MB at `v2` with other code, 2.0 at `v3` | `incomplete`, exit 2, `version_files_not_read` = `["VERSION"]` | `clean`, exit 0: red |
+| LG02 | `--would-tag`: `v1` with `VERSION` 1.0 padded over 1 MB; HEAD `VERSION` 1.0, other code | `incomplete`, exit 2, same field | `would_be_clean`, exit 0: red |
+| LG03 | control: the same as LG01 with `--version-file VERSION` | `drift`, exit 1 | `drift`: green by design |
+
+Mutant M57 removes the record of the unread path; LG01 and LG02 must catch it.
+
+### Amendment to §17, 2026-10-14 — after LG01–LG03 ran (red on 1.1.0, green on the fix), before any CI run
+
+LG01 and LG02 were red on 1.1.0 as required (`clean` and `would_be_clean`, exit 0) and green on the fix.
+Two changes, by the owner's decision:
+
+- **The limit goes to 10 MB.** It still bounds what one file costs: a file over it is never kept in
+  memory and never parsed. Version files are kilobytes; 10 MB leaves room for generated manifests.
+  The proofs build their files from the limit, so they test the limit in force.
+- **Unread is never `no label`.** With `--would-tag`, a file over the limit at HEAD gave
+  `no_label_at_head`, which reads as "this commit declares no version". It is `incomplete`, exit 2,
+  with the path, as everywhere else.
+
+| proof | required |
+|---|---|
+| LG04 | `VERSION` of limit − 1 bytes at `v2`: read, `drift`, exit 1 |
+| LG05 | exactly the limit: read, `drift`, exit 1 |
+| LG06 | limit + 1: `incomplete`, exit 2, `version_files_not_read` = `["VERSION"]` |
+| LG07 | `--would-tag`, the file at HEAD over the limit: `incomplete`, exit 2, same field |
