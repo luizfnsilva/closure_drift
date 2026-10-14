@@ -72,7 +72,7 @@ MUTANTS = [
     ("M30", "AG02", [('tally[0 if nums[0] == tag_nums[0] else 1] += 1', 'tally[0 if label == tag_label(tag) else 1] += 1')]),
     ("M31", "AG12", [('if disagree and not agree and not self.fixed)', 'if disagree and not self.fixed)')]),
     ("M32", "NG02", [('out += value if (not out or value[0] in "-+") else "." + value', 'out += value if not out else "." + value')]),
-    ("M34", "AG08", [('    elif contradicted:\n        verdict = "incomplete"\n', '')]),
+    ("M34", "AG08", [('    elif contradicted or labels.sources.too_large:\n', '    elif labels.sources.too_large:\n')]),
     ("M35", "AG10", [('and doc.get("private") is True:', 'and doc.get("private") is None:')]),
     ("M36", "EX10", [('return any((is_file and fnmatch.fnmatchcase(name, g[3:])) if g.startswith("**/") and "/" not in g[3:]\n', 'return any(False if False\n')]),
     ("M37", "EX01", [('if g.startswith("**/") and "/" not in g[3:]\n', 'if g.startswith("**/")\n')]),
