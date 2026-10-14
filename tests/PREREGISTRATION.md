@@ -1079,3 +1079,7 @@ Two changes, by the owner's decision:
 | LG05 | exactly the limit: read, `drift`, exit 1 |
 | LG06 | limit + 1: `incomplete`, exit 2, `version_files_not_read` = `["VERSION"]` |
 | LG07 | `--would-tag`, the file at HEAD over the limit: `incomplete`, exit 2, same field |
+
+**Prediction for the regression corpus, written before it runs:** 100 of 100 give the recorded
+answer. Only a repository whose rules read a build file over 1 MB could change (it was unread in
+1.1.0 and is read now up to 10 MB, or named when over); none is expected.
