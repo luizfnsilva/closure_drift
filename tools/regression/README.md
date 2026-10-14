@@ -10,6 +10,7 @@ The 100 repositories of `tools/study/`, each pinned to a recorded HEAD and set o
 | `checks/candidate-892a3e1f.json` | a 1.0 candidate with the file-name exclusion fix | 100 of 100 match, as predicted |
 | `checks/v1.0.0-candidate-74309fe6.json` | the 1.0.0 script | 100 of 100 match |
 | `checks/v1.1.0-candidate-e2a67a5a.json` | the 1.1.0 script | 100 of 100 match, as predicted (§16) |
+| `checks/v1.1.1-candidate-c74e5f39.json` | the 1.1.1 script | 100 of 100 match, as predicted (§17) |
 
 Run it: push a branch named `regression-check/<anything>` (this branch's detector) or
 `regression-check-<tag>/<anything>` (that tag's), then
