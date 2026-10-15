@@ -18,7 +18,7 @@ import textwrap, hashlib, json, os, sys, urllib.error, urllib.parse, urllib.requ
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 API = "https://zenodo.org/api"
 CONCEITO = "21763931"          # concept DOI 10.5281/zenodo.21763931
-ULTIMO_REGISTRO = "23271569"   # a versão 1.1.0, de onde se deriva a próxima
+ULTIMO_REGISTRO = "23388613"   # a versão 1.1.1, de onde se deriva a próxima
 
 
 ARQUIVO_DO_TOKEN = os.path.expanduser("~/.config/zenodo.token")
@@ -93,7 +93,7 @@ def pedir(metodo, url, token, dados=None, binario=None, tipo="application/json")
     elif dados is not None:
         corpo = json.dumps(dados).encode("utf-8"); req.add_header("Content-Type", tipo)
     try:
-        with urllib.request.urlopen(req, corpo, timeout=120) as r:
+        with urllib.request.urlopen(req, corpo, timeout=600) as r:
             bruto = r.read()
             return json.loads(bruto) if bruto else {}
     except urllib.error.HTTPError as e:
