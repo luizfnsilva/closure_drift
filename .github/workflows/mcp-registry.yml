@@ -1,0 +1,22 @@
+# Publishes integrations/mcp/server.json to the MCP Registry, authenticated by GitHub OIDC.
+# By hand, after mcp-image has pushed the image and the package is public.
+name: mcp-registry
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: mcp-publisher
+        run: |
+          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
+          ./mcp-publisher --help | head -3
+      - name: publish
+        working-directory: integrations/mcp
+        run: |
+          ../../mcp-publisher login github-oidc
+          ../../mcp-publisher publish

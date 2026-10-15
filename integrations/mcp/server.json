@@ -1,0 +1,15 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.luizfnsilva/closure_drift",
+  "title": "closure_drift",
+  "description": "Before an agent tags a release: does that version label already name different code in the git tags?",
+  "repository": {"url": "https://github.com/luizfnsilva/closure_drift", "source": "github"},
+  "version": "1.1.2",
+  "packages": [
+    {
+      "registryType": "oci",
+      "identifier": "ghcr.io/luizfnsilva/closure_drift:1.1.2",
+      "transport": {"type": "stdio"}
+    }
+  ]
+}
