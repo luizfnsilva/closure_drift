@@ -1092,3 +1092,22 @@ exit 2. LG04–LG06 build their files from the limit, so they test it at 1 MB.
 **Prediction for the regression corpus, written before it runs:** 100 of 100 give the recorded
 answer. Only a repository whose rules read a build file over 1 MB could change (it was unread in
 1.1.0 and is read now up to 10 MB, or named when over); none is expected.
+
+## 18. Added 2026-10-15, before any of it was written — 1.1.2
+
+**The MCP server installs in one line.** In 1.1.1 the server lives in `integrations/mcp/` and a
+client must clone the repository and point at the file. 1.1.2 ships it as a module of the package,
+`closure_drift_mcp`, with a console script `closure-drift-mcp`, so a client can run
+`uvx --from git+https://github.com/luizfnsilva/closure_drift closure-drift-mcp`.
+`integrations/mcp/closure_drift_mcp.py` stays as a thin launcher, so existing configurations keep
+working. The detector's behaviour does not change: the script differs from 1.1.1 only in
+`__version__`, so every result is the same, and the regression corpus must give the recorded
+answer on all 100.
+
+| proof | required | on 1.1.1 |
+|---|---|---|
+| MCP01 | the module `closure_drift_mcp` next to the detector answers `initialize` and lists exactly `would_tag`, `check_versions`, `explain_label`, `compare` | no such module: red |
+| MCP02 | `would_tag` over a repository whose HEAD reuses label `1.0` for other code: exit 1, verdict `would_drift`, `isError` false | red, as above |
+| MCP03 | the server, run from an installed wheel (not the repository), finds the detector it was installed with: `check_versions` on a clean repository gives exit 0 | red, as above |
+
+No mutant is added: the detector is unchanged.
