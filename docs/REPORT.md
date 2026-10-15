@@ -41,7 +41,7 @@ before a refusal — that is what it is for.)
 | `points_with_conflicting_sources` | integer | points where the source changed and the earlier file still declares another version; never `clean` when above zero |
 | `points_label_contradicted` | integer | (0.10.0) points whose label came from a file no tag named for a version agrees with; counted in `points_without_label`; never `clean` when above zero |
 | `contradicted_sources` | list of strings | (0.10.0) those files; present only when not empty. They are left out of `label_sources` |
-| `version_files_not_read` | list of strings | (1.1.1) build files the rules wanted and did not read because they are over 10 MB; present only when not empty. Never `clean` (nor `would_be_clean`) when present: the answer is `incomplete`, exit 2 |
+| `version_files_not_read` | list of strings | (1.1.1) build files the rules wanted and did not read because they are over 1 MB; present only when not empty. Never `clean` (nor `would_be_clean`) when present: the answer is `incomplete`, exit 2 |
 | `publication_points` | integer | points with a non-empty closure |
 | `publication_points_scanned` | integer | |
 | `publication_points_compared` | integer | points that had both a label and a closure |

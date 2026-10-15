@@ -22,7 +22,7 @@ reported from outside.
 
 | release | what failed | found by |
 |---|---|---|
-| 1.1.1 | **a version file over the size limit counted as "no version"** (O11): a scan could say `clean`, and `--would-tag` `would_be_clean`, over a label it had not read. The path is now listed (`version_files_not_read`) and the answer is `incomplete`, exit 2; the limit went from 1 MB to 10 MB | an outside code review, 2026-10-14 |
+| 1.1.1 | **a version file over the size limit counted as "no version"** (O11): a scan could say `clean`, and `--would-tag` `would_be_clean`, over a label it had not read. The path is now listed (`version_files_not_read`) and the answer is `incomplete`, exit 2. The 1 MB limit stays: at 10 MB, memory grew with history (ZM06) | an outside code review, 2026-10-14 |
 | 1.1.0 | **a tag never released counted as a publication point** (O10): `--published FILE` lists the versions released; a tag off the list is left out of the analysis, not shown unpublished | a participant in ruff discussion 29122, 2026-10-06 |
 | 1.1.0 | **the refusal for want of a label came after the whole scan** (O5): it now comes after reading the root of each publication point | benchmark |
 | 1.1.0 | **`--at commits` had no tag to check a version file against** (O2c): the repository's tags vote on it, as in `--at tags` | adversarial ZX03 |

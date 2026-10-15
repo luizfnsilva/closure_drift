@@ -57,7 +57,7 @@ SCM_TABLES = {"tool.setuptools_scm", "tool.versioneer", "tool.versioningit", "to
 NOT_PACKAGES = {"src", "lib", "tests", "test", "docs", "doc", "examples", "example", "scripts", "tools",
                 "benchmarks", "bench", "extern", "vendor", "_vendor", "third_party", "build", "dist"}
 PLACEHOLDERS = {"0.0.0", "0.0.0.dev0", "0+unknown"}
-MAX_BUILD_FILE = 10 << 20     # a build file larger than this is not read; it is listed, never clean
+MAX_BUILD_FILE = 1 << 20      # a build file larger than this is not read; it is listed, never clean
 
 DIAGNOSTICS: dict = {}     # filled only with --diagnose; added to every JSON report
 COMPONENT: dict = {}       # {"component": NAME} with --component; added to every JSON report

@@ -1080,6 +1080,15 @@ Two changes, by the owner's decision:
 | LG06 | limit + 1: `incomplete`, exit 2, `version_files_not_read` = `["VERSION"]` |
 | LG07 | `--would-tag`, the file at HEAD over the limit: `incomplete`, exit 2, same field |
 
+### Amendment 2 to §17, 2026-10-14 — after the CI matrix, before any deposit
+
+**The limit goes back to 1 MB.** The matrix (run 38610371098) found ZM06 loose on macOS: with 10 MB,
+peak memory grew with the number of large build files in history. Measured here, 20 tags with a
+4 MB `pyproject.toml`: 1.1.0 (1 MB) peaks at 42 MB for 2 tags and 42 MB for 20; the 10 MB candidate
+at 177 MB and 1,010 MB. The limit bounds memory over long histories; that is its justification, and
+it holds. What 1.1.1 changes stays: a file over the limit is named and the answer is `incomplete`,
+exit 2. LG04–LG06 build their files from the limit, so they test it at 1 MB.
+
 **Prediction for the regression corpus, written before it runs:** 100 of 100 give the recorded
 answer. Only a repository whose rules read a build file over 1 MB could change (it was unread in
 1.1.0 and is read now up to 10 MB, or named when over); none is expected.

@@ -2355,7 +2355,7 @@ def many_trees(root, name, n=8):
 
 # ---------------------------------------------------------------- LG — a version file over the size limit (§17)
 
-LIMIT = 10 << 20                                       # MAX_BUILD_FILE, §17 amendment
+LIMIT = 1 << 20                                        # MAX_BUILD_FILE, §17 amendment 2
 
 
 def _big(label, size=LIMIT + 16):

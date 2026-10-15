@@ -215,7 +215,7 @@ or write to lfnsilva.invest@gmail.com. A result showing the tool is wrong is the
 
 ## Version
 
-**1.1.1** fixes O11: a version file over the size limit (now 10 MB) is named and the answer is
+**1.1.1** fixes O11: a version file over the size limit (1 MB) is named and the answer is
 `incomplete`, never `clean`. It adds [`integrations/`](integrations/) for AI agents. **1.1.0** (script sha256 `e2a67a5a9148fe273d2c95ad4bcce9bc589a43711fc34443a4a9491fde575913`)
 adds `--published`, three version sources, an earlier refusal and two opt-in comparisons; with
 no new option, results change only under `--at commits` ([`CHANGELOG.md`](CHANGELOG.md)). What it

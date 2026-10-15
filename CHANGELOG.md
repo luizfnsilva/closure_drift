@@ -14,8 +14,8 @@ was tested.
   path is now listed in `version_files_not_read`, and the answer is `incomplete`, exit 2, with the
   reason. Proofs LG01–LG07 (LG01 and LG02 red on 1.1.0); mutant M57.
 
-### Changed
-- The limit on a build file read for a version goes from 1 MB to 10 MB.
+The 1 MB limit stays: a 10 MB candidate made peak memory grow with the number of large build files
+in history (adversarial ZM06; §17 amendment 2).
 
 ### Added
 - `integrations/`: an MCP server (standard library only) with `would_tag`, `check_versions`,
