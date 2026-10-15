@@ -1,3 +1,24 @@
+# Record of the battery runs — closure_drift 1.1.1
+
+Detector 1.1.1: `closure_drift.py`, sha256 `890616f787db105e7ae0d95c99970da524e385641165b20f11a79d0469e7d9d1`. CI run 38657707944 (the two Windows jobs
+rerun once: the hosted runner lost communication during the property step, after the battery,
+mutants, adversarial campaign and oracle had passed).
+
+| platform | CPython | battery | mutants | adversarial | oracle | properties |
+|---|---|---|---|---|---|---|
+| Ubuntu | 3.9, 3.10, 3.11, 3.12, 3.13, 3.14 | 206 · 206 green · 0 red · 0 not run | 57 of 57 | 315 · 304 as required · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 controls |
+| macOS | 3.10, 3.14 | 206 · 205 green · 0 red · 1 not run | 57 of 57 | 315 · 304 · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+| Windows | 3.9, 3.14 | 206 · 201 green · 0 red · 5 not run | 57 of 57 | 315 · 281 · 2 loose · 32 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+
+The 2 loose are ZA02 and ZA04 (`docs/FAILURES.md` O2b, O2a). LG01 and LG02 were red on 1.1.0
+(`clean` and `would_be_clean`, exit 0, over a label not read) and are green here; M57 turns LG01,
+LG02, LG06 and LG07 red. An earlier matrix (run 38610371098) found ZM06 loose on macOS with a 10 MB
+limit; the limit went back to 1 MB (§17 amendment 2). A first run found M34 no longer applying
+after the O11 change of its line; it was re-anchored, the mutation unchanged.
+
+Regression corpus (`tools/regression/`), the same script: 100 of 100 match, as predicted in §17
+(run 38657710757). The benchmark was not rerun for 1.1.1.
+
 # Record of the battery runs — closure_drift 1.1.0
 
 Detector 1.1.0: `closure_drift.py`, sha256 `e2a67a5a9148fe273d2c95ad4bcce9bc589a43711fc34443a4a9491fde575913`. CI run 37976952891.
