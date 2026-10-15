@@ -1,0 +1,12 @@
+LICENSE
+NOTICE
+README.md
+VERSION
+closure_drift.py
+closure_drift_mcp.py
+pyproject.toml
+closure_drift.egg-info/PKG-INFO
+closure_drift.egg-info/SOURCES.txt
+closure_drift.egg-info/dependency_links.txt
+closure_drift.egg-info/entry_points.txt
+closure_drift.egg-info/top_level.txt

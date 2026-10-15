@@ -3,6 +3,16 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 1.1.2 — 2026-10-15
+
+The MCP server installs in one line (`tests/PREREGISTRATION.md` §18). The detector differs from
+1.1.1 only in `__version__`, so every result is the same.
+
+### Added
+- `closure_drift_mcp`, a module of the package, with the console script `closure-drift-mcp`:
+  `uvx --from git+https://github.com/luizfnsilva/closure_drift closure-drift-mcp`. Proofs MCP01–MCP03
+  (red on 1.1.1). `integrations/mcp/closure_drift_mcp.py` stays as a launcher for 1.1.1 configurations.
+
 ## 1.1.1 — 2026-10-14
 
 What 1.1.1 had to meet is `tests/PREREGISTRATION.md` §17 and its amendment, written before the fix

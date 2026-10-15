@@ -6,22 +6,21 @@ One call returns a short verdict, so the agent does not have to read `git log` a
 
 ## 1. As an MCP tool
 
-```bash
-git clone https://github.com/luizfnsilva/closure_drift
-```
-
-Claude Code:
+With [uv](https://docs.astral.sh/uv/), nothing to clone. Claude Code:
 
 ```bash
-claude mcp add closure-drift -- python3 /path/to/closure_drift/integrations/mcp/closure_drift_mcp.py
+claude mcp add closure-drift -- uvx --from git+https://github.com/luizfnsilva/closure_drift closure-drift-mcp
 ```
 
 Claude Desktop, Cursor and other MCP clients (`mcpServers` in their config file):
 
 ```json
-{"mcpServers": {"closure-drift": {"command": "python3",
-  "args": ["/path/to/closure_drift/integrations/mcp/closure_drift_mcp.py"]}}}
+{"mcpServers": {"closure-drift": {"command": "uvx",
+  "args": ["--from", "git+https://github.com/luizfnsilva/closure_drift", "closure-drift-mcp"]}}}
 ```
+
+Pin a version with `closure_drift@v1.1.2`. Without uv: clone the repository and run
+`python3 /path/to/closure_drift/closure_drift_mcp.py`.
 
 Tools: `would_tag` (run before tagging), `check_versions`, `explain_label`, `compare`. Each returns the JSON report and the exit code: 0 clean, 1 drift, 2 not decided, with the reason.
 
