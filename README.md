@@ -62,8 +62,8 @@ Other pipelines: [`docs/CI.md`](docs/CI.md).
 
 [![closure_drift MCP server](https://glama.ai/mcp/servers/luizfnsilva/closure_drift/badges/score.svg)](https://glama.ai/mcp/servers/luizfnsilva/closure_drift)
 
-An agent that tags and publishes can ask the same question first, through an MCP server (standard
-library only) with a `would_tag` tool:
+An agent that tags and publishes can ask the same question first, through a Model Context Protocol
+(MCP) server, standard library only, with a `would_tag` tool:
 
 ```bash
 claude mcp add closure-drift -- uvx --from git+https://github.com/luizfnsilva/closure_drift closure-drift-mcp
