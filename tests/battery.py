@@ -2353,6 +2353,93 @@ def many_trees(root, name, n=8):
     return r
 
 
+# ---------------------------------------------------------------- MCP — the server as a module (§18)
+
+def _mcp_session(server, requests, cwd):
+    """Run the stdio server once over the given JSON-RPC requests; return the replies by id."""
+    lines = "".join(json.dumps(r) + "\n" for r in requests)
+    p = subprocess.run([sys.executable, str(server)], input=lines.encode("utf-8"), capture_output=True,
+                       cwd=str(cwd), env=dict(ENV, CLOSURE_DRIFT_SCRIPT=""), timeout=300)
+    out = {}
+    for line in p.stdout.decode("utf-8", "replace").splitlines():
+        try:
+            m = json.loads(line)
+        except ValueError:
+            continue
+        out[m.get("id")] = m
+    return out
+
+
+def _mcp_call(server, name, args, cwd):
+    replies = _mcp_session(server, [
+        {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2025-06-18"}},
+        {"jsonrpc": "2.0", "method": "notifications/initialized"},
+        {"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": name, "arguments": args}}], cwd)
+    res = (replies.get(2) or {}).get("result") or {}
+    check(res.get("isError") is False, "isError is %r" % res.get("isError"))
+    return json.loads(res["content"][0]["text"])
+
+
+def _mcp_server():
+    path = Path(DETECTOR).parent / "closure_drift_mcp.py"
+    check(path.is_file(), "no closure_drift_mcp.py next to the detector")
+    return path
+
+
+def _reused_label(root, name):
+    r = Repo(root, name)
+    r.write("pyproject.toml", '[project]\nname = "x"\nversion = "1.0"\n')
+    r.write("src/a.py", "1\n")
+    r.commit()
+    r.tag("v1.0")
+    r.write("src/a.py", "2\n")
+    r.commit()
+    return r
+
+
+@proof("MCP01")
+def mcp01(root):
+    replies = _mcp_session(_mcp_server(), [
+        {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2025-06-18"}},
+        {"jsonrpc": "2.0", "method": "notifications/initialized"},
+        {"jsonrpc": "2.0", "id": 2, "method": "tools/list"}], root)
+    check("result" in (replies.get(1) or {}), "no answer to initialize")
+    names = sorted(t["name"] for t in replies.get(2, {}).get("result", {}).get("tools", []))
+    check(names == ["check_versions", "compare", "explain_label", "would_tag"], "tools %r" % names)
+
+
+@proof("MCP02")
+def mcp02(root):
+    r = _reused_label(root, "mcp02")
+    d = _mcp_call(_mcp_server(), "would_tag", {"repo": str(r.path)}, root)
+    check(d["exit"] == 1 and d["output"].get("verdict") == "would_drift", "got %r" % {k: d[k] for k in ("exit", "meaning")})
+
+
+@proof("MCP03")
+def mcp03(root):
+    src = Path(DETECTOR).parent
+    _mcp_server()
+    whl = root / "mcp03-wheel"
+    p = subprocess.run([sys.executable, "-m", "pip", "wheel", "--no-deps", "-q", "-w", str(whl), str(src)],
+                       capture_output=True, timeout=600)
+    if p.returncode != 0:
+        raise NotRun("pip could not build the wheel here: %s" % p.stderr.decode("utf-8", "replace")[-160:])
+    site = root / "mcp03-site"
+    import zipfile
+    zipfile.ZipFile(next(whl.glob("closure_drift-*.whl"))).extractall(site)
+    r = Repo(root, "mcp03")
+    r.write("pyproject.toml", '[project]\nname = "x"\nversion = "1.0"\n')
+    r.write("src/a.py", "1\n")
+    r.commit()
+    r.tag("v1.0")
+    r.write("pyproject.toml", '[project]\nname = "x"\nversion = "2.0"\n')
+    r.write("src/a.py", "2\n")
+    r.commit()
+    r.tag("v2.0")
+    d = _mcp_call(site / "closure_drift_mcp.py", "check_versions", {"repo": str(r.path)}, root)
+    check(d["exit"] == 0, "installed server answered exit %r: %r" % (d["exit"], str(d["output"])[:160]))
+
+
 # ---------------------------------------------------------------- LG — a version file over the size limit (§17)
 
 LIMIT = 1 << 20                                        # MAX_BUILD_FILE, §17 amendment 2
