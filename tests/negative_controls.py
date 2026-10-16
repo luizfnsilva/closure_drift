@@ -108,11 +108,14 @@ MUTANTS = [
 def battery(detector: Path, work: Path) -> dict | None:
     body = work / "body.json"
     env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
-    subprocess.run([sys.executable, str(HERE / "battery.py"), str(detector), "--json", str(body)],
-                   capture_output=True, env=env)
+    p = subprocess.run([sys.executable, str(HERE / "battery.py"), str(detector), "--json", str(body)],
+                       capture_output=True, env=env)
     try:
         return json.loads(body.read_text(encoding="utf-8"))
     except (OSError, ValueError):
+        # a battery that died says why: exit code and the end of what it wrote
+        tail = (p.stderr or p.stdout or b"")[-1500:].decode("utf-8", "replace")
+        print("     the battery exited %s without a result:\n%s" % (p.returncode, tail.rstrip()), flush=True)
         return None
 
 
