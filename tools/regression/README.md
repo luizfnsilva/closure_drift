@@ -11,6 +11,7 @@ The 100 repositories of `tools/study/`, each pinned to a recorded HEAD and set o
 | `checks/v1.0.0-candidate-74309fe6.json` | the 1.0.0 script | 100 of 100 match |
 | `checks/v1.1.0-candidate-e2a67a5a.json` | the 1.1.0 script | 100 of 100 match, as predicted (§16) |
 | `checks/v1.1.1-candidate-890616f7.json` | the 1.1.1 script | 100 of 100 match, as predicted (§17) |
+| `checks/v1.1.2-candidate-a61858aa.json` | the 1.1.2 script | 100 of 100 match, as predicted (§18) |
 
 Run it: push a branch named `regression-check/<anything>` (this branch's detector) or
 `regression-check-<tag>/<anything>` (that tag's), then
