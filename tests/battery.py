@@ -22,6 +22,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -1969,10 +1970,23 @@ def rv11(root):
 # ---------------------------------------------------------------- runner
 
 def remove(path):
+    # git may still be running auto-maintenance in a proof's repository, adding and
+    # removing its lock file while the tree is removed: a file that vanished is fine,
+    # and a tree that is not yet empty is tried again.
     def force(fn, p, _exc):
-        os.chmod(p, stat.S_IWRITE | stat.S_IREAD)
-        fn(p)
-    shutil.rmtree(path, onerror=force)
+        try:
+            os.chmod(p, stat.S_IWRITE | stat.S_IREAD)
+            fn(p)
+        except FileNotFoundError:
+            pass
+    for attempt in range(5):
+        try:
+            shutil.rmtree(path, onerror=force)
+            return
+        except OSError:
+            if attempt == 4:
+                raise
+            time.sleep(0.5)
 
 
 # ---------------------------------------------------------------- §10 — the four open failures of 0.9.1
@@ -2426,7 +2440,10 @@ def mcp03(root):
         raise NotRun("pip could not build the wheel here: %s" % p.stderr.decode("utf-8", "replace")[-160:])
     site = root / "mcp03-site"
     import zipfile
-    zipfile.ZipFile(next(whl.glob("closure_drift-*.whl"))).extractall(site)
+    built = list(whl.glob("closure_drift-*.whl"))
+    if not built:
+        raise NotRun("this pip did not read the package metadata: built %s" % [w.name for w in whl.iterdir()])
+    zipfile.ZipFile(built[0]).extractall(site)
     r = Repo(root, "mcp03")
     r.write("pyproject.toml", '[project]\nname = "x"\nversion = "1.0"\n')
     r.write("src/a.py", "1\n")
