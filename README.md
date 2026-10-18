@@ -31,11 +31,11 @@ One command checks it. Read-only, one file, no dependencies, no network.
 ## Run it
 
 ```bash
-curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.1.2/closure_drift.py
+curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.1.3/closure_drift.py
 python3 closure_drift.py            # inside any git repository
 ```
 
-or `pipx run --spec git+https://github.com/luizfnsilva/closure_drift@v1.1.2 closure-drift`.
+or `pipx run --spec git+https://github.com/luizfnsilva/closure_drift@v1.1.3 closure-drift`.
 Needs Python 3.9+ and git. To see the three possible answers first: `python3 examples/demo.py`, or read [`docs/DEMOS.md`](docs/DEMOS.md).
 
 ## Check before you tag
@@ -46,13 +46,13 @@ Needs Python 3.9+ and git. To see the three possible answers first: `python3 exa
 # GitHub Actions
 - uses: actions/checkout@v4
   with: { fetch-depth: 0 }
-- uses: luizfnsilva/closure_drift@v1.1.2
+- uses: luizfnsilva/closure_drift@v1.1.3
 ```
 
 ```yaml
 # pre-commit, on git push
 - repo: https://github.com/luizfnsilva/closure_drift
-  rev: v1.1.2
+  rev: v1.1.3
   hooks: [{ id: closure-drift-would-tag }]
 ```
 
@@ -99,10 +99,10 @@ The report also says how many tags it could **not** compare.
 | `--at commits` | you publish at every commit |
 | `--closure 'src/**'` | which files determine your output |
 | `--strict` | `clean` only if every point was compared |
-| `--explain LABEL` | which paths differ under a label in drift |
+| `--explain LABEL` | which paths differ under a label in drift: `--compare` over every tag of that label, found by the scan |
 | `--compare A B` | two tags side by side |
 | `--version-file`, `--version-regex` | where the label is |
-| `--published FILE` | only tags of versions you published: a local list, one per line |
+| `--published FILE` | only tags of versions you published: a local list, one per line. `--tags` picks by name; use this when a tag that matches was never released |
 | `--label-equality version` | `1.0`, `1.0.0` and `v1` are one label |
 | `--modes` | a file's mode (executable bit, symlink) is part of the closure |
 | `--component NAME` | one component of a monorepo (below) |
@@ -223,6 +223,7 @@ or write to lfnsilva.invest@gmail.com. A result showing the tool is wrong is the
 
 ## Version
 
+**1.1.3** says when to use `--explain` or `--compare`, and `--tags` or `--published`; the detector is unchanged.
 **1.1.2** installs the MCP server in one line (`closure-drift-mcp`); the detector is unchanged.
 **1.1.1** fixes O11: a version file over the size limit (1 MB) is named and the answer is
 `incomplete`, never `clean`. It adds [`integrations/`](integrations/) for AI agents. **1.1.0** (script sha256 `e2a67a5a9148fe273d2c95ad4bcce9bc589a43711fc34443a4a9491fde575913`)

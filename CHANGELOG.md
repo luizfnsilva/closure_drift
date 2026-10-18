@@ -3,6 +3,20 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 1.1.3 — 2026-10-18
+
+Documentation, and the build output out of the repository (`tests/PREREGISTRATION.md` §19). The
+detector differs from 1.1.2 only in `__version__`, so every result is the same.
+
+### Changed
+- README, Options: `--explain` is `--compare` over every tag of a label, found by the scan;
+  `--tags` picks tags by name, `--published` by the list of what was released.
+
+### Fixed
+- `build/` and `closure_drift.egg-info/` were committed by mistake in 1.1.2 (none of the deposited
+  files). Removed and ignored. The cause was MCP03 building the wheel in the source directory; it
+  now builds from a copy. Proof PK01 (red on 1.1.2).
+
 ## 1.1.2 — 2026-10-18
 
 The MCP server installs in one line (`tests/PREREGISTRATION.md` §18). The detector differs from

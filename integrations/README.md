@@ -19,7 +19,7 @@ Claude Desktop, Cursor and other MCP clients (`mcpServers` in their config file)
   "args": ["--from", "git+https://github.com/luizfnsilva/closure_drift", "closure-drift-mcp"]}}}
 ```
 
-Pin a version with `closure_drift@v1.1.2`. Without uv: clone the repository and run
+Pin a version with `closure_drift@v1.1.3`. Without uv: clone the repository and run
 `python3 /path/to/closure_drift/closure_drift_mcp.py`.
 
 Tools: `would_tag` (run before tagging), `check_versions`, `explain_label`, `compare`. Each returns the JSON report and the exit code: 0 clean, 1 drift, 2 not decided, with the reason.
