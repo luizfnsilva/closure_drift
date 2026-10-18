@@ -1,3 +1,0 @@
-[console_scripts]
-closure-drift = closure_drift:main
-closure-drift-mcp = closure_drift_mcp:main
