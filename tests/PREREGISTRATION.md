@@ -1111,3 +1111,23 @@ answer on all 100.
 | MCP03 | the server, run from an installed wheel (not the repository), finds the detector it was installed with: `check_versions` on a clean repository gives exit 0 | red, as above |
 
 No mutant is added: the detector is unchanged.
+
+## 19. Added 2026-10-18, before any of it was written — 1.1.3
+
+**Two lines of documentation, and the build output out of the repository.** A read-only audit of
+the 18 options (none removed) found two places where the README does not say when to use which:
+`--tags` against `--published`, and `--explain` against `--compare`. Measured: `--explain LABEL`
+and `--compare A B` compute the differing paths with the same rule and gave the same paths, but
+`--explain` finds every tag of the label in the scan and respects `--tags`, `--published` and
+`--max-commits`; `--compare` takes any two references and ignores publication points. 1.1.3 says
+so in the Options table. The 1.1.2 commit also added `build/` and `closure_drift.egg-info/` to the
+repository by mistake (none of the nine deposited files); 1.1.3 removes them and ignores them.
+
+The detector differs from 1.1.2 only in `__version__`, so every result is the same, and the
+regression corpus must give the recorded answer on all 100.
+
+| proof | required | on 1.1.2 |
+|---|---|---|
+| PK01 | the repository's tracked files include nothing under `build/`, `dist/` or `*.egg-info/` (not run outside a git checkout) | `build/lib/…` and `closure_drift.egg-info/…` tracked: red |
+
+No mutant is added: the detector is unchanged.
