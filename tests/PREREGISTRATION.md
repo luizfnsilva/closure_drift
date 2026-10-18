@@ -1131,3 +1131,8 @@ regression corpus must give the recorded answer on all 100.
 | PK01 | the repository's tracked files include nothing under `build/`, `dist/` or `*.egg-info/` (not run outside a git checkout) | `build/lib/…` and `closure_drift.egg-info/…` tracked: red |
 
 No mutant is added: the detector is unchanged.
+
+Amendment, 2026-10-18, before the fix: the cause is MCP03, which ran `pip wheel` on the source
+directory, where setuptools writes `build/` and `*.egg-info/`. MCP03 now builds from a copy of the
+files the package needs, with the detector under test as `closure_drift.py`; what it requires is
+unchanged.

@@ -2431,7 +2431,12 @@ def mcp02(root):
 
 @proof("MCP03")
 def mcp03(root):
-    src = Path(DETECTOR).parent
+    # build from a copy: setuptools writes build/ and *.egg-info/ next to the sources (PK01)
+    here, src = Path(DETECTOR).parent, root / "mcp03-src"
+    src.mkdir()
+    for name in ("pyproject.toml", "VERSION", "README.md", "LICENSE", "NOTICE", "closure_drift_mcp.py"):
+        shutil.copy(here / name if (here / name).exists() else HERE.parent / name, src / name)
+    shutil.copy(DETECTOR, src / "closure_drift.py")
     _mcp_server()
     whl = root / "mcp03-wheel"
     p = subprocess.run([sys.executable, "-m", "pip", "wheel", "--no-deps", "-q", "-w", str(whl), str(src)],
@@ -2456,6 +2461,17 @@ def mcp03(root):
     d = _mcp_call(site / "closure_drift_mcp.py", "check_versions", {"repo": str(r.path)}, root)
     check(d["exit"] == 0, "installed server answered exit %r: %r" % (d["exit"], str(d["output"])[:160]))
 
+
+
+@proof("PK01")
+def pk01(root):
+    top = HERE.parent
+    p = subprocess.run(["git", "-C", str(top), "ls-files"], capture_output=True, text=True)
+    if p.returncode != 0 or not p.stdout.strip():
+        raise NotRun("not a git checkout: %s" % top)
+    built = [f for f in p.stdout.splitlines()
+             if f.startswith(("build/", "dist/")) or ".egg-info/" in f]
+    check(not built, "build output is tracked: %s" % built[:5])
 
 # ---------------------------------------------------------------- LG — a version file over the size limit (§17)
 
