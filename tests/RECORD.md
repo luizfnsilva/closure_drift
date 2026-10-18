@@ -1,3 +1,25 @@
+# Record of the battery runs — closure_drift 1.1.2
+
+Detector 1.1.2: `closure_drift.py`, sha256 `a61858aa662385ff3a35703a90ca923522f34c271b1df3568ec5a04a06c31aac`. CI run 38882707497 (`3e02500`).
+
+| platform | CPython | battery | mutants | adversarial | oracle | properties |
+|---|---|---|---|---|---|---|
+| Ubuntu | 3.9, 3.10, 3.11, 3.12, 3.13, 3.14 | 209 · 209 green · 0 red · 0 not run | 57 of 57 | 315 · 304 as required · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 controls |
+| macOS | 3.10, 3.14 | 209 · 208 green · 0 red · 1 not run | 57 of 57 | 315 · 304 · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+| Windows | 3.9, 3.14 | 209 · 204 green · 0 red · 5 not run | 57 of 57 | 315 · 281 · 2 loose · 32 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+
+The 2 loose are ZA02 and ZA04 (`docs/FAILURES.md` O2b, O2a). MCP01–MCP03 were red on 1.1.1 (no
+server at the repository root, none in the wheel) and are green here; every mutant turns them red
+too, since the server runs the mutated script. Two earlier matrices (runs 38817577739 and
+38856524013) lost 12 and then 3 of the mutants on macOS py3.10 with no result written: the
+battery's own cleanup failed on `.git/objects/maintenance.lock`, which git's background
+maintenance adds and removes while the temporary tree is removed. `remove()` now tolerates a file
+that vanished and tries again (`3e02500`); the detector did not change. On a pip too old to read
+`pyproject.toml` (21.2, the Command Line Tools' 3.9) MCP03 is not run, with the reason.
+
+Regression corpus (`tools/regression/`), the same script: 100 of 100 match, as predicted in §18
+(run 38817581615, `checks/v1.1.2-candidate-a61858aa.json`). The benchmark was not rerun for 1.1.2.
+
 # Record of the battery runs — closure_drift 1.1.1
 
 Detector 1.1.1: `closure_drift.py`, sha256 `890616f787db105e7ae0d95c99970da524e385641165b20f11a79d0469e7d9d1`. CI run 38657707944 (the two Windows jobs
