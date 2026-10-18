@@ -3,7 +3,7 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
-## 1.1.2 — 2026-10-15
+## 1.1.2 — 2026-10-18
 
 The MCP server installs in one line (`tests/PREREGISTRATION.md` §18). The detector differs from
 1.1.1 only in `__version__`, so every result is the same.
