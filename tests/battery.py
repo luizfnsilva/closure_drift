@@ -2473,6 +2473,81 @@ def pk01(root):
              if f.startswith(("build/", "dist/")) or ".egg-info/" in f]
     check(not built, "build output is tracked: %s" % built[:5])
 
+
+# ---------------------------------------------------------------- §20 — 1.2.0, from issue #12
+
+def _sub(root, name):
+    r = Repo(root, name)
+    r.write("app/package.json", '{"name": "x", "version": "1.0.0"}\n')
+    r.write("app/src/a.js", "1\n")
+    r.commit()
+    r.tag("v1.0.0")
+    return r
+
+
+@proof("VF01")
+def vf01(root):
+    r = _sub(root, "vf01")
+    rc, _doc, out, err = run(r, text=True)
+    check(rc == 2, "exit %d, required 2" % rc)
+    msg = out + err
+    check("app/package.json" in msg and "--version-file" in msg,
+          "the refusal does not name app/package.json: %r" % msg[-300:])
+
+
+@proof("VF02")
+def vf02(root):
+    r = _sub(root, "vf02")
+    rc, doc, out, err = run(r, "--version-file", "app/package.json", "--closure", "app/**")
+    check(doc is not None and doc.get("verdict") in ("clean", "inconclusive"),
+          "no measurement (exit %d): %s" % (rc, (err or out)[:160]))
+
+
+def _dirty(root, name, inside):
+    r = Repo(root, name)
+    r.write("pyproject.toml", '[project]\nname = "x"\nversion = "1.0"\n')
+    r.write("src/a.py", "1\n")
+    r.commit()
+    r.tag("v1.0")
+    if inside:
+        r.write("src/a.py", "2\n")
+    else:
+        r.write("notes.txt", "x\n")
+    return r
+
+
+@proof("DT01")
+def dt01(root):
+    r = _dirty(root, "dt01", inside=False)
+    _rc, doc, _out, _err = run(r)
+    st = (doc or {}).get("stamp", {})
+    check(st.get("working_tree_dirty") is True, "working_tree_dirty %r" % st.get("working_tree_dirty"))
+    check(st.get("working_tree_dirty_in_closure") is False,
+          "working_tree_dirty_in_closure %r, required false" % st.get("working_tree_dirty_in_closure"))
+    _rc, _d, out, _e = run(r, text=True)
+    check("outside the closure" in out, "the text does not say outside the closure")
+
+
+@proof("DT02")
+def dt02(root):
+    r = _dirty(root, "dt02", inside=True)
+    _rc, doc, _out, _err = run(r)
+    st = (doc or {}).get("stamp", {})
+    check(st.get("working_tree_dirty_in_closure") is True,
+          "working_tree_dirty_in_closure %r, required true" % st.get("working_tree_dirty_in_closure"))
+
+
+@proof("EN01")
+def en01(root):
+    r = _dirty(root, "en01", inside=False)
+    wrap = ("import io, runpy, sys; "
+            "sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='cp1252'); "
+            "sys.argv = [sys.argv[1], sys.argv[2]]; runpy.run_path(sys.argv[0], run_name='__main__')")
+    p = subprocess.run([sys.executable, "-c", wrap, DETECTOR, str(r.path)],
+                       capture_output=True, env=ENV, stdin=subprocess.DEVNULL)
+    check("\u2014".encode("utf-8") in p.stdout, "no UTF-8 dash in the output (exit %d)" % p.returncode)
+    check(b"\x97" not in p.stdout, "a cp1252 dash in the output")
+
 # ---------------------------------------------------------------- LG — a version file over the size limit (§17)
 
 LIMIT = 1 << 20                                        # MAX_BUILD_FILE, §17 amendment 2
