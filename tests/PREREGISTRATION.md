@@ -1183,3 +1183,7 @@ means.
 | proof | required | on 1.1.3 |
 |---|---|---|
 | MCP04 | every tool: the four annotations as above, every input property described, an `outputSchema`; a `tools/call` returns `structuredContent` with `exit`, `meaning`, `output` | no annotations: red |
+
+Amendment, 2026-10-21: from issue #13 (an agent asked to "run closure_drift" ran `reproduce.sh`),
+the README and `reproduce.sh` say that `reproduce.sh` validates the detector and does not measure
+the user's repository. Documentation only; no proof.

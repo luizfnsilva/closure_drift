@@ -35,6 +35,9 @@ curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.2.0/clos
 python3 closure_drift.py            # inside any git repository
 ```
 
+That measures your repository. `./reproduce.sh` is something else: it validates closure_drift
+itself (its test suites, a long run) and does not look at your repository.
+
 or `pipx run --spec git+https://github.com/luizfnsilva/closure_drift@v1.2.0 closure-drift`.
 Needs Python 3.9+ and git. To see the three possible answers first: `python3 examples/demo.py`, or read [`docs/DEMOS.md`](docs/DEMOS.md).
 

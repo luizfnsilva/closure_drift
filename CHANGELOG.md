@@ -25,6 +25,8 @@ or exit code changes.
   to a log). Proof EN01; mutant M60.
 - README and `docs/CI.md`: `measure` concludes only from two distinct labels; push the workflow
   before the first tag, and `workflow_dispatch:` in the example.
+- README and `reproduce.sh`: `reproduce.sh` validates closure_drift itself and does not measure
+  your repository ([issue #13](https://github.com/luizfnsilva/closure_drift/issues/13)).
 
 ## 1.1.3 — 2026-10-18
 

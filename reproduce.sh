@@ -6,6 +6,9 @@ set -eu
 cd "$(dirname "$0")"
 step() { printf '\n== %s\n' "$1"; }
 
+echo "This validates closure_drift itself: its test suites, a long run. It does not look at"
+echo "your repository. To measure a repository: python3 closure_drift.py /path/to/repo"
+
 step "the script is the one this release names"
 python3 tools/verify_deposit.py
 python3 tools/conferir_versao.py
