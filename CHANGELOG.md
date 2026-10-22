@@ -3,6 +3,26 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 1.2.0 — 2026-10-21
+
+From the first outside report of use ([issue #12](https://github.com/luizfnsilva/closure_drift/issues/12),
+two projects, both in drift). What 1.2.0 had to meet is `tests/PREREGISTRATION.md` §20. No verdict
+or exit code changes.
+
+### Added
+- When no label is found at the root, the refusal names the files the rules read one directory
+  below (`app/package.json`) and says to pass `--version-file`. They are never read by themselves.
+  Proofs VF01, VF02; mutant M58.
+- `stamp.working_tree_dirty_in_closure`: when the tree is dirty, whether a changed or untracked
+  path is in the closure; the text says `DIRTY, inside the closure` or `outside the closure`.
+  Proofs DT01, DT02; mutant M59.
+
+### Changed
+- Output is UTF-8 when it is not a terminal, unless `PYTHONIOENCODING` is set (a Windows run piped
+  to a log). Proof EN01; mutant M60.
+- README and `docs/CI.md`: `measure` concludes only from two distinct labels; push the workflow
+  before the first tag, and `workflow_dispatch:` in the example.
+
 ## 1.1.3 — 2026-10-18
 
 Documentation, and the build output out of the repository (`tests/PREREGISTRATION.md` §19). The

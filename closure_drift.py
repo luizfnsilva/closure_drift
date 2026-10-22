@@ -32,7 +32,7 @@ import warnings
 from collections import OrderedDict, defaultdict
 from pathlib import Path
 
-__version__ = "1.1.3"
+__version__ = "1.2.0"
 REPORT_FORMAT = 2
 
 # Where a version can be declared. Python build files are read first; a repository that has
@@ -841,6 +841,24 @@ NO_LABEL = ("could not find a version label. Pass --version-file / --version-reg
             "to measure here.")
 
 
+LABEL_FILES = ("pyproject.toml", "setup.cfg", "setup.py", "Cargo.toml", "package.json", "composer.json",
+               "build.gradle", "VERSION", "version.txt", "Chart.yaml")
+
+
+def no_label_refusal(repo: str) -> Refusal:
+    """The refusal for no label, naming the files the rules read one directory below the root.
+    They are named, never read: a label is declared, not guessed (§20)."""
+    dirs = git(["ls-tree", "-d", "--name-only", "HEAD"], repo, may_fail=True).splitlines()[:200]
+    inside = git(["ls-tree", "--name-only", "HEAD", "--"] + [d + "/" for d in dirs],
+                 repo, may_fail=True).splitlines() if dirs else []
+    below = [q for q in inside if q.count("/") == 1 and q.rsplit("/", 1)[1] in LABEL_FILES]
+    if not below:
+        return Refusal(NO_LABEL)
+    named = ", ".join(printable(p) for p in sorted(below)[:5])
+    return Refusal(NO_LABEL + f"\nfound one level down: {named}. If one of them declares your "
+                   f"version, pass --version-file {printable(sorted(below)[0])}.")
+
+
 def root_has_source(objects, commit: str) -> bool:
     """Whether a commit has, at its root, a file the rules read. The rules read nothing else, so a
     range of publication points none of which has one gives no label, and the refusal comes before
@@ -1021,6 +1039,24 @@ def working_tree_state(repo: str) -> tuple[bool | None, str | None]:
     if status is None:
         return None, "not checked: this repository has no working tree"
     return bool(status.strip()), None
+
+
+def dirty_in_closure(repo: str, closure) -> bool | None:
+    """Whether a changed or untracked path of the working tree is in the closure (§20)."""
+    out = git_bytes(["status", "--porcelain", "-z", "--untracked-files=all"], repo, may_fail=True)
+    if out is None:
+        return None
+    fields, paths, i = out.split(b"\0"), [], 0
+    while i < len(fields):
+        f = fields[i]
+        if len(f) > 3:
+            paths.append(f[3:].decode("utf-8", "replace"))
+            if f[:1] in (b"R", b"C"):
+                i += 1                                  # the source of a rename follows
+                if i < len(fields) and fields[i]:
+                    paths.append(fields[i].decode("utf-8", "replace"))
+        i += 1
+    return any(closure.holds(p) for p in paths)
 
 
 def explain(objects: Objects, closure: Closure, states: dict) -> dict:
@@ -1302,7 +1338,7 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
         return 2
 
     if not vfile and vsrc is None and not a.would_tag and not any(root_has_source(objects, s) for s, _d, _n in pts):
-        raise Refusal(NO_LABEL)
+        raise no_label_refusal(a.repo)
 
     # label -> full closure id -> {key (the 16-hex id), where it was first seen, commit}
     by_label: dict[str, dict[str, dict]] = defaultdict(dict)
@@ -1361,7 +1397,7 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
         empty_by_label[v].append(where)
 
     if not labels.counts and vsrc is None and not a.would_tag:
-        raise Refusal(NO_LABEL)
+        raise no_label_refusal(a.repo)
     if not (a.json or a.badge):
         print(f"repository        {printable(a.repo)}")
         print(f"version from      {printable(vpath or '(nothing at HEAD)')}")
@@ -1402,6 +1438,8 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
     }
     if dirty_note:
         stamp["working_tree_dirty_note"] = dirty_note
+    if dirty:
+        stamp["working_tree_dirty_in_closure"] = dirty_in_closure(a.repo, closure)
     coverage = {
         "publication_points_scanned": len(pts),
         "publication_points_compared": compared,
@@ -1685,6 +1723,8 @@ def compare(a, objects, closure, labels, vpath, include, head_sha) -> int:
              "detector_closure": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:16]}
     if dirty_note:
         stamp["working_tree_dirty_note"] = dirty_note
+    if dirty:
+        stamp["working_tree_dirty_in_closure"] = dirty_in_closure(a.repo, closure)
     if a.badge:
         print(badge(verdict, stamp["measured_at_head"]))
         return code
@@ -1804,7 +1844,10 @@ def print_method(stamp: dict, dirty, dirty_note) -> None:
     print("globs, evaluated at each publication point. Adjust --closure / --at if these do not")
     print("describe how your output is produced and published.")
     print(f"\nMeasured at HEAD {stamp['measured_at_head']}"
-          + (" (working tree DIRTY)" if dirty else "")
+          + ((" (working tree DIRTY, inside the closure)" if stamp.get("working_tree_dirty_in_closure")
+              else " (working tree DIRTY, outside the closure)"
+              if stamp.get("working_tree_dirty_in_closure") is False else " (working tree DIRTY)")
+             if dirty else "")
           + (f" (working tree {dirty_note})" if dirty_note else "")
           + f", detector closure {stamp['detector_closure']}.")
     print("This report is itself addressed by those two values. A finding without them is a")
@@ -1816,8 +1859,12 @@ def main() -> int:
     and nothing that is not a measured drift leaves it as 1."""
     for stream in (sys.stdout, sys.stderr):
         try:
-            stream.reconfigure(errors="backslashreplace")
-        except (AttributeError, ValueError):
+            # UTF-8 when the output is not a terminal, unless PYTHONIOENCODING says otherwise (§20)
+            if not stream.isatty() and "PYTHONIOENCODING" not in os.environ:
+                stream.reconfigure(encoding="utf-8", errors="backslashreplace")
+            else:
+                stream.reconfigure(errors="backslashreplace")
+        except (AttributeError, ValueError, OSError):
             pass
     try:
         if sys.argv[1:] == ["--match-on-stdin"]:

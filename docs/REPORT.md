@@ -25,6 +25,7 @@ before a refusal — that is what it is for.)
 | `report_format` | integer | `2` |
 | `stamp.measured_at_head` | string | first 12 hex of `HEAD` |
 | `stamp.working_tree_dirty` | `true` / `false` / `null` | `null` when it was not checked; then `stamp.working_tree_dirty_note` says why |
+| `stamp.working_tree_dirty_in_closure` | `true` / `false` | (1.2.0) only when dirty: whether a changed or untracked path is in the closure. Absent in the components report |
 | `stamp.detector_closure` | string | first 16 hex of the SHA-256 of the detector that ran |
 | `repo` | string | the path as passed on the command line |
 | `version_file` | string or `null` | where the label is read from at `HEAD` |

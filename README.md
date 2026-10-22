@@ -31,11 +31,11 @@ One command checks it. Read-only, one file, no dependencies, no network.
 ## Run it
 
 ```bash
-curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.1.3/closure_drift.py
+curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.2.0/closure_drift.py
 python3 closure_drift.py            # inside any git repository
 ```
 
-or `pipx run --spec git+https://github.com/luizfnsilva/closure_drift@v1.1.3 closure-drift`.
+or `pipx run --spec git+https://github.com/luizfnsilva/closure_drift@v1.2.0 closure-drift`.
 Needs Python 3.9+ and git. To see the three possible answers first: `python3 examples/demo.py`, or read [`docs/DEMOS.md`](docs/DEMOS.md).
 
 ## Check before you tag
@@ -46,13 +46,18 @@ Needs Python 3.9+ and git. To see the three possible answers first: `python3 exa
 # GitHub Actions
 - uses: actions/checkout@v4
   with: { fetch-depth: 0 }
-- uses: luizfnsilva/closure_drift@v1.1.3
+- uses: luizfnsilva/closure_drift@v1.2.0
 ```
+
+Push the workflow before the first tag: a tag pushed together with the workflow that should run on
+it may not start it (then run it by hand, with `workflow_dispatch:` in its `on:`). `mode: measure`
+concludes only from two distinct labels; on the first release it is `inconclusive`, exit 2, so gate
+with `would-tag` from the first tag.
 
 ```yaml
 # pre-commit, on git push
 - repo: https://github.com/luizfnsilva/closure_drift
-  rev: v1.1.3
+  rev: v1.2.0
   hooks: [{ id: closure-drift-would-tag }]
 ```
 
@@ -223,6 +228,7 @@ or write to lfnsilva.invest@gmail.com. A result showing the tool is wrong is the
 
 ## Version
 
+**1.2.0** names a version file one level down, says whether a dirty tree touches the closure, and writes UTF-8 when the output is not a terminal (from [issue #12](https://github.com/luizfnsilva/closure_drift/issues/12)).
 **1.1.3** says when to use `--explain` or `--compare`, and `--tags` or `--published`; the detector is unchanged.
 **1.1.2** installs the MCP server in one line (`closure-drift-mcp`); the detector is unchanged.
 **1.1.1** fixes O11: a version file over the size limit (1 MB) is named and the answer is

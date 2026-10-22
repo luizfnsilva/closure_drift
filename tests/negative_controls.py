@@ -102,6 +102,10 @@ MUTANTS = [
     ("M56", "RV11", [('or (published is not None and left_out)):', '):')]),
     ("M57", "LG01", [('self.too_large.add(path)      # not read is not "no version": said, and never clean', 'pass')]),
     ("M33", "MM03", [('        self.held += len(out) + 1\n', '        self.held += 0\n')]),
+    ("M58", "VF01", [('q.rsplit("/", 1)[1] in LABEL_FILES]', 'False]')]),
+    ("M59", "DT01", [('stamp["working_tree_dirty_in_closure"] = dirty_in_closure(a.repo, closure)\n    coverage = {',
+                      'stamp["working_tree_dirty_in_closure"] = dirty\n    coverage = {')]),
+    ("M60", "EN01", [('stream.reconfigure(encoding="utf-8", errors="backslashreplace")', 'stream.reconfigure(errors="backslashreplace")')]),
 ]
 
 

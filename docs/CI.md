@@ -9,6 +9,10 @@ recipe below needs: **the tags** (a shallow checkout has none) and **Python 3.9+
 Before a release — would this commit's version reuse a label that already names other code?
 
 ```yaml
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:      # to run it by hand, e.g. when the first tag was pushed with this file
 jobs:
   version-label:
     runs-on: ubuntu-latest
@@ -16,17 +20,20 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: luizfnsilva/closure_drift@v1.1.3        # mode: would-tag (default)
+      - uses: luizfnsilva/closure_drift@v1.2.0        # mode: would-tag (default)
 ```
 
 The whole tag history, on a schedule, with a family of tags and a strict verdict:
 
 ```yaml
-      - uses: luizfnsilva/closure_drift@v1.1.3
+      - uses: luizfnsilva/closure_drift@v1.2.0
         with:
           mode: measure
           args: --tags 'v*' --strict
 ```
+
+`measure` concludes only from two distinct labels: on a project's first release it answers
+`inconclusive`, exit 2. Gate releases with `would-tag`, which answers from the first tag.
 
 The action writes annotations and a job summary from the JSON report, and exposes `verdict` and
 `exit-code` as outputs. `allow-undetermined: true` lets exit `2` pass; the default is to fail,
@@ -35,7 +42,7 @@ because an absence of measurement is not a pass.
 Without the action (the package is installed from the release; it is not on PyPI):
 
 ```yaml
-      - run: pipx run --spec https://github.com/luizfnsilva/closure_drift/releases/download/v1.1.3/closure_drift-1.1.3-py3-none-any.whl closure-drift --would-tag
+      - run: pipx run --spec https://github.com/luizfnsilva/closure_drift/releases/download/v1.2.0/closure_drift-1.2.0-py3-none-any.whl closure-drift --would-tag
 ```
 
 ## GitLab CI
@@ -47,7 +54,7 @@ version-label:
     GIT_DEPTH: "0"              # full history, so the tags are there
   script:
     - git fetch --tags --force
-    - pip install https://github.com/luizfnsilva/closure_drift/releases/download/v1.1.3/closure_drift-1.1.3-py3-none-any.whl
+    - pip install https://github.com/luizfnsilva/closure_drift/releases/download/v1.2.0/closure_drift-1.2.0-py3-none-any.whl
     - closure-drift --would-tag
 ```
 
@@ -67,7 +74,7 @@ check-version-label:
 ```yaml
 # .pre-commit-config.yaml — runs on git push
 - repo: https://github.com/luizfnsilva/closure_drift
-  rev: v1.1.3
+  rev: v1.2.0
   hooks:
     - id: closure-drift-would-tag
 ```
