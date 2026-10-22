@@ -36,25 +36,52 @@ MEANING = {0: "clean: each label names one code state",
            1: "drift: a label names more than one code state",
            2: "not decided: read 'output' for the reason"}
 
-REPO = {"type": "string", "description": "path to a local git repository"}
+REPO = {"type": "string", "description": "path to a local git repository with its tags fetched"}
+ANNOTATIONS = {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False}
+OUTPUT = {"type": "object", "required": ["exit", "meaning", "output"], "properties": {
+    "exit": {"type": "integer", "enum": [0, 1, 2],
+             "description": "0 clean, 1 drift, 2 not decided (the reason is in output)"},
+    "meaning": {"type": "string", "description": "the exit code in words"},
+    "output": {"description": "the JSON report (docs/REPORT.md), or the refusal as text"}}}
+DECIDED = ("Returns exit 0, 1 or 2 and the JSON report. Exit 2 is not a pass: nothing was decided, "
+           "and output says why (no label found, a file not read, a tag not compared). Read-only: "
+           "it runs git reads only, on the local repository, with no network.")
+
+
+def tool(name, title, description, properties, required):
+    return {"name": name, "title": title, "description": description + " " + DECIDED,
+            "annotations": dict(ANNOTATIONS, title=title), "outputSchema": OUTPUT,
+            "inputSchema": {"type": "object", "required": ["repo"] + required,
+                            "properties": dict(repo=REPO, **properties)}}
+
+
 TOOLS = [
-    {"name": "check_versions",
-     "description": "Does each version label in this git repository name exactly one code state across its tags? Read-only.",
-     "inputSchema": {"type": "object", "required": ["repo"], "properties": {
-         "repo": REPO,
-         "published_file": {"type": "string", "description": "optional file with the versions actually released, one per line"},
-         "strict": {"type": "boolean", "description": "clean only if every tag scanned was compared"}}}},
-    {"name": "would_tag",
-     "description": "Run BEFORE creating a release tag: would HEAD reuse a version label that already names other code? Read-only.",
-     "inputSchema": {"type": "object", "required": ["repo"], "properties": {"repo": REPO}}},
-    {"name": "explain_label",
-     "description": "List the paths that differ under one version label found in drift. Read-only.",
-     "inputSchema": {"type": "object", "required": ["repo", "label"], "properties": {
-         "repo": REPO, "label": {"type": "string"}}}},
-    {"name": "compare",
-     "description": "Compare two tags or commits: their version labels, closures and the paths that differ. Read-only.",
-     "inputSchema": {"type": "object", "required": ["repo", "a", "b"], "properties": {
-         "repo": REPO, "a": {"type": "string"}, "b": {"type": "string"}}}},
+    tool("would_tag", "Check before tagging",
+         "Use BEFORE creating a release tag: would the version that HEAD declares reuse a label "
+         "that already names other code in the tags? Exit 1 means do not tag; bump the version first.",
+         {}, []),
+    tool("check_versions", "Measure all version labels",
+         "Use to audit the whole tag history: does each version label name exactly one code state? "
+         "For a single release about to be tagged, use would_tag. With one release only, the answer "
+         "is not decided (exit 2).",
+         {"published_file": {"type": "string",
+                             "description": "a local file with the versions actually released, one per "
+                                            "line; tags not on it are not counted as publications"},
+          "strict": {"type": "boolean",
+                     "description": "answer clean only if every tag scanned was compared (default false)"}},
+         []),
+    tool("explain_label", "Explain a label in drift",
+         "Use after check_versions reports drift: lists, for one label, the paths that differ between "
+         "the first tag that used it and each other tag that did. For two references you choose, use compare.",
+         {"label": {"type": "string",
+                    "description": "a version label reported in drift, as written in the report (e.g. 1.0.0)"}},
+         ["label"]),
+    tool("compare", "Compare two references",
+         "Use to compare any two tags or commits you name: their version labels, closures and the paths "
+         "that differ. Publication points play no part. Exit 1 when both declare one label and the code differs.",
+         {"a": {"type": "string", "description": "the first tag or commit (the reference side)"},
+          "b": {"type": "string", "description": "the second tag or commit; paths are listed as changed, only in a, only in b"}},
+         ["a", "b"]),
 ]
 
 
@@ -118,7 +145,7 @@ def main() -> None:
             try:
                 res = call(p["name"], p.get("arguments") or {})
                 reply(i, {"content": [{"type": "text", "text": json.dumps(res, indent=1)}],
-                          "isError": False})
+                          "structuredContent": res, "isError": False})
             except (KeyError, TypeError) as e:
                 reply(i, {"content": [{"type": "text", "text": f"bad call: {e}"}], "isError": True})
         elif method == "ping":

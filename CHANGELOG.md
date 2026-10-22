@@ -16,6 +16,9 @@ or exit code changes.
 - `stamp.working_tree_dirty_in_closure`: when the tree is dirty, whether a changed or untracked
   path is in the closure; the text says `DIRTY, inside the closure` or `outside the closure`.
   Proofs DT01, DT02; mutant M59.
+- MCP tools: annotations (read-only, idempotent, no network), an `outputSchema` returned as
+  `structuredContent`, every parameter described, and when to use each tool rather than another.
+  Proof MCP04.
 
 ### Changed
 - Output is UTF-8 when it is not a terminal, unless `PYTHONIOENCODING` is set (a Windows run piped
