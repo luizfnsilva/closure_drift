@@ -6,18 +6,30 @@ One call returns a short verdict, so the agent does not have to read `git log` a
 
 ## 1. As an MCP tool
 
-With [uv](https://docs.astral.sh/uv/), nothing to clone. Claude Code:
+With [uv](https://docs.astral.sh/uv/), nothing to clone. One line, in the client you use:
 
 ```bash
-claude mcp add closure-drift -- uvx --from git+https://github.com/luizfnsilva/closure_drift closure-drift-mcp
+claude mcp add closure-drift -- uvx --from git+https://github.com/luizfnsilva/closure_drift closure-drift-mcp   # Claude Code
+codex mcp add closure-drift -- uvx --from git+https://github.com/luizfnsilva/closure_drift closure-drift-mcp    # OpenAI Codex CLI
+gemini mcp add closure-drift uvx --from git+https://github.com/luizfnsilva/closure_drift closure-drift-mcp      # Gemini CLI
 ```
 
-Claude Desktop, Cursor and other MCP clients (`mcpServers` in their config file):
+Cursor (`.cursor/mcp.json`), Windsurf (`~/.codeium/windsurf/mcp_config.json`), Claude Desktop and
+other clients that read `mcpServers`:
 
 ```json
 {"mcpServers": {"closure-drift": {"command": "uvx",
   "args": ["--from", "git+https://github.com/luizfnsilva/closure_drift", "closure-drift-mcp"]}}}
 ```
+
+VS Code with Copilot (`.vscode/mcp.json`):
+
+```json
+{"servers": {"closure-drift": {"type": "stdio", "command": "uvx",
+  "args": ["--from", "git+https://github.com/luizfnsilva/closure_drift", "closure-drift-mcp"]}}}
+```
+
+Or the container, in any client: `docker run -i --rm ghcr.io/luizfnsilva/closure_drift:1.2.0`.
 
 Pin a version with `closure_drift@v1.2.0`. Without uv: clone the repository and run
 `python3 /path/to/closure_drift/closure_drift_mcp.py`.

@@ -74,7 +74,7 @@ An agent that tags and publishes can ask the same question first, through a Mode
 claude mcp add closure-drift -- uvx --from git+https://github.com/luizfnsilva/closure_drift closure-drift-mcp
 ```
 
-Other clients and a rule to paste into `AGENTS.md`, `CLAUDE.md` or `.cursorrules`:
+Codex CLI, Gemini CLI, Cursor, VS Code, Windsurf, and a rule to paste into `AGENTS.md`, `CLAUDE.md` or `.cursorrules`:
 [`integrations/`](integrations/). The server makes the check available; the agent has to call it
 and respect the answer. The barrier is CI.
 
