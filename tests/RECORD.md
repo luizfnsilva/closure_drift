@@ -1,3 +1,20 @@
+# Record of the battery runs — closure_drift 1.2.0
+
+Detector 1.2.0: `closure_drift.py`, sha256 `7dd5833ccb6c16bf89d309773411e7a7bc0fcefc95fadc037b96a108dae8e577`. CI run 39717762958 (`ef827b6`).
+
+| platform | CPython | battery | mutants | adversarial | oracle | properties |
+|---|---|---|---|---|---|---|
+| Ubuntu | 3.9, 3.10, 3.11, 3.12, 3.13, 3.14 | 216 · 216 green · 0 red · 0 not run | 60 of 60 | 315 · 304 as required · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 controls |
+| macOS | 3.10, 3.14 | 216 · 215 green · 0 red · 1 not run | 60 of 60 | 315 · 304 · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+| Windows | 3.9, 3.14 | 216 · 211 green · 0 red · 5 not run | 60 of 60 | 315 · 281 · 2 loose · 32 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+
+The 2 loose are ZA02 and ZA04 (`docs/FAILURES.md` O2b, O2a). VF01, DT01, DT02, EN01 and MCP04 were
+red on 1.1.3 and are green here, EN01 also on Windows; VF02 is the control. M58–M60 turn VF01,
+DT01 and EN01 red. From issues #12 and #13, the first outside reports of use.
+
+Regression corpus (`tools/regression/`), the same script: 100 of 100 match, as predicted in §20
+(run 39702337544, `checks/v1.2.0-candidate-7dd5833c.json`). The benchmark was not rerun for 1.2.0.
+
 # Record of the battery runs — closure_drift 1.1.3
 
 Detector 1.1.3: `closure_drift.py`, sha256 `101905f660655bda98303ed5286620d4fd78d782bbe88bfcdd51c4f49ae2c5a4`. CI run 39143740829 (`7edf4b5`).
