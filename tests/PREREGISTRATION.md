@@ -1136,3 +1136,38 @@ Amendment, 2026-10-18, before the fix: the cause is MCP03, which ran `pip wheel`
 directory, where setuptools writes `build/` and `*.egg-info/`. MCP03 now builds from a copy of the
 files the package needs, with the detector under test as `closure_drift.py`; what it requires is
 unchanged.
+
+## 20. Added 2026-10-21, before any of it was written — 1.2.0
+
+**From the first outside report of use** (issue #12: two real projects, both in drift, `--at
+commits`). Four changes; none changes a verdict or an exit code.
+
+1. **A version file one level down is named.** When nothing at the root gives a label, the
+   refusal lists the files the rules read that sit one directory below (`app/package.json`) and
+   says to pass `--version-file`. It never reads them by itself: a label is declared, not guessed.
+2. **Dirty inside or outside the closure.** When the working tree is dirty, the stamp says whether
+   a changed or untracked path matches the closure: `working_tree_dirty_in_closure` (true/false);
+   the text says `DIRTY, inside the closure` or `DIRTY, outside the closure`. `working_tree_dirty`
+   is unchanged. Not given in the components report (one closure per component).
+3. **UTF-8 when the output is not a terminal.** stdout and stderr are written in UTF-8 when they
+   are not a terminal, unless `PYTHONIOENCODING` is set. A Windows run piped to a log no longer
+   turns a commit title's `—` into cp1252.
+4. **Documentation.** README: `measure` concludes only from two distinct labels (one release
+   gives `inconclusive`, exit 2; use `would-tag` from the first tag); the workflow example adds
+   `workflow_dispatch:` and says to push the workflow before the first tag.
+
+Not in 1.2.0, recorded: default closure globs inheriting the version file's directory (issue #12
+item 2). It changes a default and is to be measured first.
+
+| proof | required | on 1.1.3 |
+|---|---|---|
+| VF01 | no label at the root, `app/package.json` declares one: refusal, exit 2, and the message names `app/package.json` and `--version-file` | the message names no file: red |
+| VF02 | the same with `--version-file app/package.json`: a measurement, not a refusal | green (control) |
+| DT01 | untracked file outside the closure: `working_tree_dirty` true, `working_tree_dirty_in_closure` false; the text says `outside the closure` | no such field: red |
+| DT02 | a modified file inside the closure: `working_tree_dirty_in_closure` true | red, as above |
+| EN01 | stdout an 8-bit cp1252 stream, not a terminal, `PYTHONIOENCODING` unset: a `—` in a commit title is written as UTF-8 bytes | written as cp1252: red |
+
+Mutants: M58 the one-level search returns nothing (VF01 red); M59 `working_tree_dirty_in_closure`
+always equals `working_tree_dirty` (DT01 red); M60 the UTF-8 reconfiguration removed (EN01 red).
+The detector's verdicts do not change, so the regression corpus must give the recorded answer on
+all 100.
