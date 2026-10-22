@@ -1171,3 +1171,15 @@ Mutants: M58 the one-level search returns nothing (VF01 red); M59 `working_tree_
 always equals `working_tree_dirty` (DT01 red); M60 the UTF-8 reconfiguration removed (EN01 red).
 The detector's verdicts do not change, so the regression corpus must give the recorded answer on
 all 100.
+
+Amendment, 2026-10-21, before it was written: the MCP tool definitions. Glama's review of the
+four tools (TDQS 3.2–3.3 of 5) found no annotations, no stated result, three parameters without a
+description, and no guidance on which tool to use when. 1.2.0 gives each tool the annotations
+`readOnlyHint` true, `destructiveHint` false, `idempotentHint` true, `openWorldHint` false; an
+`outputSchema` (`exit`, `meaning`, `output`) returned as `structuredContent`; a description of
+every parameter; and, in each description, when to use it rather than the others and what exit 2
+means.
+
+| proof | required | on 1.1.3 |
+|---|---|---|
+| MCP04 | every tool: the four annotations as above, every input property described, an `outputSchema`; a `tools/call` returns `structuredContent` with `exit`, `meaning`, `output` | no annotations: red |

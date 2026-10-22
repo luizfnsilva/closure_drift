@@ -2474,6 +2474,24 @@ def pk01(root):
     check(not built, "build output is tracked: %s" % built[:5])
 
 
+
+@proof("MCP04")
+def mcp04(root):
+    server = _mcp_server()
+    tools = _mcp_session(server, [{"jsonrpc": "2.0", "id": 2, "method": "tools/list"}], root)[2]["result"]["tools"]
+    want = {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False}
+    for t in tools:
+        ann = t.get("annotations") or {}
+        check(all(ann.get(k) == v for k, v in want.items()), "%s: annotations %r" % (t["name"], ann))
+        props = t["inputSchema"]["properties"]
+        check(all(v.get("description") for v in props.values()), "%s: a parameter has no description" % t["name"])
+        check("exit" in (t.get("outputSchema") or {}).get("properties", {}), "%s: no outputSchema" % t["name"])
+    r = _reused_label(root, "mcp04")
+    res = _mcp_session(server, [{"jsonrpc": "2.0", "id": 3, "method": "tools/call",
+                                 "params": {"name": "would_tag", "arguments": {"repo": str(r.path)}}}], root)[3]["result"]
+    sc = res.get("structuredContent") or {}
+    check({"exit", "meaning", "output"} <= set(sc), "no structuredContent: %r" % list(res))
+
 # ---------------------------------------------------------------- §20 — 1.2.0, from issue #12
 
 def _sub(root, name):
