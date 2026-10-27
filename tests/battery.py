@@ -2566,6 +2566,36 @@ def en01(root):
     check("\u2014".encode("utf-8") in p.stdout, "no UTF-8 dash in the output (exit %d)" % p.returncode)
     check(b"\x97" not in p.stdout, "a cp1252 dash in the output")
 
+
+# ---------------------------------------------------------------- §21 — 1.2.1
+
+def _private(root, name):
+    r = Repo(root, name)
+    r.write("package.json", '{"name": "x", "private": true, "version": "0.1.0"}\n')
+    r.write("src/a.js", "1\n")
+    r.commit()
+    r.tag("v0.1.0")
+    return r
+
+
+@proof("PJ01")
+def pj01(root):
+    r = _private(root, "pj01")
+    rc, _doc, out, err = run(r, text=True)
+    check(rc == 2, "exit %d, required 2" % rc)
+    msg = out + err
+    check(any("package.json" in ln and "private" in ln and "0.1.0" in ln for ln in msg.splitlines()),
+          "no line names package.json, 0.1.0 and private: %r" % msg[-300:])
+    check("--version-file package.json" in msg, "the refusal does not say --version-file package.json")
+
+
+@proof("PJ02")
+def pj02(root):
+    r = _private(root, "pj02")
+    rc, doc, out, err = run(r, "--version-file", "package.json")
+    check(doc is not None and doc.get("verdict") in ("clean", "inconclusive"),
+          "no measurement (exit %d): %s" % (rc, (err or out)[:160]))
+
 # ---------------------------------------------------------------- LG — a version file over the size limit (§17)
 
 LIMIT = 1 << 20                                        # MAX_BUILD_FILE, §17 amendment 2

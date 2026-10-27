@@ -1187,3 +1187,23 @@ means.
 Amendment, 2026-10-21: from issue #13 (an agent asked to "run closure_drift" ran `reproduce.sh`),
 the README and `reproduce.sh` say that `reproduce.sh` validates the detector and does not measure
 the user's repository. Documentation only; no proof.
+
+## 21. Added 2026-10-27, before any of it was written — 1.2.1
+
+**The first third-party results, and one refusal that did not say why.** `RESULTS.md` gets its
+first lines: issue #13 (private, anonymous, `--at commits` as a diagnostic) and a result sent by
+e-mail (private, anonymous, 1.2.0, `inconclusive`). The second reporter found that, without
+`--version-file`, no label was found although `package.json` at the root declares one: the rules
+ignore a `package.json` marked `"private": true`, since npm never publishes it, and the refusal did
+not say so. For an application deployed rather than published to npm, that file's version is the
+one that matters. 1.2.1 names it in the refusal: the file, the version it declares, that it is
+marked private, and `--version-file package.json`. It is still not read by itself; no verdict
+changes. `docs/LABELS.md` states the rule.
+
+| proof | required | on 1.2.0 |
+|---|---|---|
+| PJ01 | `package.json` at the root, `"private": true`, `"version": "0.1.0"`, nothing else declares a label: refusal, exit 2, and the message names `package.json`, `0.1.0`, `private` and `--version-file` | the message says none of it: red |
+| PJ02 | the same with `--version-file package.json`: a measurement, not a refusal | green (control) |
+
+Mutant M61: the private-file line removed (PJ01 red). The detector's verdicts do not change, so
+the regression corpus must give the recorded answer on all 100.
