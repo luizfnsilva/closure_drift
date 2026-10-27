@@ -105,6 +105,7 @@ MUTANTS = [
     ("M58", "VF01", [('q.rsplit("/", 1)[1] in LABEL_FILES]', 'False]')]),
     ("M59", "DT01", [('stamp["working_tree_dirty_in_closure"] = dirty_in_closure(a.repo, closure)\n    coverage = {',
                       'stamp["working_tree_dirty_in_closure"] = dirty\n    coverage = {')]),
+    ("M61", "PJ01", [('        extra += (f"\\npackage.json declares', '        extra += ("" if True else f"\\npackage.json declares')]),
     ("M60", "EN01", [('stream.reconfigure(encoding="utf-8", errors="backslashreplace")', 'stream.reconfigure(errors="backslashreplace")')]),
 ]
 

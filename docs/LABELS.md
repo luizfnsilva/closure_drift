@@ -36,6 +36,10 @@ under `contradicted_sources`. A file you pass with `--version-file` is never sec
 With `--published`, the list decides instead of the tag's first number: a file agrees at a tag
 when its label is on the list. With `--at commits` the repository's tags vote the same way. (1.1.0)
 
+A `package.json` marked `"private": true` is not read: npm never publishes it, so no release
+carries its version. An application released by deploying, not to npm, does carry it: pass
+`--version-file package.json`. From 1.2.1 the refusal says so when it finds one. (1.2.1)
+
 A version spread over several lines: name the groups `part1`, `part2`, … Their values are joined
 with `.`, and a value starting with `-` or `+` is attached as it is. Otherwise group 1 is the label.
 

@@ -3,6 +3,17 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 1.2.1 — 2026-10-27
+
+The first third-party results, and a refusal that now says why (`tests/PREREGISTRATION.md` §21).
+No verdict or exit code changes.
+
+### Added
+- `RESULTS.md`: its first two lines, both private and anonymous.
+- When no label is found and the root `package.json` declares a version but is marked
+  `"private": true`, the refusal names it and says to pass `--version-file package.json`. It is
+  still not read by itself. `docs/LABELS.md` states the rule. Proofs PJ01, PJ02; mutant M61.
+
 ## 1.2.0 — 2026-10-21
 
 From the first outside report of use ([issue #12](https://github.com/luizfnsilva/closure_drift/issues/12),

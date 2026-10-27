@@ -32,7 +32,7 @@ import warnings
 from collections import OrderedDict, defaultdict
 from pathlib import Path
 
-__version__ = "1.2.0"
+__version__ = "1.2.1"
 REPORT_FORMAT = 2
 
 # Where a version can be declared. Python build files are read first; a repository that has
@@ -852,11 +852,20 @@ def no_label_refusal(repo: str) -> Refusal:
     inside = git(["ls-tree", "--name-only", "HEAD", "--"] + [d + "/" for d in dirs],
                  repo, may_fail=True).splitlines() if dirs else []
     below = [q for q in inside if q.count("/") == 1 and q.rsplit("/", 1)[1] in LABEL_FILES]
-    if not below:
-        return Refusal(NO_LABEL)
-    named = ", ".join(printable(p) for p in sorted(below)[:5])
-    return Refusal(NO_LABEL + f"\nfound one level down: {named}. If one of them declares your "
-                   f"version, pass --version-file {printable(sorted(below)[0])}.")
+    extra = ""
+    try:
+        doc = json.loads(git(["show", "HEAD:package.json"], repo, may_fail=True) or "null", strict=False)
+    except (ValueError, RecursionError):
+        doc = None
+    if isinstance(doc, dict) and doc.get("private") is True and isinstance(doc.get("version"), str):
+        # ignored because npm never publishes it; an application deployed from it has this version (§21)
+        extra += (f"\npackage.json declares {printable(doc['version'])} but is marked private, so it is not "
+                  "read. If you release by deploying rather than to npm, pass --version-file package.json.")
+    if below:
+        named = ", ".join(printable(p) for p in sorted(below)[:5])
+        extra += (f"\nfound one level down: {named}. If one of them declares your "
+                  f"version, pass --version-file {printable(sorted(below)[0])}.")
+    return Refusal(NO_LABEL + extra)
 
 
 def root_has_source(objects, commit: str) -> bool:

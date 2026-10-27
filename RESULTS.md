@@ -62,10 +62,19 @@ without the state it was measured in, and this project does not publish those.
 
 | Date | Repository | Reported by | Points | Labels | Worst label | Verdict | Deposit |
 |---|---|---|---|---|---|---|---|
-| — | *no third-party results yet* | — | — | — | — | — | — |
+| 2026-10-22 | private ([#13](https://github.com/luizfnsilva/closure_drift/issues/13)) | anonymous | 101 commits | 1 | `0.1.0`: 91 closures | `drift`, under `--at commits` as a diagnostic: the reporter did not confirm that each commit is a publication | 1.1.3, [10.5281/zenodo.23458648](https://doi.org/10.5281/zenodo.23458648) |
+| 2026-10-27 | private (sent by e-mail) | anonymous | 2 commits | 1 | `0.1.0`: 1 closure | `inconclusive`: one label, nothing to compare yet | 1.2.0, [10.5281/zenodo.23557140](https://doi.org/10.5281/zenodo.23557140) |
 
-**This table is empty, and it is published empty on purpose.** As of this release nobody outside the
-author has run this tool and reported a result. Leaving the row out entirely would let a reader
-assume otherwise; an empty table states the fact. When it fills, the fact it states changes — and
-that change is the only thing that would let this project claim it has been reproduced by anyone
-else.
+Stamps, as the tool emitted them:
+
+- 2026-10-22: `measured_at_head` `41f61ded5da6`, `working_tree_dirty` false, `detector_closure`
+  `101905f660655bda`; `--at commits --version-file package.json`, default closure. With the
+  default `--at tags` the answer was `no_publication_points`: the repository has no tags.
+- 2026-10-27: `measured_at_head` `40a504018fb2`, `working_tree_dirty` false, `detector_closure`
+  `7dd5833ccb6c16bf`; `--at commits --version-file package.json`, default closure. Without
+  `--version-file` no label was found: `package.json` is marked private, and the refusal did not
+  say so. 1.2.1 says so (`tests/PREREGISTRATION.md` §21).
+
+Neither result contradicts the tool. The first report of use
+([#12](https://github.com/luizfnsilva/closure_drift/issues/12), two projects, both `drift` under
+`--at commits`) is not in the table yet: it waits for the reporter's attribution and stamps.
