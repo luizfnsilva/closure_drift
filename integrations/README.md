@@ -54,7 +54,7 @@ The server makes the check available. It does not stop anything: the agent has t
 
 ## 2. As a skill
 
-[`skills/closure-drift/SKILL.md`](skills/closure-drift/SKILL.md), in the Agent Skills format: when to
+[`skills/closure-drift/SKILL.md`](../skills/closure-drift/SKILL.md), in the Agent Skills format: when to
 run the check, the command, what each answer means, and what never to do (move a published tag,
 take exit 2 as a pass). With the GitHub CLI (2.92+, skills in preview), for Claude Code, Codex,
 Cursor, Gemini CLI, Copilot and others:

@@ -17,7 +17,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
-SKILL = REPO / "integrations" / "skills" / "closure-drift" / "SKILL.md"
+SKILL = REPO / "skills" / "closure-drift" / "SKILL.md"
 ENV = dict(os.environ, GIT_AUTHOR_NAME="bench", GIT_AUTHOR_EMAIL="bench@example.invalid",
            GIT_COMMITTER_NAME="bench", GIT_COMMITTER_EMAIL="bench@example.invalid")
 

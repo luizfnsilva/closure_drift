@@ -9,7 +9,7 @@ An agent skill (`tests/PREREGISTRATION.md` §22). The detector differs from 1.2.
 `__version__`, so every result is the same.
 
 ### Added
-- `integrations/skills/closure-drift/SKILL.md`, in the Agent Skills format: when to run the check
+- `skills/closure-drift/SKILL.md`, in the Agent Skills format: when to run the check
   (before a tag, a release, a version bump, a publish), the command, what each answer means, and
   what never to do (move or delete a published tag; take exit 2 as a pass). CI stays the barrier.
   Proof SK01.

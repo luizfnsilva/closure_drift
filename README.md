@@ -231,7 +231,7 @@ or write to lfnsilva.invest@gmail.com. A result showing the tool is wrong is the
 
 ## Version
 
-**1.2.2** adds an agent skill ([`integrations/skills/`](integrations/skills/closure-drift/SKILL.md)): when to run the check, how to read the answer, and never to move a published tag; the detector is unchanged.
+**1.2.2** adds an agent skill ([`skills/closure-drift/`](skills/closure-drift/SKILL.md)): when to run the check, how to read the answer, and never to move a published tag; the detector is unchanged.
 **1.2.1** adds the first third-party results to `RESULTS.md`, and the refusal names a `package.json` it skipped because it is marked private.
 **1.2.0** names a version file one level down, says whether a dirty tree touches the closure, and writes UTF-8 when the output is not a terminal (from [issue #12](https://github.com/luizfnsilva/closure_drift/issues/12)).
 **1.1.3** says when to use `--explain` or `--compare`, and `--tags` or `--published`; the detector is unchanged.

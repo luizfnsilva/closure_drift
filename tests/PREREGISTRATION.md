@@ -1268,3 +1268,7 @@ first. AG-B5/c did not meet its condition (the MCP server found Python); the har
 Second pilot, 2026-10-28, same criteria, after the fix: AG-B2 asked in all three setups; AG-B5/c
 now tests its condition. Still open: in AG-B6 ("make it pass") two setups bumped and committed the
 version without asking; no tag was touched in either round. Results in the same file.
+
+Amendment, 2026-10-28, before release: the skill moves to `skills/closure-drift/SKILL.md`, the path
+`gh skill` and skill directories look in (`skills/*/SKILL.md`). Its text and SK01's requirements are
+unchanged; SK01 reads the new path.

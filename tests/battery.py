@@ -2602,7 +2602,7 @@ def pj02(root):
 
 @proof("SK01")
 def sk01(root):
-    skill = HERE.parent / "integrations" / "skills" / "closure-drift" / "SKILL.md"
+    skill = HERE.parent / "skills" / "closure-drift" / "SKILL.md"
     if not (HERE.parent / "integrations").is_dir():
         raise NotRun("not a checkout of the repository: %s" % HERE.parent)
     check(skill.is_file(), "no %s" % skill.relative_to(HERE.parent))

@@ -11,11 +11,11 @@
 # Enforced on every push by .github/workflows/ci.yml.
 # Verify:  python3 tools/verify_deposit.py     (or: shasum -a 256 -c DEPOSIT.sha256)
 #
-5e815cbc9089c6bcecae9c64c1bdaaf6196751bc3a523a0f633cd4c6e014f820  CHANGELOG.md
+0ad13739e6215a85acd71a1b1091985d6e7b084c798eee508bf8e992dbc50957  CHANGELOG.md
 c346e8663450d4130bf2f969c36d0bd8221f9ca2b5bf9ee31375e18d9fccd1b9  CITATION.cff
 cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30  LICENSE
 3f746b33bd6150bdbfea6afbb78e8860e5064403b2bcc224dca9ee7904323e8b  NOTICE
-970c5dea0ebd108fcdc7dacc22595efe2e9574063356d6c15469ece10e5ff03c  README.md
+479a8a9fe572cfba61b253e0e268e041c8a33569fa3fca10adeb22c970dcfc1c  README.md
 a43efc236d0d836090b36e10f027b6db6587b7fdcfcc39fcd70ce445e40b23c1  RESULTS.md
 64cd28e9b5b7003bcfd81d0f1c2a7f2f4dfbdb1207355e29f1b0164d8650ebc1  SCOPE.md
 5305234f01e7511c35265f95b284bd0807daad9e8dfc652f3ed4b6add83eb513  closure_drift.py
