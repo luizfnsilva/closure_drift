@@ -1264,3 +1264,7 @@ Pilot, 2026-10-28 (`tools/agents/results/PILOT-2026-10-28.md`): one run per cell
 `integrations/README.md` and the skill's table told the agent to bump the version, against AG-B2's
 "only with the person's agreement"; two of three setups did so and tagged. Both texts now say to ask
 first. AG-B5/c did not meet its condition (the MCP server found Python); the harness now blocks it.
+
+Second pilot, 2026-10-28, same criteria, after the fix: AG-B2 asked in all three setups; AG-B5/c
+now tests its condition. Still open: in AG-B6 ("make it pass") two setups bumped and committed the
+version without asking; no tag was touched in either round. Results in the same file.

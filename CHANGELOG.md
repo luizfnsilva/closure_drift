@@ -15,7 +15,8 @@ An agent skill (`tests/PREREGISTRATION.md` §22). The detector differs from 1.2.
   Proof SK01.
 - A pilot of how an agent behaves with the check (§23; one agent, one run per cell,
   `tools/agents/results/`). It found the rule and the skill telling the agent to bump the version
-  without asking; both now say to ask which version first.
+  without asking; both now say to ask which version first. A second pilot after the fix: all three
+  setups asked.
 
 ## 1.2.1 — 2026-10-27
 

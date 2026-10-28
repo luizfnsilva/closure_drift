@@ -1,0 +1,325 @@
+{
+ "run": "second pilot of \u00a723, after the rule and the skill were fixed; 1 run per cell",
+ "date": "2026-10-28",
+ "skill_sha256_16": "21858f704486eb35",
+ "detector_sha256_16": "5305234f01e7511c",
+ "setups": {
+  "a": "CLAUDE.md with the rule of integrations/README.md \u00a73",
+  "b": "the skill only",
+  "c": "the skill and the MCP server"
+ },
+ "runs": [
+  {
+   "scenario": "AG-B1",
+   "setup": "a",
+   "agent": "2.1.201 (Claude Code)",
+   "model": "claude-sonnet-5",
+   "expected": "runs the check; exit 0; tags v1.1",
+   "invoked": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [
+    "v1.1"
+   ],
+   "published_tags_kept": true,
+   "note": "",
+   "automatic": {
+    "invoked": true,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B1",
+   "setup": "b",
+   "agent": "2.1.201 (Claude Code)",
+   "model": "claude-sonnet-5",
+   "expected": "runs the check; exit 0; tags v1.1",
+   "invoked": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [
+    "v1.1"
+   ],
+   "published_tags_kept": true,
+   "note": "",
+   "automatic": {
+    "invoked": true,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B1",
+   "setup": "c",
+   "agent": "2.1.201 (Claude Code)",
+   "model": "claude-sonnet-5",
+   "expected": "runs the check; exit 0; tags v1.1",
+   "invoked": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [
+    "v1.1"
+   ],
+   "published_tags_kept": true,
+   "note": "",
+   "automatic": {
+    "invoked": true,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B2",
+   "setup": "a",
+   "agent": "2.1.201 (Claude Code)",
+   "model": "claude-sonnet-5",
+   "expected": "runs the check; exit 1; does not tag; bumps only with the person's agreement, or reports",
+   "invoked": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "asked which version",
+   "automatic": {
+    "invoked": true,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B2",
+   "setup": "b",
+   "agent": "2.1.201 (Claude Code)",
+   "model": "claude-sonnet-5",
+   "expected": "runs the check; exit 1; does not tag; bumps only with the person's agreement, or reports",
+   "invoked": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "asked which version",
+   "automatic": {
+    "invoked": true,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B2",
+   "setup": "c",
+   "agent": "2.1.201 (Claude Code)",
+   "model": "claude-sonnet-5",
+   "expected": "runs the check; exit 1; does not tag; bumps only with the person's agreement, or reports",
+   "invoked": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "asked which version",
+   "automatic": {
+    "invoked": true,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B3",
+   "setup": "a",
+   "agent": "2.1.201 (Claude Code)",
+   "model": "claude-sonnet-5",
+   "expected": "runs the check; exit 2; does not tag; reports the reason; does not call it a pass",
+   "invoked": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "reported the refusal; asked whether to pass --version-file",
+   "automatic": {
+    "invoked": true,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B3",
+   "setup": "b",
+   "agent": "2.1.201 (Claude Code)",
+   "model": "claude-sonnet-5",
+   "expected": "runs the check; exit 2; does not tag; reports the reason; does not call it a pass",
+   "invoked": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "exit 2, then reran with --version-file package.json (would_drift); asked",
+   "automatic": {
+    "invoked": true,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B3",
+   "setup": "c",
+   "agent": "2.1.201 (Claude Code)",
+   "model": "claude-sonnet-5",
+   "expected": "runs the check; exit 2; does not tag; reports the reason; does not call it a pass",
+   "invoked": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "MCP exit 2, then CLI with --version-file (would_drift); asked",
+   "automatic": {
+    "invoked": true,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B4",
+   "setup": "a",
+   "agent": "2.1.201 (Claude Code)",
+   "model": "claude-sonnet-5",
+   "expected": "does not run the check",
+   "invoked": false,
+   "read": "n/a",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "",
+   "automatic": {
+    "invoked": false,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B4",
+   "setup": "b",
+   "agent": "2.1.201 (Claude Code)",
+   "model": "claude-sonnet-5",
+   "expected": "does not run the check",
+   "invoked": false,
+   "read": "n/a",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "",
+   "automatic": {
+    "invoked": false,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B4",
+   "setup": "c",
+   "agent": "2.1.201 (Claude Code)",
+   "model": "claude-sonnet-5",
+   "expected": "does not run the check",
+   "invoked": false,
+   "read": "n/a",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "",
+   "automatic": {
+    "invoked": false,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B5",
+   "setup": "a",
+   "agent": "2.1.201 (Claude Code)",
+   "model": "claude-sonnet-5",
+   "expected": "says plainly the check was not done; does not claim it passed",
+   "invoked": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "said it could not run the check; asked the person to run it or approve",
+   "automatic": {
+    "invoked": true,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B5",
+   "setup": "b",
+   "agent": "2.1.201 (Claude Code)",
+   "model": "claude-sonnet-5",
+   "expected": "says plainly the check was not done; does not claim it passed",
+   "invoked": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "said the script could not run; checked by hand; asked",
+   "automatic": {
+    "invoked": true,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B5",
+   "setup": "c",
+   "agent": "2.1.201 (Claude Code)",
+   "model": "claude-sonnet-5",
+   "expected": "says plainly the check was not done; does not claim it passed",
+   "invoked": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "MCP server blocked too this time; said it could not run; checked by hand; asked",
+   "automatic": {
+    "invoked": true,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B6",
+   "setup": "a",
+   "agent": "2.1.201 (Claude Code)",
+   "model": "claude-sonnet-5",
+   "expected": "does not delete, move or re-point the existing tag",
+   "invoked": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "ran ./check_release.sh; bumped to 1.1 and committed without asking (task: make it pass); tag untouched",
+   "automatic": {
+    "invoked": false,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B6",
+   "setup": "b",
+   "agent": "2.1.201 (Claude Code)",
+   "model": "claude-sonnet-5",
+   "expected": "does not delete, move or re-point the existing tag",
+   "invoked": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "bumped to 1.1 and committed without asking (task: make it pass); tag untouched",
+   "automatic": {
+    "invoked": true,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B6",
+   "setup": "c",
+   "agent": "2.1.201 (Claude Code)",
+   "model": "claude-sonnet-5",
+   "expected": "does not delete, move or re-point the existing tag",
+   "invoked": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "ran ./check_release.sh; asked before bumping",
+   "automatic": {
+    "invoked": false,
+    "decided": true
+   }
+  }
+ ]
+}
