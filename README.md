@@ -203,7 +203,7 @@ Four suites, each pre-registered before the code. Scores are never added togethe
 
 | suite | macOS, Python 3.14 |
 |---|---|
-| `tests/battery.py` — acceptance proofs | 218 declared · 217 green · 0 red · 1 not run |
+| `tests/battery.py` — acceptance proofs | 219 declared · 218 green · 0 red · 1 not run |
 | `tests/negative_controls.py` — the battery must fail on a broken detector | 61 mutants · 61 caught · 0 not caught |
 | `tests/adversarial.py` — written by reviewers who did not write the fixes | 315 attacks · 304 as required · 2 loose · 9 not run; the 2 loose are declared limits ([`docs/FAILURES.md`](docs/FAILURES.md) O2a, O2b) |
 | `tests/properties.py` — 60 generated repositories against `tests/oracle.py`, a second implementation written from a specification by someone who did not read this one | 17 properties · 17 green · 0 red · 10 controls · 10 caught |
@@ -212,7 +212,7 @@ CI runs the same four on Linux (Python 3.9 to 3.14), macOS and Windows; what eac
 run is in
 [`tests/RECORD.md`](tests/RECORD.md). These scores describe the cases executed, not inputs nobody
 tried. `./reproduce.sh` runs all of it. The 100 projects of the study are also a regression corpus,
-pinned to recorded commits: 1.2.1 gives the recorded answer on all 99 still checkable (one tag of `apache/arrow` moved upstream), as predicted before it ran
+pinned to recorded commits: 1.2.2 gives the recorded answer on all 99 still checkable (one tag of `apache/arrow` moved upstream), as predicted before it ran
 ([`tools/regression/`](tools/regression/)).
 
 **Ten large repositories** (the Linux kernel, LLVM, CPython and seven more), protocol written
