@@ -56,8 +56,15 @@ The server makes the check available. It does not stop anything: the agent has t
 
 [`skills/closure-drift/SKILL.md`](skills/closure-drift/SKILL.md), in the Agent Skills format: when to
 run the check, the command, what each answer means, and what never to do (move a published tag,
-take exit 2 as a pass). Copy the `closure-drift` folder into your agent's skills folder (for
-Claude Code, `~/.claude/skills/` or `.claude/skills/` in the project). Its description is loaded
+take exit 2 as a pass). With the GitHub CLI (2.92+, skills in preview), for Claude Code, Codex,
+Cursor, Gemini CLI, Copilot and others:
+
+```bash
+gh skill install luizfnsilva/closure_drift closure-drift@v1.2.2 --agent claude-code
+```
+
+Or copy the `closure-drift` folder into your agent's skills folder (for Claude Code,
+`~/.claude/skills/` or `.claude/skills/` in the project). Its description is loaded
 always; the rest only when the agent is about to tag or release.
 
 ## 3. As a rule in the agent's instructions
