@@ -17,6 +17,7 @@ import fnmatch
 import hashlib
 import json
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -2595,6 +2596,29 @@ def pj02(root):
     rc, doc, out, err = run(r, "--version-file", "package.json")
     check(doc is not None and doc.get("verdict") in ("clean", "inconclusive"),
           "no measurement (exit %d): %s" % (rc, (err or out)[:160]))
+
+
+# ---------------------------------------------------------------- §22 — the agent skill
+
+@proof("SK01")
+def sk01(root):
+    skill = HERE.parent / "integrations" / "skills" / "closure-drift" / "SKILL.md"
+    if not (HERE.parent / "integrations").is_dir():
+        raise NotRun("not a checkout of the repository: %s" % HERE.parent)
+    check(skill.is_file(), "no %s" % skill.relative_to(HERE.parent))
+    text = skill.read_text(encoding="utf-8")
+    check(text.startswith("---\n"), "no front matter")
+    head = text.split("\n---", 2)[0]
+    check("\nname: closure-drift" in head, "front matter has no name: closure-drift")
+    desc = [ln for ln in head.splitlines() if ln.startswith("description:")]
+    check(desc and 0 < len(desc[0]) - len("description:") < 1024, "description missing or too long")
+    p = subprocess.run([sys.executable, DETECTOR, "--help"], capture_output=True, text=True)
+    options = set(re.findall(r"--[a-z][a-z-]+", p.stdout))
+    named = set(re.findall(r"(?<![\w-])--[a-z][a-z-]+", text))
+    check(named and named <= options, "options the detector does not have: %s" % sorted(named - options))
+    low = text.lower()
+    check("never" in low and "published tag" in low, "it does not forbid moving or deleting a published tag")
+    check("exit 2" in low and "not a pass" in low, "it does not say exit 2 is not a pass")
 
 # ---------------------------------------------------------------- LG — a version file over the size limit (§17)
 

@@ -1207,3 +1207,17 @@ changes. `docs/LABELS.md` states the rule.
 
 Mutant M61: the private-file line removed (PJ01 red). The detector's verdicts do not change, so
 the regression corpus must give the recorded answer on all 100.
+
+## 22. Added 2026-10-28, before any of it was written — an agent skill
+
+`integrations/skills/closure-drift/SKILL.md`, in the Agent Skills format (front matter `name` and
+`description`, then instructions). It tells an agent when to run the check (before a tag, a
+release, a version bump or a publish; when asked which code a version names), the command (the MCP
+tool `would_tag` or `python3 closure_drift.py --would-tag --json .`), what each answer means, and
+what not to do: never delete or move a published tag to make the check pass, and never treat exit
+2 as a pass. It does not replace the detector, the MCP server or CI; CI stays the barrier. Not a
+deposited file; the detector does not change.
+
+| proof | required | before |
+|---|---|---|
+| SK01 | the file exists; its front matter has `name: closure-drift` and a `description` under 1024 characters; every `--option` it names is an option of the detector; it says not to move or delete a published tag, and that exit 2 is not a pass | no such file: red |
