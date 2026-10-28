@@ -1,3 +1,22 @@
+# Record of the battery runs — closure_drift 1.2.1
+
+Detector 1.2.1: `closure_drift.py`, sha256 `0703760a86d330822fe208d339dc1cc63b03b3456fef91e63deeccbfdb3b322b`. CI run 40615308073 (`51a33ec`).
+
+| platform | CPython | battery | mutants | adversarial | oracle | properties |
+|---|---|---|---|---|---|---|
+| Ubuntu | 3.9, 3.10, 3.11, 3.12, 3.13, 3.14 | 218 · 218 green · 0 red · 0 not run | 61 of 61 | 315 · 304 as required · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 controls |
+| macOS | 3.10, 3.14 | 218 · 217 green · 0 red · 1 not run | 61 of 61 | 315 · 304 · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+| Windows | 3.9, 3.14 | 218 · 213 green · 0 red · 5 not run | 61 of 61 | 315 · 281 · 2 loose · 32 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+
+The 2 loose are ZA02 and ZA04 (`docs/FAILURES.md` O2b, O2a). PJ01 was red on 1.2.0 and is green
+here; PJ02 is the control; M61 turns PJ01 red.
+
+Regression corpus (`tools/regression/`), the same script (run 40604390087,
+`checks/v1.2.1-candidate-0703760a.json`): 99 of 99 checkable match. §21 predicted 100 of 100;
+`apache/arrow` is not checkable, as §12 provides, because its tag `r-universe-release` moved
+upstream after the snapshot. That is the project's tag, not this detector. The benchmark was not
+rerun for 1.2.1.
+
 # Record of the battery runs — closure_drift 1.2.0
 
 Detector 1.2.0: `closure_drift.py`, sha256 `7dd5833ccb6c16bf89d309773411e7a7bc0fcefc95fadc037b96a108dae8e577`. CI run 39717762958 (`ef827b6`).
