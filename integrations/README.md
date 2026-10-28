@@ -29,9 +29,9 @@ VS Code with Copilot (`.vscode/mcp.json`):
   "args": ["--from", "git+https://github.com/luizfnsilva/closure_drift", "closure-drift-mcp"]}}}
 ```
 
-Or the container, in any client: `docker run -i --rm ghcr.io/luizfnsilva/closure_drift:1.2.1`.
+Or the container, in any client: `docker run -i --rm ghcr.io/luizfnsilva/closure_drift:1.2.2`.
 
-Pin a version with `closure_drift@v1.2.1`. Without uv: clone the repository and run
+Pin a version with `closure_drift@v1.2.2`. Without uv: clone the repository and run
 `python3 /path/to/closure_drift/closure_drift_mcp.py`.
 
 Tools: `would_tag` (run before tagging), `check_versions`, `explain_label`, `compare`. Each returns the JSON report and the exit code: 0 clean, 1 drift, 2 not decided, with the reason.
@@ -52,9 +52,17 @@ The exit code of the check travels inside the text, with its meaning; `isError` 
 
 The server makes the check available. It does not stop anything: the agent has to call it and respect the answer. For a barrier, use CI (section 3).
 
-## 2. As a rule in the agent's instructions
+## 2. As a skill
 
-Paste into `AGENTS.md`, `CLAUDE.md`, `.cursorrules` or `.github/copilot-instructions.md`:
+[`skills/closure-drift/SKILL.md`](skills/closure-drift/SKILL.md), in the Agent Skills format: when to
+run the check, the command, what each answer means, and what never to do (move a published tag,
+take exit 2 as a pass). Copy the `closure-drift` folder into your agent's skills folder (for
+Claude Code, `~/.claude/skills/` or `.claude/skills/` in the project). Its description is loaded
+always; the rest only when the agent is about to tag or release.
+
+## 3. As a rule in the agent's instructions
+
+For agents without skills, the short version. Paste into `AGENTS.md`, `CLAUDE.md`, `.cursorrules` or `.github/copilot-instructions.md`:
 
 ```markdown
 ## Releases
@@ -65,7 +73,7 @@ Before creating a version tag or publishing a package:
 4. After tagging, run `python3 closure_drift.py --json .`. Exit 1 means a label names two code states; report the paths from `--explain LABEL`.
 ```
 
-## 3. In CI
+## 4. In CI
 
 The same check gates a pipeline whoever wrote the commit, person or agent: [docs/CI.md](../docs/CI.md).
 

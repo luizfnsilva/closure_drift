@@ -3,6 +3,17 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 1.2.2 — 2026-10-28
+
+An agent skill (`tests/PREREGISTRATION.md` §22). The detector differs from 1.2.1 only in
+`__version__`, so every result is the same.
+
+### Added
+- `integrations/skills/closure-drift/SKILL.md`, in the Agent Skills format: when to run the check
+  (before a tag, a release, a version bump, a publish), the command, what each answer means, and
+  what never to do (move or delete a published tag; take exit 2 as a pass). CI stays the barrier.
+  Proof SK01.
+
 ## 1.2.1 — 2026-10-27
 
 The first third-party results, and a refusal that now says why (`tests/PREREGISTRATION.md` §21).

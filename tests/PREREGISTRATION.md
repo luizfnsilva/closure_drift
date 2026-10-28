@@ -1221,3 +1221,10 @@ deposited file; the detector does not change.
 | proof | required | before |
 |---|---|---|
 | SK01 | the file exists; its front matter has `name: closure-drift` and a `description` under 1024 characters; every `--option` it names is an option of the detector; it says not to move or delete a published tag, and that exit 2 is not a pass | no such file: red |
+
+Amendment, 2026-10-28, after SK01's first run: options on a line that runs another tool (`uvx`,
+`curl`, `pipx`) belong to that tool, and are not checked against the detector. SK01 found
+`--from`, the `uvx` option; nothing else differed.
+
+Shipped as 1.2.2: the detector differs from 1.2.1 only in `__version__`, so the regression corpus
+must give the recorded answer on every repository still checkable.

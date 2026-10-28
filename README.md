@@ -31,14 +31,14 @@ One command checks it. Read-only, one file, no dependencies, no network.
 ## Run it
 
 ```bash
-curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.2.1/closure_drift.py
+curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.2.2/closure_drift.py
 python3 closure_drift.py            # inside any git repository
 ```
 
 That measures your repository. `./reproduce.sh` is something else: it validates closure_drift
 itself (its test suites, a long run) and does not look at your repository.
 
-or `pipx run --spec git+https://github.com/luizfnsilva/closure_drift@v1.2.1 closure-drift`.
+or `pipx run --spec git+https://github.com/luizfnsilva/closure_drift@v1.2.2 closure-drift`.
 Needs Python 3.9+ and git. To see the three possible answers first: `python3 examples/demo.py`, or read [`docs/DEMOS.md`](docs/DEMOS.md).
 
 ## Check before you tag
@@ -49,7 +49,7 @@ Needs Python 3.9+ and git. To see the three possible answers first: `python3 exa
 # GitHub Actions
 - uses: actions/checkout@v4
   with: { fetch-depth: 0 }
-- uses: luizfnsilva/closure_drift@v1.2.1
+- uses: luizfnsilva/closure_drift@v1.2.2
 ```
 
 Push the workflow before the first tag: a tag pushed together with the workflow that should run on
@@ -60,7 +60,7 @@ with `would-tag` from the first tag.
 ```yaml
 # pre-commit, on git push
 - repo: https://github.com/luizfnsilva/closure_drift
-  rev: v1.2.1
+  rev: v1.2.2
   hooks: [{ id: closure-drift-would-tag }]
 ```
 
@@ -77,7 +77,7 @@ An agent that tags and publishes can ask the same question first, through a Mode
 claude mcp add closure-drift -- uvx --from git+https://github.com/luizfnsilva/closure_drift closure-drift-mcp
 ```
 
-Codex CLI, Gemini CLI, Cursor, VS Code, Windsurf, and a rule to paste into `AGENTS.md`, `CLAUDE.md` or `.cursorrules`:
+Codex CLI, Gemini CLI, Cursor, VS Code, Windsurf, an agent skill that says when to run it, and a rule to paste into `AGENTS.md`, `CLAUDE.md` or `.cursorrules`:
 [`integrations/`](integrations/). The server makes the check available; the agent has to call it
 and respect the answer. The barrier is CI.
 
@@ -231,6 +231,7 @@ or write to lfnsilva.invest@gmail.com. A result showing the tool is wrong is the
 
 ## Version
 
+**1.2.2** adds an agent skill ([`integrations/skills/`](integrations/skills/closure-drift/SKILL.md)): when to run the check, how to read the answer, and never to move a published tag; the detector is unchanged.
 **1.2.1** adds the first third-party results to `RESULTS.md`, and the refusal names a `package.json` it skipped because it is marked private.
 **1.2.0** names a version file one level down, says whether a dirty tree touches the closure, and writes UTF-8 when the output is not a terminal (from [issue #12](https://github.com/luizfnsilva/closure_drift/issues/12)).
 **1.1.3** says when to use `--explain` or `--compare`, and `--tags` or `--published`; the detector is unchanged.
