@@ -55,7 +55,8 @@ label names more than one state; `--explain LABEL` lists the paths that differ).
   indexes already point at it. Bump the version instead.
 - Never edit the version file only to silence the check without the person agreeing to that
   version. Changing tags or history needs the person's explicit authorization.
-- Never report "checked" when the exit code was 2.
+- Never report "checked" when the exit code was 2, or when you could not run the check at all
+  (no Python, no script, no tags fetched): say plainly that it was not done.
 
 ## What this skill is not
 
