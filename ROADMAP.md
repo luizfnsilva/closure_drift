@@ -12,6 +12,10 @@ and `go.mod` (O3).
 From `docs/FAILURES.md`, still open: more version sources (O3), each with a proof, when someone
 asks for one; a measurement by someone else in `RESULTS.md` (O9).
 
+Registered, not run: how agents behave with the check — six scenarios, three setups, three
+things recorded apart (invoked, read, decided); `tests/PREREGISTRATION.md` §23. Runs when there is
+budget.
+
 ## Known problems, still open
 
 `docs/FAILURES.md` is the list. Not measured: repositories beyond 190,000 files, Windows at that
