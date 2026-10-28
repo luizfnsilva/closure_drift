@@ -68,7 +68,7 @@ For agents without skills, the short version. Paste into `AGENTS.md`, `CLAUDE.md
 ## Releases
 Before creating a version tag or publishing a package:
 1. Run `python3 closure_drift.py --would-tag --json .` (or the MCP tool `would_tag`).
-2. If the verdict is `would_drift`, do not tag: the version label already names other code. Bump the version in the file that declares it, commit, and run step 1 again.
+2. If the verdict is `would_drift`, do not tag: the version label already names other code. Tell the person and ask which version to use; only then change the version file, commit, and run step 1 again.
 3. If the exit code is 2, do not tag and do not guess: show the reason to the person who asked.
 4. After tagging, run `python3 closure_drift.py --json .`. Exit 1 means a label names two code states; report the paths from `--explain LABEL`.
 ```

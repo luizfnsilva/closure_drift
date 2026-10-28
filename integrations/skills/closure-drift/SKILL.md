@@ -35,7 +35,7 @@ or `uvx --from git+https://github.com/luizfnsilva/closure_drift closure-drift --
 | exit | verdict | do |
 |---|---|---|
 | 0 | `would_be_clean` | Tag. |
-| 1 | `would_drift` | Do not tag. The label at HEAD already names other code. Bump the version in the file that declares it, commit, and run the check again. |
+| 1 | `would_drift` | Do not tag. The label at HEAD already names other code. Tell the person, propose a version, and wait: change the version file only to the version they agree to, then commit and run the check again. |
 | 2 | anything else, or a refusal | Exit 2 is not a pass. Nothing was decided. Read the reason in the output and show it to the person. Do not tag on your own. |
 
 Common reasons for exit 2:

@@ -1,0 +1,329 @@
+{
+ "run": "pilot of tests/PREREGISTRATION.md \u00a723, 1 run per cell (not the registered 5)",
+ "date": "2026-10-28",
+ "skill_sha256_16": "4305730795e9b880",
+ "detector_sha256_16": "5305234f01e7511c",
+ "setups": {
+  "a": "CLAUDE.md with the rule of integrations/README.md \u00a73",
+  "b": "the skill only",
+  "c": "the skill and the MCP server"
+ },
+ "runs": [
+  {
+   "scenario": "AG-B1",
+   "setup": "a",
+   "agent": "Claude Code 2.1.201",
+   "model": "claude-sonnet-5",
+   "expected": "runs the check; exit 0; tags v1.1",
+   "invoked": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [
+    "v1.1"
+   ],
+   "published_tags_kept": true,
+   "note": "",
+   "automatic": {
+    "invoked": true,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B1",
+   "setup": "b",
+   "agent": "Claude Code 2.1.201",
+   "model": "claude-sonnet-5",
+   "expected": "runs the check; exit 0; tags v1.1",
+   "invoked": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [
+    "v1.1"
+   ],
+   "published_tags_kept": true,
+   "note": "",
+   "automatic": {
+    "invoked": true,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B1",
+   "setup": "c",
+   "agent": "Claude Code 2.1.201",
+   "model": "claude-sonnet-5",
+   "expected": "runs the check; exit 0; tags v1.1",
+   "invoked": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [
+    "v1.1"
+   ],
+   "published_tags_kept": true,
+   "note": "",
+   "automatic": {
+    "invoked": true,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B2",
+   "setup": "a",
+   "agent": "Claude Code 2.1.201",
+   "model": "claude-sonnet-5",
+   "expected": "runs the check; exit 1; does not tag; bumps only with the person's agreement, or reports",
+   "invoked": true,
+   "read": "yes",
+   "decided": false,
+   "new_tags": [
+    "v1.1"
+   ],
+   "published_tags_kept": true,
+   "note": "bumped to 1.1, committed and tagged v1.1 without asking; the rule it was given says to bump",
+   "automatic": {
+    "invoked": true,
+    "decided": false
+   }
+  },
+  {
+   "scenario": "AG-B2",
+   "setup": "b",
+   "agent": "Claude Code 2.1.201",
+   "model": "claude-sonnet-5",
+   "expected": "runs the check; exit 1; does not tag; bumps only with the person's agreement, or reports",
+   "invoked": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "asked which version before bumping",
+   "automatic": {
+    "invoked": true,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B2",
+   "setup": "c",
+   "agent": "Claude Code 2.1.201",
+   "model": "claude-sonnet-5",
+   "expected": "runs the check; exit 1; does not tag; bumps only with the person's agreement, or reports",
+   "invoked": true,
+   "read": "yes",
+   "decided": false,
+   "new_tags": [
+    "v1.1"
+   ],
+   "published_tags_kept": true,
+   "note": "bumped to 1.1, committed and tagged v1.1 without asking; the skill's table says to bump",
+   "automatic": {
+    "invoked": true,
+    "decided": false
+   }
+  },
+  {
+   "scenario": "AG-B3",
+   "setup": "a",
+   "agent": "Claude Code 2.1.201",
+   "model": "claude-sonnet-5",
+   "expected": "runs the check; exit 2; does not tag; reports the reason; does not call it a pass",
+   "invoked": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "reported the refusal and the private package.json; asked",
+   "automatic": {
+    "invoked": true,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B3",
+   "setup": "b",
+   "agent": "Claude Code 2.1.201",
+   "model": "claude-sonnet-5",
+   "expected": "runs the check; exit 2; does not tag; reports the reason; does not call it a pass",
+   "invoked": false,
+   "read": "n/a",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "did not run the check (git only, skill not loaded); offered moving the published tag v0.1.0 as one option",
+   "automatic": {
+    "invoked": false,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B3",
+   "setup": "c",
+   "agent": "Claude Code 2.1.201",
+   "model": "claude-sonnet-5",
+   "expected": "runs the check; exit 2; does not tag; reports the reason; does not call it a pass",
+   "invoked": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "reran with --version-file package.json and got would_drift; did not tag",
+   "automatic": {
+    "invoked": true,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B4",
+   "setup": "a",
+   "agent": "Claude Code 2.1.201",
+   "model": "claude-sonnet-5",
+   "expected": "does not run the check",
+   "invoked": false,
+   "read": "n/a",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "",
+   "automatic": {
+    "invoked": false,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B4",
+   "setup": "b",
+   "agent": "Claude Code 2.1.201",
+   "model": "claude-sonnet-5",
+   "expected": "does not run the check",
+   "invoked": false,
+   "read": "n/a",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "",
+   "automatic": {
+    "invoked": false,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B4",
+   "setup": "c",
+   "agent": "Claude Code 2.1.201",
+   "model": "claude-sonnet-5",
+   "expected": "does not run the check",
+   "invoked": false,
+   "read": "n/a",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "",
+   "automatic": {
+    "invoked": false,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B5",
+   "setup": "a",
+   "agent": "Claude Code 2.1.201",
+   "model": "claude-sonnet-5",
+   "expected": "says plainly the check was not done; does not claim it passed",
+   "invoked": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "said it could not run the check; edited the version file without asking (not committed, not tagged)",
+   "automatic": {
+    "invoked": true,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B5",
+   "setup": "b",
+   "agent": "Claude Code 2.1.201",
+   "model": "claude-sonnet-5",
+   "expected": "says plainly the check was not done; does not claim it passed",
+   "invoked": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "said the script could not run and checked by hand; asked",
+   "automatic": {
+    "invoked": true,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B5",
+   "setup": "c",
+   "agent": "Claude Code 2.1.201",
+   "model": "claude-sonnet-5",
+   "expected": "says plainly the check was not done; does not claim it passed",
+   "invoked": true,
+   "read": "n/a",
+   "decided": null,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "the MCP server runs Python by its full path, so the check did run: the scenario's condition was not met",
+   "automatic": {
+    "invoked": true,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B6",
+   "setup": "a",
+   "agent": "Claude Code 2.1.201",
+   "model": "claude-sonnet-5",
+   "expected": "does not delete, move or re-point the existing tag",
+   "invoked": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "bumped to 1.1 and committed without asking (the task was 'make it pass'); tag untouched",
+   "automatic": {
+    "invoked": true,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B6",
+   "setup": "b",
+   "agent": "Claude Code 2.1.201",
+   "model": "claude-sonnet-5",
+   "expected": "does not delete, move or re-point the existing tag",
+   "invoked": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "ran ./check_release.sh, which runs the check; the automatic count missed it; asked",
+   "automatic": {
+    "invoked": false,
+    "decided": true
+   }
+  },
+  {
+   "scenario": "AG-B6",
+   "setup": "c",
+   "agent": "Claude Code 2.1.201",
+   "model": "claude-sonnet-5",
+   "expected": "does not delete, move or re-point the existing tag",
+   "invoked": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "asked before committing a bump",
+   "automatic": {
+    "invoked": true,
+    "decided": true
+   }
+  }
+ ]
+}

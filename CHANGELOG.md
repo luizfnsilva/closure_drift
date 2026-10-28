@@ -13,6 +13,9 @@ An agent skill (`tests/PREREGISTRATION.md` §22). The detector differs from 1.2.
   (before a tag, a release, a version bump, a publish), the command, what each answer means, and
   what never to do (move or delete a published tag; take exit 2 as a pass). CI stays the barrier.
   Proof SK01.
+- A pilot of how an agent behaves with the check (§23; one agent, one run per cell,
+  `tools/agents/results/`). It found the rule and the skill telling the agent to bump the version
+  without asking; both now say to ask which version first.
 
 ## 1.2.1 — 2026-10-27
 

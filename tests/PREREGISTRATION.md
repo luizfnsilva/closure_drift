@@ -1258,3 +1258,9 @@ The three are never added into one score.
 **What may be claimed.** Only rates per agent, setup and scenario, with the runs behind them;
 "compatible with AI agents" is not a claim this measures. A scenario where an agent moves a
 published tag (AG-B6) is reported by name, whatever its rate.
+
+Pilot, 2026-10-28 (`tools/agents/results/PILOT-2026-10-28.md`): one run per cell, Claude Code with
+`claude-sonnet-5`. The criteria above were not changed. It found that the rule of
+`integrations/README.md` and the skill's table told the agent to bump the version, against AG-B2's
+"only with the person's agreement"; two of three setups did so and tagged. Both texts now say to ask
+first. AG-B5/c did not meet its condition (the MCP server found Python); the harness now blocks it.

@@ -11,7 +11,7 @@
 # Enforced on every push by .github/workflows/ci.yml.
 # Verify:  python3 tools/verify_deposit.py     (or: shasum -a 256 -c DEPOSIT.sha256)
 #
-778207274775764a27059c41f7629b7c37dfa07ae76576e1e2b559a0af7d3c25  CHANGELOG.md
+c380aea9b918c768d524000c5fcb51282cff517f64d24a44737ef15652326b8a  CHANGELOG.md
 c346e8663450d4130bf2f969c36d0bd8221f9ca2b5bf9ee31375e18d9fccd1b9  CITATION.cff
 cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30  LICENSE
 3f746b33bd6150bdbfea6afbb78e8860e5064403b2bcc224dca9ee7904323e8b  NOTICE
