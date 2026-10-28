@@ -16,6 +16,9 @@ closure_drift checks that. It is read-only: it runs git reads on the local repos
 - After changing the file that declares the version, before tagging it.
 - When asked "what code is version X?" or "why do two releases with the same version differ?".
 
+Not needed for work that does not create or name a release: editing code, running tests,
+refactoring, a commit without a tag, a branch, a pull request. Do not run it there.
+
 ## How
 
 If the MCP tool `would_tag` is available, call it with the repository path. Otherwise:
@@ -51,7 +54,7 @@ label names more than one state; `--explain LABEL` lists the paths that differ).
 - Never delete, move or re-point a published tag to make the check pass. Other people and package
   indexes already point at it. Bump the version instead.
 - Never edit the version file only to silence the check without the person agreeing to that
-  version.
+  version. Changing tags or history needs the person's explicit authorization.
 - Never report "checked" when the exit code was 2.
 
 ## What this skill is not

@@ -50,6 +50,16 @@ body:
       label: How you invoked it
       description: The exact command, if you passed anything beyond the defaults.
       placeholder: python3 closure_drift.py --at commits --closure 'src/**/*.py'
+  - type: input
+    id: kind
+    attributes:
+      label: Kind of repository
+      description: Optional, in a few words, without naming anything private (e.g. "Node web app, deployed, no tags").
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected, and what got in the way
+      description: Optional. Did the answer match what you know about your releases? Anything that was hard (an option, a refusal, the docs)?
   - type: checkboxes
     id: confirm
     attributes:
