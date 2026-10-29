@@ -2621,6 +2621,61 @@ def sk01(root):
     check("never" in low and "published tag" in low, "it does not forbid moving or deleting a published tag")
     check("exit 2" in low and "not a pass" in low, "it does not say exit 2 is not a pass")
 
+
+# ---------------------------------------------------------------- §24 — 1.3.0
+
+def _next(out):
+    lines = [ln for ln in out.splitlines() if ln.startswith("Next:")]
+    check(len(lines) == 1, "%d Next: lines, required 1" % len(lines))
+    return lines[0].lower()
+
+
+@proof("NX01")
+def nx01(root):
+    r = _reused_label(root, "nx01a")
+    check("do not tag" in _next(run(r, "--would-tag", text=True)[2]), "would_drift: Next does not say not to tag")
+    r = Repo(root, "nx01b")
+    r.release("v1.0", "1.0", {"src/a.py": "1\n"})
+    r.write("pyproject.toml", '[project]\nname = "x"\nversion = "1.1"\n')
+    r.write("src/a.py", "2\n")
+    r.commit()
+    check("tag" in _next(run(r, "--would-tag", text=True)[2]), "would_be_clean: Next does not say to tag")
+    check("--explain" in _next(run(two_tags(root, "nx01c"), text=True)[2]), "drift: Next does not name --explain")
+    r = Repo(root, "nx01d")
+    r.release("v1.0", "1.0", {"src/a.py": "1\n"})
+    check("nothing was decided" in _next(run(r, text=True)[2]), "inconclusive: Next does not say nothing was decided")
+
+
+@proof("NX02")
+def nx02(root):
+    one = Repo(root, "nx02a")
+    one.release("v1.0", "1.0", {"src/a.py": "1\n"})
+    cases = {
+        "inconclusive": (one, []),
+        "incomplete": (_three(root, "nx02b", _big("1.0")), []),
+        "no_labels": (two_tags(root, "nx02c", "1", "2"), ["--version-file", "package.json", "--version-regex", "nomatch-(x+)"]),
+        "empty_closure": (two_tags(root, "nx02d"), ["--closure", "nomatch/**"]),
+        "not_comparable": (two_tags(root, "nx02e"), ["--compare", "v1", "v2", "--version-file", "package.json",
+                                                      "--version-regex", "nomatch-(x+)"]),
+    }
+    for name, (r, args) in cases.items():
+        rc, _d, out, err = run(r, *args, text=True)
+        check(rc == 2, "%s: exit %d, required 2" % (name, rc))
+        check("nothing was decided" in _next(out), "%s: Next does not say nothing was decided" % name)
+
+
+@proof("DOC01")
+def doc01(root):
+    top = HERE.parent
+    if not (top / "README.md").is_file():
+        raise NotRun("not a checkout of the repository")
+    for f in ("docs/EVIDENCE.md", "docs/USABILITY.md"):
+        check((top / f).is_file(), "no %s" % f)
+    readme = (top / "README.md").read_text(encoding="utf-8")
+    first = readme.split("\n## ", 2)[1] if "\n## " in readme else ""
+    for word in ("examples/demo.py", "skills/closure-drift", "docs/CI.md"):
+        check(word in first, "the README's first section does not name %s" % word)
+
 # ---------------------------------------------------------------- LG — a version file over the size limit (§17)
 
 LIMIT = 1 << 20                                        # MAX_BUILD_FILE, §17 amendment 2
