@@ -1,3 +1,20 @@
+# Record of the battery runs — closure_drift 1.2.2
+
+Detector 1.2.2: `closure_drift.py`, sha256 `5305234f01e7511c35265f95b284bd0807daad9e8dfc652f3ed4b6add83eb513`. CI run 40769079207 (`4a5ca88`).
+
+| platform | CPython | battery | mutants | adversarial | oracle | properties |
+|---|---|---|---|---|---|---|
+| Ubuntu | 3.9, 3.10, 3.11, 3.12, 3.13, 3.14 | 219 · 219 green · 0 red · 0 not run | 61 of 61 | 315 · 304 as required · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 controls |
+| macOS | 3.10, 3.14 | 219 · 218 green · 0 red · 1 not run | 61 of 61 | 315 · 304 · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+| Windows | 3.9, 3.14 | 219 · 214 green · 0 red · 5 not run | 61 of 61 | 315 · 281 · 2 loose · 32 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+
+The 2 loose are ZA02 and ZA04 (`docs/FAILURES.md` O2b, O2a). SK01 was red before the skill
+existed. A first matrix (run 40755820505) was cancelled to move the skill to `skills/`.
+
+Regression corpus (`tools/regression/`), the same script (run 40740073828,
+`checks/v1.2.2-candidate-5305234f.json`): 99 of 99 checkable match; `apache/arrow` not
+checkable, as in 1.2.1. The agent pilots of §23: `tools/agents/results/PILOT-2026-10-28.md`.
+
 # Record of the battery runs — closure_drift 1.2.1
 
 Detector 1.2.1: `closure_drift.py`, sha256 `0703760a86d330822fe208d339dc1cc63b03b3456fef91e63deeccbfdb3b322b`. CI run 40615308073 (`51a33ec`).
