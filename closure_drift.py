@@ -32,7 +32,7 @@ import warnings
 from collections import OrderedDict, defaultdict
 from pathlib import Path
 
-__version__ = "1.2.2"
+__version__ = "1.3.0"
 REPORT_FORMAT = 2
 
 # Where a version can be declared. Python build files are read first; a repository that has
@@ -1599,6 +1599,7 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
         print(f"CLEAN: each of the {len(by_label)} labels names exactly one closure at publication.")
         print(f"Your version label identifies your code, over the {compared} points compared.")
 
+    print_next(verdict)
     print_coverage(coverage, a.max_commits, total)
     print_sources(labels)
     print(f"\nBetween publication points the closure changed {churn} time(s). That is development,")
@@ -1681,6 +1682,7 @@ def would_tag(a, closure, head_entries, labels, vpath, by_label, drifting,
     if drifting:
         print(f"\n{len(drifting)} label(s) already in drift in the existing tags. That is history,")
         print("and is not what this answer is about; run without --would-tag to see it.")
+    print_next(verdict)
     print_coverage(coverage, a.max_commits, None)
     print_method(stamp, dirty, dirty_note)
     return code
@@ -1767,6 +1769,7 @@ def compare(a, objects, closure, labels, vpath, include, head_sha) -> int:
         print("it is probably not your version. Pass --version-file with the file that declares it.")
     else:
         print("NOT COMPARABLE: a label or a closure is missing on one side (see above).")
+    print_next(verdict)
     print_method(stamp, dirty, dirty_note)
     return code
 
@@ -1846,6 +1849,25 @@ def print_coverage(c: dict, max_commits: int, total) -> None:
     if c["range_truncated"]:
         print(f"  older points are outside --max-commits {max_commits} and were not scanned"
               + (f" ({total - c['publication_points_scanned']} of them)." if total else "."))
+
+
+NEXT = {   # one line per verdict: what to do now (§24)
+    "clean": "nothing to fix. Before each new tag, run --would-tag.",
+    "drift": "run --explain LABEL to see the paths that differ. A new release needs a new version; "
+             "never move a published tag.",
+    "would_be_clean": "tag this commit.",
+    "would_drift": "do not tag. Agree on a new version, change it in the file that declares it, commit, "
+                   "and run --would-tag again.",
+    "identical": "nothing to fix: the two references hold the same code.",
+    "differs_under_two_labels": "nothing to fix: two labels, two states of the code.",
+    "differs_under_one_label": "if both were published, that label names two things; "
+                               "the next release needs a new version.",
+}
+UNDECIDED = "nothing was decided (exit 2); read the reason above, and do not treat this as a pass."
+
+
+def print_next(verdict: str) -> None:
+    print("\nNext: " + NEXT.get(verdict, UNDECIDED))
 
 
 def print_method(stamp: dict, dirty, dirty_note) -> None:

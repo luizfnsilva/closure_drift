@@ -26,6 +26,8 @@ Tagging this commit would make one label name more than one closure.
 Change the version before you tag. To see what differs:
       --compare v1.0.0 HEAD
 
+Next: do not tag. Agree on a new version, change it in the file that declares it, commit, and run --would-tag again.
+
 Publication points: 1 scanned, 1 compared.
 (exit 1)
 ```
@@ -45,6 +47,8 @@ closure at HEAD   f1c007e78a122ba0
 
 ==============================================================
 WOULD BE CLEAN: no existing tag declares 1.0.1 with different code.
+
+Next: tag this commit.
 
 Publication points: 1 scanned, 1 compared.
 (exit 0)
@@ -78,6 +82,8 @@ An artefact addressed by (input, version) is ambiguous for those labels:
 the same address denotes more than one possible output.
 Run again with --explain LABEL to list the paths that differ.
 
+Next: run --explain LABEL to see the paths that differ. A new release needs a new version; never move a published tag.
+
 Publication points: 2 scanned, 2 compared.
 (exit 1)
 ```
@@ -96,6 +102,8 @@ B  v1.0.1  (commit d237dbf21dbc)
 ==============================================================
 DIFFERS UNDER ONE LABEL: both declare 1.0.0, and the code differs
 in 2 path(s). If both were published, that label names two things.
+
+Next: if both were published, that label names two things; the next release needs a new version.
 (exit 1)
 ```
 
@@ -118,6 +126,8 @@ label                         closures
 ==============================================================
 CLEAN: each of the 2 labels names exactly one closure at publication.
 Your version label identifies your code, over the 2 points compared.
+
+Next: nothing to fix. Before each new tag, run --would-tag.
 
 Publication points: 4 scanned, 2 compared.
   2 declared no version label there and were not compared.
@@ -142,6 +152,8 @@ label                         closures
 INCOMPLETE: no label names more than one closure, but not every publication point
 scanned could be compared with confidence. See the counts below.
 
+Next: nothing was decided (exit 2); read the reason above, and do not treat this as a pass.
+
 Publication points: 4 scanned, 2 compared.
   2 declared no version label there and were not compared.
 (exit 2)
@@ -162,6 +174,8 @@ label                         closures
 
 ==============================================================
 INCONCLUSIVE: only one distinct label across the range scanned.
+
+Next: nothing was decided (exit 2); read the reason above, and do not treat this as a pass.
 
 Publication points: 1 scanned, 1 compared.
 (exit 2)

@@ -28,18 +28,29 @@ address names two artefacts — and nothing notices, because the version is all 
 
 One command checks it. Read-only, one file, no dependencies, no network.
 
-## Run it
+## Three ways in
+
+**Try it now** (recommended first). See the three answers on tiny repositories it builds and
+deletes, then measure yours:
 
 ```bash
-curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.2.2/closure_drift.py
-python3 closure_drift.py            # inside any git repository
+git clone -q https://github.com/luizfnsilva/closure_drift && python3 closure_drift/examples/demo.py
+python3 closure_drift/closure_drift.py /path/to/your/repo
 ```
 
-That measures your repository. `./reproduce.sh` is something else: it validates closure_drift
-itself (its test suites, a long run) and does not look at your repository.
+Or without cloning: `curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.3.0/closure_drift.py`
+then `python3 closure_drift.py` inside any git repository. Needs Python 3.9+ and git. The last
+lines say what to do next. (`./reproduce.sh` is something else: it validates closure_drift itself,
+a long run, and does not look at your repository.)
 
-or `pipx run --spec git+https://github.com/luizfnsilva/closure_drift@v1.2.2 closure-drift`.
-Needs Python 3.9+ and git. To see the three possible answers first: `python3 examples/demo.py`, or read [`docs/DEMOS.md`](docs/DEMOS.md).
+**With your agent.** Install the skill ([`skills/closure-drift/`](skills/closure-drift/SKILL.md)),
+which tells the agent when to check before a tag and how to read the answer:
+`gh skill install luizfnsilva/closure_drift closure-drift --agent claude-code` (or `codex`,
+`cursor`, `gemini-cli`, `github-copilot`, …). In Claude Code, skill and MCP server together:
+`/plugin marketplace add luizfnsilva/closure_drift`. Other clients: [`integrations/`](integrations/).
+
+**In CI**, the barrier that holds when nobody remembers to check: [`docs/CI.md`](docs/CI.md).
+Exit 0 pass, 1 drift, 2 nothing decided (a failure by default).
 
 ## Check before you tag
 
@@ -49,7 +60,7 @@ Needs Python 3.9+ and git. To see the three possible answers first: `python3 exa
 # GitHub Actions
 - uses: actions/checkout@v4
   with: { fetch-depth: 0 }
-- uses: luizfnsilva/closure_drift@v1.2.2
+- uses: luizfnsilva/closure_drift@v1.3.0
 ```
 
 Push the workflow before the first tag: a tag pushed together with the workflow that should run on
@@ -60,7 +71,7 @@ with `would-tag` from the first tag.
 ```yaml
 # pre-commit, on git push
 - repo: https://github.com/luizfnsilva/closure_drift
-  rev: v1.2.2
+  rev: v1.3.0
   hooks: [{ id: closure-drift-would-tag }]
 ```
 
@@ -231,6 +242,7 @@ or write to lfnsilva.invest@gmail.com. A result showing the tool is wrong is the
 
 ## Version
 
+**1.3.0** opens the README with three ways in, ends every text report with a `Next:` line, and adds [`docs/EVIDENCE.md`](docs/EVIDENCE.md) and a usability protocol; the verdicts are unchanged.
 **1.2.2** adds an agent skill ([`skills/closure-drift/`](skills/closure-drift/SKILL.md)): when to run the check, how to read the answer, and never to move a published tag; the detector is unchanged.
 **1.2.1** adds the first third-party results to `RESULTS.md`, and the refusal names a `package.json` it skipped because it is marked private.
 **1.2.0** names a version file one level down, says whether a dirty tree touches the closure, and writes UTF-8 when the output is not a terminal (from [issue #12](https://github.com/luizfnsilva/closure_drift/issues/12)).

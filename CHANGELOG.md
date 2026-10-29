@@ -3,6 +3,31 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 1.3.0 — 2026-10-29
+
+Easier to try, clearer about what to do next, plainer about the evidence
+(`tests/PREREGISTRATION.md` §24). No verdict or exit code changes.
+
+### Added
+- Every text report ends its verdict with one `Next:` line: tag, do not tag, read the reason, or
+  measure again. Every exit-2 verdict's line says that nothing was decided. JSON is unchanged.
+  Proofs NX01, NX02; mutant M62.
+- `docs/EVIDENCE.md`: the exploratory corpus (incidence, not accuracy) and the reference suites
+  (right answers written first) kept apart, with what each may be cited for.
+- `docs/USABILITY.md`: a protocol for people who have never seen the tool. Registered, not run.
+
+### Changed
+- README opens with three ways in: try it now (with `examples/demo.py`), with your agent (the
+  skill, the plugin), in CI. Proof DOC01.
+- The skill: asked to "make the check pass", propose a version and ask.
+- The agent pilot records a fourth stage, *executed* (the check ran and returned a report).
+
+### Corrected
+- 1.2.2's agent report said that after the fix all three setups asked (AG-B2). In setup a the
+  harness still used its own copy of the old rule; that run was not a test of the fix. The harness
+  now reads the rule from `integrations/README.md`, and setup a was run again
+  (`tools/agents/results/PILOT-2026-10-28.md`).
+
 ## 1.2.2 — 2026-10-28
 
 An agent skill (`tests/PREREGISTRATION.md` §22). The detector differs from 1.2.1 only in

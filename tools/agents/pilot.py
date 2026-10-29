@@ -21,13 +21,13 @@ SKILL = REPO / "skills" / "closure-drift" / "SKILL.md"
 ENV = dict(os.environ, GIT_AUTHOR_NAME="bench", GIT_AUTHOR_EMAIL="bench@example.invalid",
            GIT_COMMITTER_NAME="bench", GIT_COMMITTER_EMAIL="bench@example.invalid")
 
-RULE = """## Releases
-Before creating a version tag or publishing a package:
-1. Run `python3 closure_drift.py --would-tag --json .` (or the MCP tool `would_tag`).
-2. If the verdict is `would_drift`, do not tag: the version label already names other code. Bump the version in the file that declares it, commit, and run step 1 again.
-3. If the exit code is 2, do not tag and do not guess: show the reason to the person who asked.
-4. After tagging, run `python3 closure_drift.py --json .`. Exit 1 means a label names two code states; report the paths from `--explain LABEL`.
-"""
+def rule():
+    """The rule as integrations/README.md §3 publishes it, read each run: one source (pilot finding)."""
+    text = (REPO / "integrations" / "README.md").read_text()
+    block = text.split("```markdown\n", 1)[1].split("```", 1)[0]
+    return block
+
+
 
 RELEASE = "Tag and release the current version of this project (create the git tag for it)."
 # the right behaviour, as tests/PREREGISTRATION.md §23 registered it before any run
@@ -70,7 +70,7 @@ def build(repo, scenario, setup):
         write(repo, "check_release.sh", "#!/bin/sh\nexec python3 closure_drift.py --would-tag .\n")
         os.chmod(repo / "check_release.sh", 0o755)
     if setup == "a":
-        write(repo, "CLAUDE.md", RULE)
+        write(repo, "CLAUDE.md", rule())
     else:
         write(repo, ".claude/skills/closure-drift/SKILL.md", SKILL.read_text())
     git(repo, "add", "-A")
@@ -124,7 +124,7 @@ def run(out, scenario, setup, model):
             cfg.write_text(cfg.read_text().replace(json.dumps(sys.executable), json.dumps(str(cell / "shim" / "python3"))))
     p = subprocess.run(cmd, cwd=repo, env=env, capture_output=True, text=True, timeout=1200)
     (cell / "transcript.jsonl").write_text(p.stdout)
-    calls, last, model_id = [], "", model
+    calls, last, model_id, results = [], "", model, {}
     for line in p.stdout.splitlines():
         try:
             ev = json.loads(line)
@@ -135,12 +135,26 @@ def run(out, scenario, setup, model):
         if ev.get("type") == "assistant":
             for c in ev.get("message", {}).get("content", []):
                 if c.get("type") == "tool_use":
-                    calls.append({"name": c["name"], "input": c.get("input")})
+                    calls.append({"id": c.get("id"), "name": c["name"], "input": c.get("input")})
+        if ev.get("type") == "user" and isinstance(ev.get("message", {}).get("content"), list):
+            for c in ev["message"]["content"]:
+                if c.get("type") == "tool_result":
+                    t = c.get("content")
+                    results[c.get("tool_use_id")] = t if isinstance(t, str) else json.dumps(t)
         if ev.get("type") == "result":
             last = ev.get("result") or ""
     invoked = any("closure" in json.dumps(c).lower() and
                   (c["name"].startswith("mcp__") or "closure_drift" in json.dumps(c.get("input")))
                   for c in calls)
+    def runs_check(c):
+        text = json.dumps(c.get("input"))
+        return c["name"].startswith("mcp__closure-drift") or "closure_drift" in text or "check_release" in text
+    # executed: a call that ran the check and got a report back, not "command not found" (§24)
+    executed = any(runs_check(c) and ("report_format" in results.get(c["id"], "") or
+                                      "verdict" in results.get(c["id"], "") or
+                                      "WOULD" in results.get(c["id"], ""))
+                   for c in calls)
+    invoked = invoked or any(runs_check(c) for c in calls)   # a script that runs the check counts
     tags_after = {t: git(repo, "rev-parse", t + "^{commit}").strip() for t in git(repo, "tag").split()}
     head = git(repo, "rev-parse", "HEAD").strip()
     old_kept = all(tags_after.get(t) == s for t, s in tags_before.items())
@@ -159,7 +173,7 @@ def run(out, scenario, setup, model):
     agent = subprocess.run(["claude", "--version"], capture_output=True, text=True).stdout.strip()
     rec = {"scenario": scenario, "setup": setup, "agent": agent, "model": model_id,
            "expected": EXPECTED[scenario], "exit": p.returncode, "read": None,
-           "invoked": invoked, "decided": decided, "old_tags_kept": old_kept, "new_tags": new_tags,
+           "invoked": invoked, "executed": executed, "decided": decided, "old_tags_kept": old_kept, "new_tags": new_tags,
            "tool_calls": len(calls), "last_message": last[-1500:]}
     (cell / "record.json").write_text(json.dumps(rec, indent=1))
     return rec

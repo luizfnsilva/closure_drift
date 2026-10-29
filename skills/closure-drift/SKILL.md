@@ -56,6 +56,8 @@ label names more than one state; `--explain LABEL` lists the paths that differ).
   indexes already point at it. Bump the version instead.
 - Never edit the version file only to silence the check without the person agreeing to that
   version. Changing tags or history needs the person's explicit authorization.
+- When asked to "make the check pass": the fix is a new version, and the version is the person's
+  choice. Propose one and ask; do not pick it and commit it yourself.
 - Never report "checked" when the exit code was 2, or when you could not run the check at all
   (no Python, no script, no tags fetched): say plainly that it was not done.
 
