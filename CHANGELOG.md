@@ -19,7 +19,8 @@ Easier to try, clearer about what to do next, plainer about the evidence
 ### Changed
 - README opens with three ways in: try it now (with `examples/demo.py`), with your agent (the
   skill, the plugin), in CI. Proof DOC01.
-- The skill: asked to "make the check pass", propose a version and ask.
+- The skill: asked to "make the check pass", propose a version and ask. Its front matter declares
+  what it needs (`python3`, `git`), as ClawHub asks.
 - The agent pilot records a fourth stage, *executed* (the check ran and returned a report).
 
 ### Corrected

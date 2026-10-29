@@ -1,6 +1,12 @@
 ---
 name: closure-drift
 license: Apache-2.0
+metadata:
+  openclaw:
+    requires:
+      bins:
+        - python3
+        - git
 description: Use before creating a git tag, cutting a release, bumping a version, or publishing a package (PyPI, npm, crates, a deploy), and when asked which code a version number names. Checks that the version label does not already name different code in the repository's tags.
 ---
 

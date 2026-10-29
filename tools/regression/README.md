@@ -16,6 +16,7 @@ The 100 repositories of `tools/study/`, each pinned to a recorded HEAD and set o
 | `checks/v1.2.0-candidate-7dd5833c.json` | the 1.2.0 script | 100 of 100 match, as predicted (§20) |
 | `checks/v1.2.1-candidate-0703760a.json` | the 1.2.1 script | 99 of 99 checkable match, as predicted (§21); `apache/arrow` not checkable: its tag `r-universe-release` moved upstream |
 | `checks/v1.2.2-candidate-5305234f.json` | the 1.2.2 script | 99 of 99 checkable match (§22); `apache/arrow` not checkable |
+| `checks/v1.3.0-candidate-b724d56c.json` | the 1.3.0 script | 99 of 99 checkable match, as predicted (§24); `apache/arrow` not checkable |
 
 Run it: push a branch named `regression-check/<anything>` (this branch's detector) or
 `regression-check-<tag>/<anything>` (that tag's), then
