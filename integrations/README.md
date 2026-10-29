@@ -63,6 +63,13 @@ Cursor, Gemini CLI, Copilot and others:
 gh skill install luizfnsilva/closure_drift closure-drift@v1.2.2 --agent claude-code
 ```
 
+In Claude Code, the skill and the MCP server together, as a plugin:
+
+```
+/plugin marketplace add luizfnsilva/closure_drift
+/plugin install closure-drift@closure-drift
+```
+
 Or copy the `closure-drift` folder into your agent's skills folder (for Claude Code,
 `~/.claude/skills/` or `.claude/skills/` in the project). Its description is loaded
 always; the rest only when the agent is about to tag or release.

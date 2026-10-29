@@ -1,0 +1,14 @@
+{
+  "name": "closure-drift",
+  "description": "closure_drift: check that a version label names one state of the code, before you tag.",
+  "owner": {
+    "name": "Luiz F. Nunes da Silva"
+  },
+  "plugins": [
+    {
+      "name": "closure-drift",
+      "source": "./",
+      "description": "Check a version label before you tag: a skill and an MCP server. Read-only, no network."
+    }
+  ]
+}

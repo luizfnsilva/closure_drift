@@ -1,0 +1,16 @@
+{
+  "name": "closure-drift",
+  "version": "1.2.2",
+  "description": "Before a tag or release: does this version label already name different code in the git tags? A skill that says when to check and how to read the answer, and an MCP server with the check. Read-only, no network.",
+  "author": {"name": "Luiz F. Nunes da Silva"},
+  "homepage": "https://github.com/luizfnsilva/closure_drift",
+  "repository": "https://github.com/luizfnsilva/closure_drift",
+  "license": "Apache-2.0",
+  "keywords": ["release", "versioning", "git-tags", "release-verification", "mcp", "agent-skills"],
+  "mcpServers": {
+    "closure-drift": {
+      "command": "python3",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/closure_drift_mcp.py"]
+    }
+  }
+}
