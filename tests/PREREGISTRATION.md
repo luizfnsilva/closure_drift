@@ -1272,3 +1272,36 @@ version without asking; no tag was touched in either round. Results in the same 
 Amendment, 2026-10-28, before release: the skill moves to `skills/closure-drift/SKILL.md`, the path
 `gh skill` and skill directories look in (`skills/*/SKILL.md`). Its text and SK01's requirements are
 unchanged; SK01 reads the new path.
+
+## 24. Added 2026-10-29, before any of it was written — 1.3.0
+
+**Easier to try, clearer about what to do next, and plainer about what the evidence is.** No verdict
+or exit code changes.
+
+1. **README: three ways in, at the top.** *Try it now* (one command, and `examples/demo.py`, which
+   builds the three answers: clean, drift, inconclusive), *with your agent* (the skill, the plugin,
+   the MCP server), *in CI* (the gate, with the exit codes). One recommendation each.
+2. **A `Next:` line** at the end of the verdict block of every text report (scan, `--would-tag`,
+   `--compare`), one per verdict, saying what to do: tag, do not tag, read the reason, measure
+   again. Every exit-2 verdict's line says that nothing was decided. JSON is unchanged.
+3. **`docs/EVIDENCE.md`**: the two bodies of evidence kept apart and what each may be cited for.
+   The *exploratory* corpus (100 real repositories) measures incidence and coverage; it is not a
+   measure of accuracy, since its answers are the tool's own. The *reference* suites (battery,
+   adversarial cases, oracle, mutants) have their right answer written before the run; they are
+   what a claim of correctness rests on, and only for the cases they contain.
+4. **`docs/USABILITY.md`**: a protocol for people who have never seen the tool. Three tasks
+   (install and run; read a drift; handle an incomplete answer), four numbers (time, finished
+   without help, misreadings, documentation looked up). Registered, not run.
+5. **§23 records a fourth stage**, *executed*: the right command or tool, apart from *invoked*.
+6. **The skill, on AG-B6** (left open by the pilots): when asked to make a failing check pass, the
+   fix is a new version, and the version is the person's choice: ask. AG-B6 is run again, one run
+   per setup, with the same criterion.
+
+| proof | required | on 1.2.2 |
+|---|---|---|
+| NX01 | text reports: `would_drift` has a `Next:` line saying not to tag; `would_be_clean` one saying to tag; `drift` one naming `--explain`; `inconclusive` one saying nothing was decided | no `Next:` line: red |
+| NX02 | every exit-2 text report among `inconclusive`, `incomplete`, `no_labels`, `empty_closure`, `not_comparable` has a `Next:` line containing "nothing was decided" | red, as above |
+| DOC01 | `docs/EVIDENCE.md` and `docs/USABILITY.md` exist; the README's first section names `examples/demo.py`, the skill and `docs/CI.md` | red |
+
+Mutant M62: the `Next:` line of `would_drift` removed (NX01 red). The regression corpus must give
+the recorded answer on every repository still checkable.
