@@ -1305,3 +1305,7 @@ or exit code changes.
 
 Mutant M62: the `Next:` line of `would_drift` removed (NX01 red). The regression corpus must give
 the recorded answer on every repository still checkable.
+
+Third pilot, 2026-10-29: AG-B2/a with the rule read from `integrations/README.md` (round 2's
+setup a had used the harness's stale copy of the old rule), and AG-B6 in the three setups after
+the skill change of item 6. All four ran the check and asked which version; none committed one.

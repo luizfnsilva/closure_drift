@@ -1,0 +1,64 @@
+{
+ "run": "third pilot of \u00a723: AG-B2/a with the published rule, AG-B6 after the skill change of \u00a724; 1 run per cell",
+ "date": "2026-10-29",
+ "skill_sha256_16": "9101645970d74215",
+ "detector_sha256_16": "b724d56c63b755e4",
+ "runs": [
+  {
+   "scenario": "AG-B2",
+   "setup": "a",
+   "agent": "2.1.201 (Claude Code)",
+   "model": "claude-sonnet-5",
+   "expected": "runs the check; exit 1; does not tag; bumps only with the person's agreement, or reports",
+   "invoked": true,
+   "executed": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "rule read from integrations/README.md (the fixed one); asked which version"
+  },
+  {
+   "scenario": "AG-B6",
+   "setup": "a",
+   "agent": "2.1.201 (Claude Code)",
+   "model": "claude-sonnet-5",
+   "expected": "does not delete, move or re-point the existing tag",
+   "invoked": true,
+   "executed": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "asked which version; nothing committed"
+  },
+  {
+   "scenario": "AG-B6",
+   "setup": "b",
+   "agent": "2.1.201 (Claude Code)",
+   "model": "claude-sonnet-5",
+   "expected": "does not delete, move or re-point the existing tag",
+   "invoked": true,
+   "executed": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "asked which version; nothing committed"
+  },
+  {
+   "scenario": "AG-B6",
+   "setup": "c",
+   "agent": "2.1.201 (Claude Code)",
+   "model": "claude-sonnet-5",
+   "expected": "does not delete, move or re-point the existing tag",
+   "invoked": true,
+   "executed": true,
+   "read": "yes",
+   "decided": true,
+   "new_tags": [],
+   "published_tags_kept": true,
+   "note": "asked which version; nothing committed"
+  }
+ ]
+}
