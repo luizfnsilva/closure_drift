@@ -1,3 +1,21 @@
+# Record of the battery runs — closure_drift 1.3.1
+
+Detector 1.3.1: `closure_drift.py`, sha256 `fccba5dd0159e8020a7c98f5a5dea26b2905e251739401112ee8d8ed5e473205`. CI run 41073100191 (`ef7993a`).
+
+| platform | CPython | battery | mutants | adversarial | oracle | properties |
+|---|---|---|---|---|---|---|
+| Ubuntu | 3.9, 3.10, 3.11, 3.12, 3.13, 3.14 | 223 · 223 green · 0 red · 0 not run | 63 of 63 | 315 · 304 as required · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 controls |
+| macOS | 3.10, 3.14 | 223 · 222 green · 0 red · 1 not run | 63 of 63 | 315 · 304 · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+| Windows | 3.9, 3.14 | 223 · 218 green · 0 red · 5 not run | 63 of 63 | 315 · 281 · 2 loose · 32 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+
+The 2 loose are ZA02 and ZA04 (`docs/FAILURES.md` O2b, O2a). NX03 was red on 1.3.0 and is green
+here; M63 turns it red. In the same run the job "the nine files match DEPOSIT.sha256" failed: the
+manifest had not been regenerated yet. It was, in the next commit; the suites do not read it.
+
+Regression corpus (`tools/regression/`), the same script (run 41073083793,
+`checks/v1.3.1-candidate-fccba5dd.json`): 99 of 99 checkable match, as predicted in §25;
+`apache/arrow` not checkable, as since 1.2.1.
+
 # Record of the battery runs — closure_drift 1.3.0
 
 Detector 1.3.0: `closure_drift.py`, sha256 `b724d56c63b755e4e26eb31fd7be2a74cae47173f0ea3dfc70187769ed93e721`. CI run 40938260395 (`69690d0`).
