@@ -1309,3 +1309,27 @@ the recorded answer on every repository still checkable.
 Third pilot, 2026-10-29: AG-B2/a with the rule read from `integrations/README.md` (round 2's
 setup a had used the harness's stale copy of the old rule), and AG-B6 in the three setups after
 the skill change of item 6. All four ran the check and asked which version; none committed one.
+
+## 25. Added 2026-10-30, before any of it was written — 1.3.1
+
+**`--would-tag` on a project that takes its version from the tag** (setuptools_scm, hatch-vcs and
+the rest of rule 2 in `docs/LABELS.md`). Reported by plugandship on TabNews: the report explained
+that the label will be the tag, and then its `Next:` line said "nothing was decided", which reads
+as if the tool had not understood the project. The verdict (`no_label_at_head`) and the exit (2)
+do not change: the tag does not exist yet, so the check cannot see the label. What changes is the
+text.
+
+1. The verdict block says where drift can still come from in such a project: a tag name reused or
+   moved, or two names that give the same label (`v1.0` and `1.0`) on different code. It lists the
+   labels the existing tags already use (up to 10).
+2. Its `Next:` line is its own: give the new tag a name no existing tag uses, never move a
+   published tag, and exit 2 is not a pass, because the tag is not there yet to check. This
+   amends §24 item 2 for this one case: the line still says the answer is not a pass, without
+   "nothing was decided".
+
+| proof | required | on 1.3.0 |
+|---|---|---|
+| NX03 | hatch-vcs project, tag `v1.0`, new code: `--would-tag` exits 2; the text names `v1.0 and 1.0`; it lists `1.0` as in use; its `Next:` line says "not a pass" and "never move", and not "nothing was decided" | the line says "nothing was decided": red |
+
+Mutant M63: the line of this case removed, so it falls back to the generic one (NX03 red). The
+regression corpus must give the recorded answer on every repository still checkable.
