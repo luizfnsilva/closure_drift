@@ -32,7 +32,7 @@ import warnings
 from collections import OrderedDict, defaultdict
 from pathlib import Path
 
-__version__ = "1.3.0"
+__version__ = "1.3.1"
 REPORT_FORMAT = 2
 
 # Where a version can be declared. Python build files are read first; a repository that has
@@ -1670,6 +1670,11 @@ def would_tag(a, closure, head_entries, labels, vpath, by_label, drifting,
     elif verdict == "no_label_at_head" and vpath == TAG_SOURCE:
         print("NO LABEL AT HEAD: this project derives its version from the tag, so the label will be")
         print("the tag you create. There is no version file to check before tagging.")
+        print("Drift can still come from the tag name: one reused or moved, or two names that give")
+        print("the same label (v1.0 and 1.0) on different code.")
+        used = sorted(by_label)
+        print("Labels in use: " + (", ".join(printable(x) for x in used[:10]) + (" ..." if len(used) > 10 else "")
+                                   if used else "(none)"))
     elif verdict == "incomplete" and labels.sources.too_large:
         print(f"INCOMPLETE: "
               f"{', '.join(printable(p) for p in sorted(labels.sources.too_large))} is larger than "
@@ -1682,7 +1687,7 @@ def would_tag(a, closure, head_entries, labels, vpath, by_label, drifting,
     if drifting:
         print(f"\n{len(drifting)} label(s) already in drift in the existing tags. That is history,")
         print("and is not what this answer is about; run without --would-tag to see it.")
-    print_next(verdict)
+    print_next(TAG_NEXT if verdict == "no_label_at_head" and vpath == TAG_SOURCE and not rejected else verdict)
     print_coverage(coverage, a.max_commits, None)
     print_method(stamp, dirty, dirty_note)
     return code
@@ -1863,6 +1868,9 @@ NEXT = {   # one line per verdict: what to do now (§24)
     "differs_under_one_label": "if both were published, that label names two things; "
                                "the next release needs a new version.",
 }
+TAG_NEXT = "tag_source"   # --would-tag where the version comes from the tag (§25)
+NEXT[TAG_NEXT] = ("give the new tag a name no existing tag uses, and never move a published tag. "
+                  "Exit 2 is not a pass: the tag is not there yet to check.")
 UNDECIDED = "nothing was decided (exit 2); read the reason above, and do not treat this as a pass."
 
 

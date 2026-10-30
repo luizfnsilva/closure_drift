@@ -29,9 +29,9 @@ VS Code with Copilot (`.vscode/mcp.json`):
   "args": ["--from", "git+https://github.com/luizfnsilva/closure_drift", "closure-drift-mcp"]}}}
 ```
 
-Or the container, in any client: `docker run -i --rm ghcr.io/luizfnsilva/closure_drift:1.3.0`.
+Or the container, in any client: `docker run -i --rm ghcr.io/luizfnsilva/closure_drift:1.3.1`.
 
-Pin a version with `closure_drift@v1.3.0`. Without uv: clone the repository and run
+Pin a version with `closure_drift@v1.3.1`. Without uv: clone the repository and run
 `python3 /path/to/closure_drift/closure_drift_mcp.py`.
 
 Tools: `would_tag` (run before tagging), `check_versions`, `explain_label`, `compare`. Each returns the JSON report and the exit code: 0 clean, 1 drift, 2 not decided, with the reason.
@@ -60,7 +60,7 @@ take exit 2 as a pass). With the GitHub CLI (2.92+, skills in preview), for Clau
 Cursor, Gemini CLI, Copilot and others:
 
 ```bash
-gh skill install luizfnsilva/closure_drift closure-drift@v1.3.0 --agent claude-code
+gh skill install luizfnsilva/closure_drift closure-drift@v1.3.1 --agent claude-code
 ```
 
 In Claude Code, the skill and the MCP server together, as a plugin:

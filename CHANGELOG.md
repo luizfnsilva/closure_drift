@@ -3,6 +3,19 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 1.3.1 — 2026-10-30
+
+`--would-tag` on a project that takes its version from the tag (setuptools_scm, hatch-vcs and the
+others in `docs/LABELS.md` rule 2). Reported by plugandship on TabNews. Verdict and exit code
+unchanged (`tests/PREREGISTRATION.md` §25).
+
+### Changed
+- The report said the label will be the tag, and then its `Next:` line said "nothing was
+  decided". It now says where drift can still come from (a tag name reused or moved, or `v1.0`
+  and `1.0` on different code), lists the labels already in use, and its `Next:` line says to
+  give the new tag an unused name and never move a published one. Exit 2 is still not a pass:
+  the tag is not there yet to check. Proof NX03; mutant M63.
+
 ## 1.3.0 — 2026-10-29
 
 Easier to try, clearer about what to do next, plainer about the evidence

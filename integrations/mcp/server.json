@@ -4,11 +4,11 @@
   "title": "closure_drift",
   "description": "Before an agent tags a release: does that version label already name different code in the git tags?",
   "repository": {"url": "https://github.com/luizfnsilva/closure_drift", "source": "github"},
-  "version": "1.3.0",
+  "version": "1.3.1",
   "packages": [
     {
       "registryType": "oci",
-      "identifier": "ghcr.io/luizfnsilva/closure_drift:1.3.0",
+      "identifier": "ghcr.io/luizfnsilva/closure_drift:1.3.1",
       "transport": {"type": "stdio"}
     }
   ]

@@ -2664,6 +2664,26 @@ def nx02(root):
         check("nothing was decided" in _next(out), "%s: Next does not say nothing was decided" % name)
 
 
+@proof("NX03")
+def nx03(root):
+    r = Repo(root, "nx03")
+    r.write("pyproject.toml", '[build-system]\nrequires = ["hatchling", "hatch-vcs"]\n'
+            'build-backend = "hatchling.build"\n[project]\nname = "x"\ndynamic = ["version"]\n'
+            '[tool.hatch.version]\nsource = "vcs"\n')
+    r.write("src/a.py", "1\n")
+    r.commit()
+    r.tag("v1.0")
+    r.write("src/a.py", "2\n")
+    r.commit()
+    rc, _d, out, _e = run(r, "--would-tag", text=True)
+    check(rc == 2, "exit %d, required 2" % rc)
+    check("v1.0 and 1.0" in out, "it does not say two names can give the same label")
+    check("in use" in out.lower() and "1.0" in out.split("in use", 1)[-1][:80], "it does not list the labels in use")
+    nxt = _next(out)
+    check("not a pass" in nxt and "never move" in nxt, "Next does not say not a pass and never move")
+    check("nothing was decided" not in nxt, "Next still says nothing was decided")
+
+
 @proof("DOC01")
 def doc01(root):
     top = HERE.parent

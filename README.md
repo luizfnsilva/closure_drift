@@ -38,7 +38,7 @@ git clone -q https://github.com/luizfnsilva/closure_drift && python3 closure_dri
 python3 closure_drift/closure_drift.py /path/to/your/repo
 ```
 
-Or without cloning: `curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.3.0/closure_drift.py`
+Or without cloning: `curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.3.1/closure_drift.py`
 then `python3 closure_drift.py` inside any git repository. Needs Python 3.9+ and git. The last
 lines say what to do next. (`./reproduce.sh` is something else: it validates closure_drift itself,
 a long run, and does not look at your repository.)
@@ -60,7 +60,7 @@ Exit 0 pass, 1 drift, 2 nothing decided (a failure by default).
 # GitHub Actions
 - uses: actions/checkout@v4
   with: { fetch-depth: 0 }
-- uses: luizfnsilva/closure_drift@v1.3.0
+- uses: luizfnsilva/closure_drift@v1.3.1
 ```
 
 Push the workflow before the first tag: a tag pushed together with the workflow that should run on
@@ -71,7 +71,7 @@ with `would-tag` from the first tag.
 ```yaml
 # pre-commit, on git push
 - repo: https://github.com/luizfnsilva/closure_drift
-  rev: v1.3.0
+  rev: v1.3.1
   hooks: [{ id: closure-drift-would-tag }]
 ```
 
@@ -242,6 +242,7 @@ or write to lfnsilva.invest@gmail.com. A result showing the tool is wrong is the
 
 ## Version
 
+**1.3.1** fixes the last line of `--would-tag` on projects that take the version from the tag (setuptools_scm, hatch-vcs), reported on TabNews.
 **1.3.0** opens the README with three ways in, ends every text report with a `Next:` line, and adds [`docs/EVIDENCE.md`](docs/EVIDENCE.md) and a usability protocol; the verdicts are unchanged.
 **1.2.2** adds an agent skill ([`skills/closure-drift/`](skills/closure-drift/SKILL.md)): when to run the check, how to read the answer, and never to move a published tag; the detector is unchanged.
 **1.2.1** adds the first third-party results to `RESULTS.md`, and the refusal names a `package.json` it skipped because it is marked private.
