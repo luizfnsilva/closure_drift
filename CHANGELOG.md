@@ -3,6 +3,17 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 1.3.2 — 2026-11-02
+
+Two limits that were only in the README are now in the report (`tests/PREREGISTRATION.md` §26).
+Verdicts, exit codes and JSON unchanged.
+
+### Changed
+- Under `closure`, a `never in it` line names the folders and files that are never part of a
+  closure, and says `--closure` does not change that.
+- When `1.0` and `1.0.0` (or `v1` and `1.0`) cover different code, the text report says they are
+  counted as two labels and names `--label-equality version`.
+
 ## 1.3.1 — 2026-10-30
 
 `--would-tag` on a project that takes its version from the tag (setuptools_scm, hatch-vcs and the

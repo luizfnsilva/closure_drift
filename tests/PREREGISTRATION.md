@@ -1333,3 +1333,26 @@ text.
 
 Mutant M63: the line of this case removed, so it falls back to the generic one (NX03 red). The
 regression corpus must give the recorded answer on every repository still checkable.
+
+## 26. Added 2026-11-02, before any of it was written — 1.3.2
+
+**Two things the report knew and did not say.** An outside review (a reader running an LLM over the
+README) listed three limits: it does not check that the build reproduces; tests, docs and vendored
+folders are never in the closure; `1.0` and `1.0.0` are two labels unless `--label-equality version`.
+The first is scope (`SCOPE.md` (B)) and does not change. The other two are in the README's Limits,
+and not in the report, where the person who needs them is looking. No verdict, exit code, verdict
+name or JSON field changes.
+
+1. Every text report names, under `closure`, what is never in it: the folders and file names of
+   the fixed exclusion, and that `--closure` does not bring them back.
+2. When two labels the report counts as different are one version under `--label-equality version`
+   (`1.0` and `1.0.0`), and they cover different code, the text report says so and names the
+   option. When they cover the same code, or the option is already given, it says nothing.
+
+| proof | required | on 1.3.1 |
+|---|---|---|
+| NX04 | any text report: a line `never in it` under `closure` naming `tests/`, `docs/`, `vendor/`, `node_modules/` and `*.md`, and saying `--closure` does not change it | no such line: red |
+| NX05 | tags `v1.0` (declares `1.0`) and `v1.0.0` (declares `1.0.0`) on different code: exit 0 as before; the text names `1.0 and 1.0.0` and `--label-equality version`. Same tags on the same code: no such line. With `--label-equality version`: exit 1, no such line | no such line: red |
+
+Mutants M64 (the `never in it` line removed: NX04 red) and M65 (the hint never printed: NX05 red).
+The regression corpus must give the recorded answer on every repository still checkable.

@@ -32,7 +32,7 @@ import warnings
 from collections import OrderedDict, defaultdict
 from pathlib import Path
 
-__version__ = "1.3.1"
+__version__ = "1.3.2"
 REPORT_FORMAT = 2
 
 # Where a version can be declared. Python build files are read first; a repository that has
@@ -68,6 +68,8 @@ CLOSURE_DEFAULTS = ["src/**", "lib/**", "app/**", "*.py", "*.js", "*.ts", "*.rs"
 # never part of a closure: churn that cannot change behaviour
 CLOSURE_EXCLUDE = ["**/test/**", "**/tests/**", "**/*_test.*", "**/*.test.*", "**/spec/**",
                    "**/docs/**", "**/*.md", "**/node_modules/**", "**/vendor/**", "**/.git/**"]
+
+NEVER_IN_CLOSURE = "test/, tests/, spec/, docs/, vendor/, node_modules/, .git/, *_test.*, *.test.*, *.md"
 
 # Seconds a user-supplied version pattern may spend on one file.
 REGEX_BUDGET = 5
@@ -817,6 +819,18 @@ def version_key(label: str) -> str:
     return ".".join(parts) + m.group(2)
 
 
+def label_twins(by_label: dict, equality: str) -> list[list[str]]:
+    """Labels counted apart that `--label-equality version` would make one (`1.0`, `1.0.0`), when
+    they cover different code. Only said, never decided from (§26)."""
+    if equality != "text":
+        return []
+    groups: dict[str, list[str]] = defaultdict(list)
+    for v in by_label:
+        groups[version_key(v)].append(v)
+    return [sorted(vs) for _k, vs in sorted(groups.items())
+            if len(vs) > 1 and len({f for v in vs for f in by_label[v]}) > 1][:5]
+
+
 def tag_versions(name: str) -> set:
     """The versions a tag can name, as written: the whole name, without a leading `v`, after a prefix
     ending in `-v`, `_v` or `/`, or after a `word-` prefix when what follows has a dot. A date or a
@@ -1411,6 +1425,7 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
         print(f"repository        {printable(a.repo)}")
         print(f"version from      {printable(vpath or '(nothing at HEAD)')}")
         print(f"closure           {printable(', '.join(include))}")
+        print(f"never in it       {NEVER_IN_CLOSURE}; --closure does not change this")
         print(f"publication point {at} ({len(pts)} scanned"
               + (f", the most recent of {total}" if total > len(pts) else "")
               + (f"; --tags {printable(' '.join(tag_globs))}" if tag_globs else "") + ")"
@@ -1540,6 +1555,9 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
         print(f"{printable(v)[:28]:28s} {len(cs):>9d}{flag}")
     if len(by_label) > 25:
         print(f"... and {len(by_label) - 25} more labels")
+    for twins in label_twins(by_label, labels.equality):
+        print(f"\n{' and '.join(printable(v) for v in twins[:3])} are counted as two labels here, with different code."
+              "\nIf they are one version to your users, run again with --label-equality version.")
 
     if drifting:
         print("\nthe same label at two publications, with different code:")

@@ -2684,6 +2684,49 @@ def nx03(root):
     check("nothing was decided" not in nxt, "Next still says nothing was decided")
 
 
+@proof("NX04")
+def nx04(root):
+    r = Repo(root, "nx04")
+    r.write("VERSION", "1.0\n")
+    r.write("src/a.py", "1\n")
+    r.commit()
+    r.tag("v1.0")
+    rc, _d, out, _e = run(r, text=True)
+    check(rc == 2, "exit %d, required 2" % rc)
+    lines = out.splitlines()
+    at = next((i for i, l in enumerate(lines) if l.startswith("closure ")), None)
+    check(at is not None, "no closure line")
+    line = next((l for l in lines[at + 1:at + 3] if l.startswith("never in it")), "")
+    check(line, "no `never in it` line under closure")
+    for word in ("tests/", "docs/", "vendor/", "node_modules/", "*.md", "--closure"):
+        check(word in line, "the line does not name %s" % word)
+
+
+def _twins(root, name, same):
+    r = Repo(root, name)
+    for tag, version, code in (("v1.0", "1.0\n", "1\n"), ("v1.0.0", "1.0.0\n", "1\n" if same else "2\n")):
+        r.write("VERSION", version)
+        r.write("src/a.py", code)
+        r.commit()
+        r.tag(tag)
+    return r
+
+
+@proof("NX05")
+def nx05(root):
+    r = _twins(root, "nx05", same=False)
+    rc, _d, out, _e = run(r, text=True)
+    check(rc == 0, "exit %d, required 0" % rc)
+    check("1.0 and 1.0.0" in out and "--label-equality version" in out, "it does not say 1.0 and 1.0.0 are one version")
+    rc, _d, out, _e = run(r, "--label-equality", "version", text=True)
+    check(rc == 1, "with --label-equality version: exit %d, required 1" % rc)
+    check("1.0 and 1.0.0" not in out, "with --label-equality version it still gives the hint")
+    s = _twins(root, "nx05s", same=True)
+    rc, _d, out, _e = run(s, text=True)
+    check(rc == 0, "same code: exit %d, required 0" % rc)
+    check("1.0 and 1.0.0" not in out, "same code: it gives the hint")
+
+
 @proof("DOC01")
 def doc01(root):
     top = HERE.parent

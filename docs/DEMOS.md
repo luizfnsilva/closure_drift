@@ -12,6 +12,7 @@ $ closure-drift --would-tag
 repository        .
 version from      VERSION
 closure           src/**, lib/**, app/**, *.py, *.js, *.ts, *.rs, *.go, *.java
+never in it       test/, tests/, spec/, docs/, vendor/, node_modules/, .git/, *_test.*, *.test.*, *.md; --closure does not change this
 publication point tags (1 scanned)
 
 commit            89bb35b525a1
@@ -39,6 +40,7 @@ $ closure-drift --would-tag
 repository        .
 version from      VERSION
 closure           src/**, lib/**, app/**, *.py, *.js, *.ts, *.rs, *.go, *.java
+never in it       test/, tests/, spec/, docs/, vendor/, node_modules/, .git/, *_test.*, *.test.*, *.md; --closure does not change this
 publication point tags (1 scanned)
 
 commit            544194166825
@@ -63,6 +65,7 @@ $ closure-drift
 repository        .
 version from      VERSION
 closure           src/**, lib/**, app/**, *.py, *.js, *.ts, *.rs, *.go, *.java
+never in it       test/, tests/, spec/, docs/, vendor/, node_modules/, .git/, *_test.*, *.test.*, *.md; --closure does not change this
 publication point tags (2 scanned)
 
 label                         closures
@@ -116,6 +119,7 @@ $ closure-drift
 repository        .
 version from      VERSION
 closure           src/**, lib/**, app/**, *.py, *.js, *.ts, *.rs, *.go, *.java
+never in it       test/, tests/, spec/, docs/, vendor/, node_modules/, .git/, *_test.*, *.test.*, *.md; --closure does not change this
 publication point tags (4 scanned)
 
 label                         closures
@@ -141,6 +145,7 @@ $ closure-drift --strict
 repository        .
 version from      VERSION
 closure           src/**, lib/**, app/**, *.py, *.js, *.ts, *.rs, *.go, *.java
+never in it       test/, tests/, spec/, docs/, vendor/, node_modules/, .git/, *_test.*, *.test.*, *.md; --closure does not change this
 publication point tags (4 scanned)
 
 label                         closures
@@ -166,6 +171,7 @@ $ closure-drift
 repository        .
 version from      VERSION
 closure           src/**, lib/**, app/**, *.py, *.js, *.ts, *.rs, *.go, *.java
+never in it       test/, tests/, spec/, docs/, vendor/, node_modules/, .git/, *_test.*, *.test.*, *.md; --closure does not change this
 publication point tags (1 scanned)
 
 label                         closures
