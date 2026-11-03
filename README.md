@@ -220,8 +220,8 @@ Four suites, each pre-registered before the code. Scores are never added togethe
 
 | suite | macOS, Python 3.14 |
 |---|---|
-| `tests/battery.py` — acceptance proofs | 225 declared · 224 green · 0 red · 1 not run |
-| `tests/negative_controls.py` — the battery must fail on a broken detector | 65 mutants · 65 caught · 0 not caught |
+| `tests/battery.py` — acceptance proofs | 226 declared · 225 green · 0 red · 1 not run |
+| `tests/negative_controls.py` — the battery must fail on a broken detector | 66 mutants · 66 caught · 0 not caught |
 | `tests/adversarial.py` — written by reviewers who did not write the fixes | 315 attacks · 304 as required · 2 loose · 9 not run; the 2 loose are declared limits ([`docs/FAILURES.md`](docs/FAILURES.md) O2a, O2b) |
 | `tests/properties.py` — 60 generated repositories against `tests/oracle.py`, a second implementation written from a specification by someone who did not read this one | 17 properties · 17 green · 0 red · 10 controls · 10 caught |
 
