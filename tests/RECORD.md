@@ -1,3 +1,23 @@
+# Record of the battery runs — closure_drift 1.3.2
+
+Detector 1.3.2: `closure_drift.py`, sha256 `045362a05b29e0655b0bd129369d051b1de416db540bd044579045fb4bb63b48`. CI run 41524064686 (`aca80e4`).
+
+| platform | CPython | battery | mutants | adversarial | oracle | properties |
+|---|---|---|---|---|---|---|
+| Ubuntu | 3.9, 3.10, 3.11, 3.12, 3.13, 3.14 | 225 · 225 green · 0 red · 0 not run | 65 of 65 | 315 · 304 as required · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 controls |
+| macOS | 3.10, 3.14 | 225 · 224 green · 0 red · 1 not run | 65 of 65 | 315 · 304 · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+| Windows | 3.9, 3.14 | 225 · 220 green · 0 red · 5 not run | 65 of 65 | 315 · 281 · 2 loose · 32 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+
+The 2 loose are ZA02 and ZA04 (`docs/FAILURES.md` O2b, O2a). NX04 and NX05 were red on 1.3.1 and
+are green here; M64 and M65 turn them red. As in 1.3.1, the job "the nine files match
+DEPOSIT.sha256" failed in that run: the manifest is regenerated in the next commit; the suites do
+not read it. Locally (macOS, CPython 3.9.6) the adversarial suite gave 303 and 10 not run; the CI
+figure above is the record.
+
+Regression corpus (`tools/regression/`), the same script (run 41524054273,
+`checks/v1.3.2-candidate-045362a0.json`): 99 of 99 checkable match, as predicted in §26;
+`apache/arrow` not checkable, as since 1.2.1.
+
 # Record of the battery runs — closure_drift 1.3.1
 
 Detector 1.3.1: `closure_drift.py`, sha256 `fccba5dd0159e8020a7c98f5a5dea26b2905e251739401112ee8d8ed5e473205`. CI run 41073100191 (`ef7993a`).
