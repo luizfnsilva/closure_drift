@@ -76,6 +76,7 @@ the same label at two publications, with different code:
   1.0.0
       closure 83825fd0c3aba0dd  first at v1.0.0 (2020-01-04)
       closure d4d72ad2cf6b6828  first at v1.0.1 (2020-01-07)
+      v1.0.1 names another version: the version was bumped after the tag
 
 ==============================================================
 DRIFT: 1 of 1 labels name more than one closure

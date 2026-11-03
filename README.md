@@ -38,7 +38,7 @@ git clone -q https://github.com/luizfnsilva/closure_drift && python3 closure_dri
 python3 closure_drift/closure_drift.py /path/to/your/repo
 ```
 
-Or without cloning: `curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.3.3/closure_drift.py`
+Or without cloning: `curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.4.0/closure_drift.py`
 then `python3 closure_drift.py` inside any git repository. Needs Python 3.9+ and git. The last
 lines say what to do next. (`./reproduce.sh` is something else: it validates closure_drift itself,
 a long run, and does not look at your repository.)
@@ -55,23 +55,26 @@ Exit 0 pass, 1 drift, 2 nothing decided (a failure by default).
 ## Check before you tag
 
 `--would-tag` answers: *if I tag this commit now, does its version already name different code?*
+After tagging, `--tag NAME` answers: *does this tag name the version its commit declares?* A tag
+pushed before the version was bumped fails there; in the study it is how 79 of the 87 labels in
+drift came about. On a tag push the Action runs `--tag`; on any other push, `--would-tag`.
 
 ```yaml
 # GitHub Actions
 - uses: actions/checkout@v4
   with: { fetch-depth: 0 }
-- uses: luizfnsilva/closure_drift@v1.3.3
+- uses: luizfnsilva/closure_drift@v1.4.0
 ```
 
 Push the workflow before the first tag: a tag pushed together with the workflow that should run on
 it may not start it (then run it by hand, with `workflow_dispatch:` in its `on:`). `mode: measure`
 concludes only from two distinct labels; on the first release it is `inconclusive`, exit 2, so gate
-with `would-tag` from the first tag.
+with the default mode from the first tag.
 
 ```yaml
 # pre-commit, on git push
 - repo: https://github.com/luizfnsilva/closure_drift
-  rev: v1.3.3
+  rev: v1.4.0
   hooks: [{ id: closure-drift-would-tag }]
 ```
 
@@ -195,7 +198,8 @@ one version file (`lodash`). Neither project is badly run. `--would-tag` address
 - It never runs your code and attests nothing. `clean` is about addressing, not reproducibility.
 - A change of file mode alone is not seen, unless `--modes`.
 - Never in the closure: folders `test/`, `tests/`, `spec/`, `docs/`, `vendor/`, `node_modules/`,
-  `.git/`; files named `*_test.*`, `*.test.*`, `*.md`.
+  `.git/`; files named `*_test.*`, `*.test.*`, `*.md`. Vendored code that changes is therefore not
+  seen ([`docs/FAILURES.md`](docs/FAILURES.md) O13).
 - The default closure globs are a guess. Pass `--closure`.
 - Labels are compared as written: `1.0` and `1.0.0` are two labels, unless `--label-equality version`.
 - It reads git, not a package index: a tag never released counts, unless `--published` lists what
@@ -229,7 +233,7 @@ CI runs the same four on Linux (Python 3.9 to 3.14), macOS and Windows; what eac
 run is in
 [`tests/RECORD.md`](tests/RECORD.md). These scores describe the cases executed, not inputs nobody
 tried. `./reproduce.sh` runs all of it. The 100 projects of the study are also a regression corpus,
-pinned to recorded commits: 1.3.3 gives the recorded answer on all 99 still checkable (one tag of `apache/arrow` moved upstream), as predicted before it ran
+pinned to recorded commits: 1.4.0 gives the recorded answer on all 99 still checkable (one tag of `apache/arrow` moved upstream), as predicted before it ran
 ([`tools/regression/`](tools/regression/)).
 
 **Ten large repositories** (the Linux kernel, LLVM, CPython and seven more), protocol written
@@ -247,6 +251,8 @@ both on private repositories. `closure-drift --json > result.json`, then
 or write to lfnsilva.invest@gmail.com. A result showing the tool is wrong is the most useful kind.
 
 ## Version
+
+**1.4.0** checks the tag just pushed (`--tag NAME`, and the Action's default on a tag push) and says how each label in drift came about.
 
 **1.3.3** names the pattern to pass when a version file declares `VERSION = "x"` instead of `version`, and the section for agents starts with the skill.
 

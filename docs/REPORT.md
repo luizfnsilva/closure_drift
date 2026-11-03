@@ -56,7 +56,9 @@ before a refusal — that is what it is for.)
 | `tags_not_voting` | integer | (1.1.0, `--at commits`) tags whose tree could not be read and so did not vote on the version file; absent when 0 |
 
 Present only when relevant: `tag_families` (prefix → count, when the tags in drift carry two or
-more prefixes), `diagnostics` (with `--diagnose`, in every kind of report: `detector_version`,
+more prefixes), `drift_mechanism` (1.4.0, with `--at tags`: label in drift → `{"mechanism", "tags"}`, the
+mechanism `tag_names_another_version`, `no_tag_names_this_version` or `every_tag_names_it`, and the tags that
+name another version), `diagnostics` (with `--diagnose`, in every kind of report: `detector_version`,
 `detector_closure`, `python`, `platform`, `git`, `options`, `repository`, and from 1.0.0 `objects_read`,
 the number of git objects the run read), `component` (with `--component`), `tag_globs` and `tags_filtered_out` (with `--tags`), `explain` (with
 `--explain`: `label`, `first`, and `others[]` each with `changed`, `only_in_first`,
@@ -70,6 +72,12 @@ the number of git objects the run read), `component` (with `--component`), `tag_
 (0.10.0, present when the label at HEAD came from a contradicted file: `{"label", "source"}`), and the coverage fields above;
 with `--tags`, also `tag_globs` and `tags_filtered_out`. `--would-tag` looks at every tag, so its
 `range_truncated` is always `false`.
+
+## Fields of a `--tag` report
+
+(1.4.0) `report_format`, `stamp`, `mode` (`"tag"`), `repo`, `version_file`, `verdict` (`tag_matches`, exit 0, or
+`tag_mismatch`, exit 1), `tag`, `tag_commit`, `tag_names` (the versions the name can name, normalised),
+`label_at_tag`, `version_from_tag` (`true` when the version is derived from the tag).
 
 ## Fields of a `--compare` report
 

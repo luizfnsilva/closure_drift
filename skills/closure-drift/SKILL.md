@@ -53,6 +53,10 @@ Common reasons for exit 2:
 - A file over the size limit was not read, or few tags could be compared: report it as is.
 - No tags yet: `--would-tag` still answers; a full measurement needs two releases.
 
+After creating a tag and before pushing it: `python3 closure_drift.py --tag NAME --json .`
+`tag_mismatch` (exit 1) means the tag names a version its commit does not declare: the version was
+bumped after the tag. Do not push it; tell the person. `tag_matches` (exit 0): push.
+
 To audit the whole history instead of one tag: `python3 closure_drift.py --json .` (exit 1 means a
 label names more than one state; `--explain LABEL` lists the paths that differ).
 

@@ -1378,3 +1378,52 @@ hint: a label is declared, not guessed (§20). What changes is the text.
 
 Mutant M66: the hint never printed (NX06 red). The regression corpus must give the recorded answer
 on every repository still checkable.
+
+## 28. Added 2026-11-03, before any of it was written — 1.4.0
+
+**The tag pushed before the version bump.** Classifying the 87 labels in drift of the study
+(`tools/study/collisions.tsv`) by the names of the tags that first carry each state: in 79, one of
+those tags names another version (the bump was forgotten: requests, ruff, openai-python, httpcore,
+rich, mrab-regex); in 7, no tag names the label (pre-releases such as `4.2b2`, a placeholder `0`);
+in 1, every tag names it (`hatch-v1.18.0`, `hatchling-v1.18.0`). And in 2026 mrab-regex pushed
+three tags before the bump (`2026.3.27`, `2026.9.9`, `2026.9.19`); for two of them CI built wheels
+under the previous version, skipped them as already on PyPI, and finished green. The tool sees that
+only indirectly, when the old label collides with an old tag; on a first release there is nothing
+to collide with.
+
+1. **`--tag NAME`** compares the versions the tag's name can name (`tag_versions`, §16 amendment 3)
+   with the label the files declare at the tag's commit. Verdicts, new and only reachable with this
+   option: `tag_matches` (exit 0) and `tag_mismatch` (exit 1). Refused, exit 2: no such tag; a name
+   that names no version (`nightly`, `build-1`); no label at that commit. A project whose version is
+   the tag (rule 2 of `docs/LABELS.md`) gives `tag_matches`, saying the two agree by construction.
+   Refused together with `--would-tag`, `--compare`, `--explain`, `--component`, `--at commits`.
+2. **The mechanism of each label in drift**, with `--at tags`: `tag_names_another_version` (some of
+   the tags that first carry its states name a different version: those tags are listed),
+   `no_tag_names_this_version`, `every_tag_names_it`. In the text report under each label in drift,
+   and in the JSON as `drift_mechanism` (a field added; nothing else in `report_format: 2` changes).
+   No verdict or exit code changes.
+3. **The Action's default mode becomes `auto`**: on a tag push (`GITHUB_REF_TYPE=tag`) it runs
+   `--tag "$GITHUB_REF_NAME"`; otherwise `--would-tag`, as before. `mode: tag` and the existing
+   `would-tag` and `measure` stay available. The skill says to run `--tag NAME` after creating a tag
+   and before pushing it.
+4. Documentation: `docs/FAILURES.md` O9 (says `RESULTS.md` is empty; it has two lines) is closed;
+   `vendor/` is named as the blind spot of the fixed exclusion (vendored code changes behaviour and
+   is not seen).
+
+| proof | required | on 1.3.3 |
+|---|---|---|
+| TG01 | `VERSION` 1.0 at `v1.0`, code changed and tagged `v1.1` without a bump: `--tag v1.1` exits 1, `tag_mismatch`, the text names `v1.1` and `1.0`; `--tag v1.0` exits 0, `tag_matches` | no `--tag`: red |
+| TG02 | a first release, one tag `v2.0` on a file declaring `1.9`: `--tag v2.0` exits 1 | red |
+| TG03 | no such tag; a tag `nightly`: each exits 2 | red |
+| TG04 | a hatch-vcs project tagged `v1.0`: `--tag v1.0` exits 0 and says the version is the tag | red |
+| TG05 | `--tag` with `--would-tag`, `--compare`, `--at commits`: each refused, exit 2 | red |
+| MX01 | `v1.0` and `v1.1` both declaring `1.0` on different code: `drift_mechanism["1.0"]` is `tag_names_another_version` listing `v1.1`, and the text says so; `hatch-v1.0`/`hatchling-v1.0`: `every_tag_names_it`; `1.0b1`/`1.0b2` declaring `1.0`: `no_tag_names_this_version` | red |
+| ACT01 | `action.yml`: default `auto`, and on `GITHUB_REF_TYPE=tag` it passes `--tag` with the ref name | red |
+
+Mutants: M67 (`--tag` compares nothing: always `tag_matches`; TG01 red), M68 (every mechanism is
+`every_tag_names_it`; MX01 red), M69 (the Action never takes the tag branch; ACT01 red).
+
+**Prediction on the regression corpus:** every repository still checkable gives the recorded answer,
+and the labels in drift across the corpus split 79 / 7 / 1 as above. A different split is reported
+as found, each difference named; it does not block the release unless it shows a classification
+the definition above does not produce.

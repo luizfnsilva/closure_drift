@@ -3,7 +3,7 @@
  "stamp": {
   "measured_at_head": "ae6b28396fb2",
   "working_tree_dirty": false,
-  "detector_closure": "7d4bbe464f8c6c97"
+  "detector_closure": "8ed98594de2946ff"
  },
  "repo": ".",
  "version_file": "VERSION",
@@ -45,5 +45,13 @@
  "points_not_commits": 0,
  "range_truncated": false,
  "points_with_conflicting_sources": 0,
- "points_label_contradicted": 0
+ "points_label_contradicted": 0,
+ "drift_mechanism": {
+  "1.0.0": {
+   "mechanism": "tag_names_another_version",
+   "tags": [
+    "v1.0.1"
+   ]
+  }
+ }
 }

@@ -24,7 +24,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 DETECTOR = HERE.parent / "closure_drift.py"
 
-# id, required red proof, [(text to find, replacement)]
+# id, required red proof, [(text to find, replacement)]; a change of three items names the file it
+# applies to (the Action's action.yml travels next to every mutant, changed or not)
 MUTANTS = [
     ("M01", "A03", [('code = {"clean": 0, "drift": 1}.get(verdict, 2)',
                      'code = {"clean": 0, "drift": 1, "inconclusive": 0}.get(verdict, 2)')]),
@@ -108,6 +109,10 @@ MUTANTS = [
     ("M63", "NX03", [('    print_next(TAG_NEXT if verdict', '    print_next("x" if verdict')]),
     ("M64", "NX04", [('        print(f"never in it       {NEVER_IN_CLOSURE}; --closure does not change this")\n', '')]),
     ("M65", "NX05", [('    for twins in label_twins(by_label, labels.equality):', '    for twins in []:')]),
+    ("M67", "TG01", [('    verdict = "tag_matches" if version_key(label) in tag_versions(name) else "tag_mismatch"',
+                      '    verdict = "tag_matches"')]),
+    ("M68", "MX01", [('        kind = ("every_tag_names_it" if not other else', '        kind = ("every_tag_names_it" if True else')]),
+    ("M69", "ACT01", [("action.yml", 'if [ "$CD_REF_TYPE" = "tag" ]; then CD_MODE=tag;', 'if false; then CD_MODE=tag;')]),
     ("M66", "NX06", [('              + version_name_hint(a.repo, vfile, vregex))', '              + "")')]),
     ("M62", "NX01", [('    "would_drift": "do not tag. Agree on a new version', '    "would_driftX": "do not tag. Agree on a new version')]),
     ("M61", "PJ01", [('        extra += (f"\\npackage.json declares', '        extra += ("" if True else f"\\npackage.json declares')]),
@@ -132,21 +137,25 @@ def battery(detector: Path, work: Path) -> dict | None:
 def main() -> int:
     out_json = sys.argv[sys.argv.index("--json") + 1] if "--json" in sys.argv else None
     source = DETECTOR.read_text(encoding="utf-8")
+    action = (HERE.parent / "action.yml").read_text(encoding="utf-8")
     rows, bad = [], 0
     for mid, required, changes in MUTANTS:
         work = Path(tempfile.mkdtemp(prefix="cd-mutant-"))
         try:
-            mutated, applied = source, True
-            for old, new in changes:
-                if mutated.count(old) != 1:
+            texts, applied = {"closure_drift.py": source, "action.yml": action}, True
+            for change in changes:
+                name, old, new = change if len(change) == 3 else ("closure_drift.py", *change)
+                if texts[name].count(old) != 1:
                     applied = False
                     break
-                mutated = mutated.replace(old, new)
+                texts[name] = texts[name].replace(old, new)
+            mutated = texts["closure_drift.py"]
             if not applied:
                 status, detail = "not_applied", "the text to change was not found exactly once"
             else:
                 target = work / "closure_drift.py"
                 target.write_bytes(mutated.encode("utf-8"))
+                (work / "action.yml").write_bytes(texts["action.yml"].encode("utf-8"))
                 doc = battery(target, work)
                 if doc is None:
                     status, detail = "no_body", "the battery wrote no result"

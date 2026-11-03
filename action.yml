@@ -7,9 +7,9 @@ branding:
 
 inputs:
   mode:
-    description: "'would-tag' (default): would tagging this commit reuse a label that already names other code? 'measure': measure the whole tag history."
+    description: "'auto' (default): on a tag push, 'tag'; otherwise 'would-tag'. 'tag': does the pushed tag name the version its commit declares? 'would-tag': would tagging this commit reuse a label that already names other code? 'measure': measure the whole tag history."
     required: false
-    default: "would-tag"
+    default: "auto"
   path:
     description: "Path of the repository to measure."
     required: false
@@ -42,11 +42,17 @@ runs:
         CD_ARGS: ${{ inputs.args }}
         CD_ALLOW: ${{ inputs.allow-undetermined }}
         CD_HOME: ${{ github.action_path }}
+        CD_REF_TYPE: ${{ github.ref_type }}
+        CD_REF_NAME: ${{ github.ref_name }}
       run: |
+        if [ "$CD_MODE" = "auto" ]; then
+          if [ "$CD_REF_TYPE" = "tag" ]; then CD_MODE=tag; else CD_MODE=would-tag; fi
+        fi
         case "$CD_MODE" in
-          would-tag) mode="--would-tag" ;;
-          measure)   mode="" ;;
-          *) echo "::error::closure_drift: mode must be 'would-tag' or 'measure'"; exit 2 ;;
+          tag)       mode=(--tag "$CD_REF_NAME") ;;
+          would-tag) mode=(--would-tag) ;;
+          measure)   mode=() ;;
+          *) echo "::error::closure_drift: mode must be 'auto', 'tag', 'would-tag' or 'measure'"; exit 2 ;;
         esac
         PY=python3; command -v python3 >/dev/null 2>&1 || PY=python
         # The tags are the publication points. A shallow checkout has none of them.
@@ -56,9 +62,9 @@ runs:
         fi
         set +e
         # shellcheck disable=SC2086
-        "$PY" "$CD_HOME/closure_drift.py" "$CD_PATH" $mode $CD_ARGS --json > "$RUNNER_TEMP/closure-drift.json"
+        "$PY" "$CD_HOME/closure_drift.py" "$CD_PATH" "${mode[@]}" $CD_ARGS --json > "$RUNNER_TEMP/closure-drift.json"
         code=$?
-        "$PY" "$CD_HOME/closure_drift.py" "$CD_PATH" $mode $CD_ARGS
+        "$PY" "$CD_HOME/closure_drift.py" "$CD_PATH" "${mode[@]}" $CD_ARGS
         set -e
         verdict=$("$PY" -c "import json,sys; print(json.load(open(sys.argv[1])).get('verdict','refused'))" "$RUNNER_TEMP/closure-drift.json" 2>/dev/null || echo refused)
         # Annotations are a presentation of the report, built from its fields; the logic is the detector's.
@@ -74,11 +80,15 @@ runs:
             print("::error title=closure_drift: this version already names other code::The label %s at this commit "
                   "is already declared, with different code, at: %s. Change the version before tagging."
                   % (clean(r.get("label_at_head")), clean("; ".join(r.get("collides_with", [])[:5]))))
+        elif v == "tag_mismatch":
+            print("::error title=closure_drift: the tag does not name this version::The tag %s points at a commit "
+                  "that declares %s. Bump the version, commit, and tag again with a new name."
+                  % (clean(r.get("tag")), clean(r.get("label_at_tag"))))
         elif v == "drift":
             for label, states in list(r.get("drift", {}).items())[:10]:
                 print("::error title=closure_drift: one label, more than one closure::The label %s names %d "
                       "different closures: %s" % (clean(label), len(states), clean("; ".join(states.values()))))
-        elif v not in ("clean", "would_be_clean"):
+        elif v not in ("clean", "would_be_clean", "tag_matches"):
             print("::warning title=closure_drift: nothing was determined::verdict %s" % clean(v))
         import os
         summary = os.environ.get("GITHUB_STEP_SUMMARY")
@@ -87,7 +97,7 @@ runs:
             rows = [("verdict", "**%s**" % cell(v)),
                     ("measured at", cell(r.get("stamp", {}).get("measured_at_head", ""))),
                     ("detector", cell(r.get("stamp", {}).get("detector_closure", "")))]
-            for key in ("label_at_head", "labels", "labels_covering_multiple_closures",
+            for key in ("tag", "label_at_tag", "label_at_head", "labels", "labels_covering_multiple_closures",
                         "publication_points_scanned", "publication_points_compared", "points_without_label"):
                 if key in r:
                     rows.append((key.replace("_", " "), cell(r[key])))

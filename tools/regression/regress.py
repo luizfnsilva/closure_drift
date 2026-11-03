@@ -154,7 +154,12 @@ def check(work, shard, of, detector, out_file):
                 if why:
                     res.update(state="not checkable", cause=why)
                 else:
-                    got = essence(*measure(detector, clone))
+                    measured = measure(detector, clone)
+                    got = essence(*measured)
+                    # how each label in drift came about (§28); recorded, not compared
+                    mech = (measured[1] or {}).get("drift_mechanism")
+                    if mech:
+                        res["mechanisms"] = {label: m["mechanism"] for label, m in mech.items()}
                     want = row["expected"]
                     # a field the older report does not carry is not compared
                     keys = sorted(set(want) & set(got))
@@ -188,6 +193,13 @@ def summary(files):
                                        r.get("cause") or json.dumps(r.get("differs"), ensure_ascii=True)[:300]))
     print("\n%d repositories · %d match · %d differ · %d not checkable"
           % (len(rows), n["match"], n["DIFFERS"], n["not checkable"]))
+    kinds = {}
+    for r in rows:
+        for kind in (r.get("mechanisms") or {}).values():
+            kinds[kind] = kinds.get(kind, 0) + 1
+    if kinds:
+        print("labels in drift by mechanism (§28): "
+              + " · ".join("%d %s" % (n_, k) for k, n_ in sorted(kinds.items(), key=lambda kv: -kv[1])))
     return 1 if n["DIFFERS"] else 0
 
 

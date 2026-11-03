@@ -6,7 +6,10 @@ recipe below needs: **the tags** (a shallow checkout has none) and **Python 3.9+
 
 ## GitHub Actions
 
-Before a release — would this commit's version reuse a label that already names other code?
+On a tag push, the default mode (`auto`) checks that the tag names the version its commit declares
+(`--tag`): a tag pushed before the version was bumped fails here, before anything is published.
+On any other push it asks whether this commit's version would reuse a label that already names
+other code (`--would-tag`).
 
 ```yaml
 on:
@@ -20,20 +23,20 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: luizfnsilva/closure_drift@v1.3.3        # mode: would-tag (default)
+      - uses: luizfnsilva/closure_drift@v1.4.0        # mode: auto (default)
 ```
 
 The whole tag history, on a schedule, with a family of tags and a strict verdict:
 
 ```yaml
-      - uses: luizfnsilva/closure_drift@v1.3.3
+      - uses: luizfnsilva/closure_drift@v1.4.0
         with:
           mode: measure
           args: --tags 'v*' --strict
 ```
 
 `measure` concludes only from two distinct labels: on a project's first release it answers
-`inconclusive`, exit 2. Gate releases with `would-tag`, which answers from the first tag.
+`inconclusive`, exit 2. Gate releases with `auto` (or `tag` / `would-tag`), which answer from the first tag.
 
 The action writes annotations and a job summary from the JSON report, and exposes `verdict` and
 `exit-code` as outputs. `allow-undetermined: true` lets exit `2` pass; the default is to fail,
@@ -42,7 +45,7 @@ because an absence of measurement is not a pass.
 Without the action (the package is installed from the release; it is not on PyPI):
 
 ```yaml
-      - run: pipx run --spec https://github.com/luizfnsilva/closure_drift/releases/download/v1.3.3/closure_drift-1.3.3-py3-none-any.whl closure-drift --would-tag
+      - run: pipx run --spec https://github.com/luizfnsilva/closure_drift/releases/download/v1.4.0/closure_drift-1.4.0-py3-none-any.whl closure-drift --would-tag
 ```
 
 ## GitLab CI
@@ -54,7 +57,7 @@ version-label:
     GIT_DEPTH: "0"              # full history, so the tags are there
   script:
     - git fetch --tags --force
-    - pip install https://github.com/luizfnsilva/closure_drift/releases/download/v1.3.3/closure_drift-1.3.3-py3-none-any.whl
+    - pip install https://github.com/luizfnsilva/closure_drift/releases/download/v1.4.0/closure_drift-1.4.0-py3-none-any.whl
     - closure-drift --would-tag
 ```
 
@@ -74,7 +77,7 @@ check-version-label:
 ```yaml
 # .pre-commit-config.yaml — runs on git push
 - repo: https://github.com/luizfnsilva/closure_drift
-  rev: v1.3.3
+  rev: v1.4.0
   hooks:
     - id: closure-drift-would-tag
 ```

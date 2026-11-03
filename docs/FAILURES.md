@@ -8,7 +8,6 @@ reported from outside.
 | | what | found by | what to do meanwhile |
 |---|---|---|---|
 | O3 | **No label found outside the listed ecosystems.** 1.1.0 adds `Chart.yaml`, `*.gemspec` (and `lib/**/version.rb`) and `go.mod` (the version is the tag); others are still unknown | benchmark | `--version-file`, `--version-regex` |
-| O9 | `RESULTS.md` is empty: no measurement by anyone else | — | send one |
 
 ## Declared as scope (`SCOPE.md`), not as defects
 
@@ -16,12 +15,14 @@ reported from outside.
 |---|---|---|---|
 | O2b | **Build-number tags (`release-41`) read as versions**: a correct file can be refused, exit 2. Kept in 1.1.0: taking their vote away would turn this refusal into a possible wrong 0 or 1 (§16.6) | adversarial ZA02 | `--version-file`, or `--published` |
 | O2a | **A wrong file is still believed when one tag agrees by chance** (ZA04). The repository alone cannot tell it from real drift (LR01). With `--published` (1.1.0) it is decided when the file's label was never published; when that label was itself a real release (a helper stuck at a real `0.1.0`), the list cannot tell it from a tag cut before the bump either (review R12) | adversarial ZA04, review R12 | `--version-file` in any gate |
+| O13 | **`vendor/` is never in the closure.** Vendored code that changes under one version is not seen. Most ecosystems that vendor do not commit `vendor/` (PHP, Ruby) or take the version from the tag (Go) | 1.4.0, reviewing the fixed exclusion | name the case; an explicit `--closure 'vendor/**'` that wins over the exclusion is the planned answer |
 | O7 | A submodule's content is not read. (Labels as versions and file modes: opt-in since 1.1.0) | declared since 0.9.0 | `SCOPE.md` |
 
 ## Fixed
 
 | release | what failed | found by |
 |---|---|---|
+| 1.4.0 | this file still listed O9, "`RESULTS.md` is empty", after two measurements by others had been added to it; an outside review read it as current | an outside review |
 | 1.1.1 | **a version file over the size limit counted as "no version"** (O11): a scan could say `clean`, and `--would-tag` `would_be_clean`, over a label it had not read. The path is now listed (`version_files_not_read`) and the answer is `incomplete`, exit 2. The 1 MB limit stays: at 10 MB, memory grew with history (ZM06) | an outside code review, 2026-10-14 |
 | 1.1.0 | **a tag never released counted as a publication point** (O10): `--published FILE` lists the versions released; a tag off the list is left out of the analysis, not shown unpublished | a participant in ruff discussion 29122, 2026-10-06 |
 | 1.1.0 | **the refusal for want of a label came after the whole scan** (O5): it now comes after reading the root of each publication point | benchmark |

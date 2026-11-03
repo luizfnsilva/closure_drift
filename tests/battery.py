@@ -2745,6 +2745,115 @@ def nx06(root):
     check(rc == 0, "with the printed pattern %r: exit %d, required 0" % (pattern, rc))
 
 
+def _bumpless(root, name):
+    r = Repo(root, name)
+    r.write("VERSION", "1.0\n")
+    r.write("src/a.py", "1\n")
+    r.commit()
+    r.tag("v1.0")
+    r.write("src/a.py", "2\n")
+    r.commit()
+    r.tag("v1.1")
+    return r
+
+
+@proof("TG01")
+def tg01(root):
+    r = _bumpless(root, "tg01")
+    rc, _d, out, _e = run(r, "--tag", "v1.1", text=True)
+    check(rc == 1, "--tag v1.1: exit %d, required 1" % rc)
+    check("v1.1" in out and "1.0" in out and "TAG MISMATCH" in out, "the text does not name v1.1 and 1.0")
+    expect(r, "tag_mismatch", 1, "--tag", "v1.1")
+    expect(r, "tag_matches", 0, "--tag", "v1.0")
+
+
+@proof("TG02")
+def tg02(root):
+    r = Repo(root, "tg02")
+    r.write("VERSION", "1.9\n")
+    r.write("src/a.py", "1\n")
+    r.commit()
+    r.tag("v2.0")
+    expect(r, "tag_mismatch", 1, "--tag", "v2.0")
+
+
+@proof("TG03")
+def tg03(root):
+    r = _bumpless(root, "tg03")
+    r.tag("nightly")
+    for name in ("v9.9", "nightly"):
+        rc, _d, _o, _e = run(r, "--tag", name, text=True)
+        check(rc == 2, "--tag %s: exit %d, required 2" % (name, rc))
+
+
+@proof("TG04")
+def tg04(root):
+    r = Repo(root, "tg04")
+    r.write("pyproject.toml", '[build-system]\nrequires = ["hatchling", "hatch-vcs"]\n'
+            'build-backend = "hatchling.build"\n[project]\nname = "x"\ndynamic = ["version"]\n'
+            '[tool.hatch.version]\nsource = "vcs"\n')
+    r.write("src/a.py", "1\n")
+    r.commit()
+    r.tag("v1.0")
+    rc, _d, out, _e = run(r, "--tag", "v1.0", text=True)
+    check(rc == 0, "exit %d, required 0" % rc)
+    check("the tag itself" in out, "it does not say the version is the tag")
+
+
+@proof("TG05")
+def tg05(root):
+    r = _bumpless(root, "tg05")
+    for extra in (["--would-tag"], ["--compare", "v1.0", "v1.1"], ["--at", "commits"]):
+        rc, _d, _o, _e = run(r, "--tag", "v1.1", *extra, text=True)
+        check(rc == 2, "--tag with %s: exit %d, required 2" % (extra[0], rc))
+
+
+@proof("MX01")
+def mx01(root):
+    r = _bumpless(root, "mx01")
+    doc = expect(r, "drift", 1)
+    m = (doc.get("drift_mechanism") or {}).get("1.0") or {}
+    check(m.get("mechanism") == "tag_names_another_version" and m.get("tags") == ["v1.1"],
+          "1.0: %r, required tag_names_another_version listing v1.1" % (m,))
+    rc, _d, out, _e = run(r, text=True)
+    check("v1.1 names another version" in out, "the text does not say v1.1 names another version")
+    for name, tags, versions, want in (("mx01f", ("hatch-v1.0", "hatchling-v1.0"), ("1.0", "1.0"), "every_tag_names_it"),
+                                       ("mx01p", ("1.0b1", "1.0b2"), ("1.0", "1.0"), "no_tag_names_this_version")):
+        s = Repo(root, name)
+        for i, (tag, version) in enumerate(zip(tags, versions)):
+            s.write("VERSION", version + "\n")
+            s.write("src/a.py", "%d\n" % i)
+            s.commit()
+            s.tag(tag)
+        doc = expect(s, "drift", 1)
+        got = ((doc.get("drift_mechanism") or {}).get("1.0") or {}).get("mechanism")
+        check(got == want, "%s: %r, required %r" % (name, got, want))
+
+
+@proof("ACT01")
+def act01(root):
+    action = Path(DETECTOR).parent / "action.yml"
+    if not action.is_file():
+        raise NotRun("no action.yml next to the detector")
+    bash = shutil.which("bash")
+    if bash is None or os.name == "nt":
+        raise NotRun("the Action's step is run with bash, as on a Linux or macOS runner")
+    text = action.read_text(encoding="utf-8")
+    check('default: "auto"' in text, "the default mode is not auto")
+    lines = text.split("      run: |\n", 1)[1].splitlines()
+    script = "\n".join(l[8:] for l in lines if l.startswith("        ") or not l.strip())
+    (root / "act.sh").write_text(script, encoding="utf-8")
+    r = _bumpless(root, "act01")
+    for ref_type, ref_name, want_rc, want_text in (("tag", "v1.1", 1, "TAG MISMATCH"), ("branch", "main", 1, "WOULD DRIFT")):
+        env = dict(ENV, CD_MODE="auto", CD_REF_TYPE=ref_type, CD_REF_NAME=ref_name, CD_PATH=str(r.path), CD_ARGS="",
+                   CD_ALLOW="false", CD_HOME=str(Path(DETECTOR).parent), RUNNER_TEMP=str(root),
+                   GITHUB_OUTPUT=str(root / "out"), GITHUB_STEP_SUMMARY=str(root / "summary"))
+        p = subprocess.run([bash, str(root / "act.sh")], capture_output=True, env=env, stdin=subprocess.DEVNULL)
+        out = p.stdout.decode("utf-8", "replace")
+        check(p.returncode == want_rc and want_text in out,
+              "%s %s: exit %d, %r; required %d and %s" % (ref_type, ref_name, p.returncode, out[-200:], want_rc, want_text))
+
+
 @proof("DOC01")
 def doc01(root):
     top = HERE.parent

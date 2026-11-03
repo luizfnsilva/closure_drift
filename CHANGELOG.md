@@ -3,6 +3,24 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 1.4.0 — 2026-11-04
+
+The tag pushed before the version bump (`tests/PREREGISTRATION.md` §28). Existing verdicts, exit
+codes and JSON fields unchanged.
+
+### Added
+- `--tag NAME`: does the tag name the version its commit declares? `tag_matches` (exit 0) or
+  `tag_mismatch` (exit 1). Catches a first release too, where there is no older tag to collide with.
+- The Action's default mode is `auto`: `--tag` on a tag push, `--would-tag` otherwise. `mode: tag`
+  added.
+- Under each label in drift, how it came about: a tag named for another version (the bump came
+  after the tag), no tag naming this version, or every tag naming it. JSON: `drift_mechanism`.
+- The skill says to run `--tag NAME` after tagging and before pushing.
+
+### Documentation
+- `docs/FAILURES.md`: O9 ("`RESULTS.md` is empty") was out of date and is closed; O13 names
+  `vendor/` as the blind spot of the fixed exclusion.
+
 ## 1.3.3 — 2026-11-03
 
 A version file the default pattern does not read now gets a way out (`tests/PREREGISTRATION.md`

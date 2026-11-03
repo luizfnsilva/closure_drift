@@ -32,7 +32,7 @@ import warnings
 from collections import OrderedDict, defaultdict
 from pathlib import Path
 
-__version__ = "1.3.3"
+__version__ = "1.4.0"
 REPORT_FORMAT = 2
 
 # Where a version can be declared. Python build files are read first; a repository that has
@@ -848,6 +848,26 @@ def version_name_hint(repo: str, vfile, vregex) -> str:
     return ""
 
 
+def drift_mechanisms(drifting: dict) -> dict:
+    """How each label in drift came about, from the names of the tags that first carry its states
+    (§28): one of them names another version (the bump came after the tag), none names this one
+    (pre-releases, placeholders), or every one does (families, rebuilds)."""
+    out = {}
+    for v, cs in drifting.items():
+        keys = {version_key(x) for x in v.split(" = ")}
+        names = [s["name"] for s in cs.values()]
+        other = [n for n in names if not tag_versions(n) & keys]
+        kind = ("every_tag_names_it" if not other else
+                "no_tag_names_this_version" if len(other) == len(names) else "tag_names_another_version")
+        out[v] = {"mechanism": kind, "tags": other if kind == "tag_names_another_version" else []}
+    return out
+
+
+MECHANISM_TEXT = {"tag_names_another_version": "names another version: the version was bumped after the tag",
+                  "no_tag_names_this_version": "no tag names this version (pre-releases, a placeholder)",
+                  "every_tag_names_it": "every tag names it: tag families or rebuilds"}
+
+
 def tag_versions(name: str) -> set:
     """The versions a tag can name, as written: the whole name, without a leading `v`, after a prefix
     ending in `-v`, `_v` or `/`, or after a `word-` prefix when what follows has a dot. A date or a
@@ -1119,8 +1139,8 @@ def explain(objects: Objects, closure: Closure, states: dict) -> dict:
 
 
 def badge(verdict: str, head: str, at: str = "tags") -> str:
-    colour = {"clean": "brightgreen", "would_be_clean": "brightgreen",
-              "drift": "red", "would_drift": "red"}.get(verdict, "lightgrey")
+    colour = {"clean": "brightgreen", "would_be_clean": "brightgreen", "tag_matches": "brightgreen",
+              "drift": "red", "would_drift": "red", "tag_mismatch": "red"}.get(verdict, "lightgrey")
     message = f"{verdict} @ {head}" + (" (commits)" if at == "commits" else "")
     quoted = message.replace("-", "--").replace("_", "__").replace(" ", "_").replace("@", "%40")
     return (f"![version labels: {message}]"
@@ -1135,6 +1155,8 @@ def run() -> int:
                     help="where artefacts are published (default: tags, or the repo's config file)")
     ap.add_argument("--would-tag", action="store_true",
                     help="before tagging: would HEAD reuse a label that already names other code?")
+    ap.add_argument("--tag", metavar="NAME",
+                    help="after tagging: does the tag NAME name the version its commit declares?")
     ap.add_argument("--tags", action="append", metavar="GLOB",
                     help="only tags matching this glob are publication points (repeatable)")
     ap.add_argument("--closure", action="append", help="glob of files that determine your output")
@@ -1212,8 +1234,8 @@ def run() -> int:
         if not (a.json or a.badge):
             print(f"component         {printable(a.component)}")
     elif comps:
-        if a.would_tag or a.compare or a.explain is not None:
-            raise Refusal("--would-tag, --compare and --explain answer about one component; pass --component "
+        if a.would_tag or a.compare or a.explain is not None or a.tag is not None:
+            raise Refusal("--would-tag, --tag, --compare and --explain answer about one component; pass --component "
                           "NAME (declared: " + ", ".join(printable(n) for n in comps) + ")")
         if a.tags or a.closure or a.version_file or a.version_regex:
             raise Refusal("--tags, --closure, --version-file and --version-regex would apply to every component "
@@ -1229,6 +1251,9 @@ def run() -> int:
         raise Refusal("--tags selects tags; it cannot be combined with --at commits")
     if at == "commits" and a.published is not None:
         raise Refusal("--published selects tags; it cannot be combined with --at commits")
+    if a.tag is not None and (a.would_tag or a.compare or a.explain is not None or at == "commits"):
+        raise Refusal("--tag answers about one tag; --would-tag, --compare, --explain and --at commits "
+                      "do not apply to it")
     if a.would_tag and (a.strict or a.explain):
         raise Refusal("--would-tag answers about one commit; --strict and --explain do not apply to it")
     if a.compare and (a.would_tag or a.explain or a.strict or a.tags or a.at == "commits"
@@ -1357,6 +1382,8 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
 
     if a.compare:
         return compare(a, objects, closure, labels, vpath, include, head_sha)
+    if a.tag is not None:
+        return check_tag(a, objects, labels, head_sha)
 
     # --would-tag looks at every tag: a collision with an old tag is a collision
     limit = a.max_commits if not a.would_tag else 10 ** 9
@@ -1458,6 +1485,7 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
     drifting = {v: cs for v, cs in by_label.items() if len(cs) > 1}
     worst = max((len(cs) for cs in by_label.values()), default=0)
     truncated = total > len(pts)
+    mechanisms = drift_mechanisms(drifting) if at == "tags" else {}
 
     # tag families: colliding tags with different prefixes (`py-1.2.0`, `rs-1.2.0`) are pointed out
     families: dict[str, int] = {}
@@ -1560,6 +1588,8 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
         report.update(coverage)
         if families:
             report["tag_families"] = dict(sorted(families.items()))
+        if mechanisms:
+            report["drift_mechanism"] = dict(sorted(mechanisms.items()))
         if explained:
             report["explain"] = explained
         emit(report)
@@ -1582,6 +1612,10 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
             print(f"  {printable(v)}")
             for s in cs.values():
                 print(f"      closure {s['key']}  first at {printable(s['where'])}")
+            if v in mechanisms:
+                m = mechanisms[v]
+                print("      " + (", ".join(printable(t) for t in m["tags"][:4]) + " " if m["tags"] else "")
+                      + MECHANISM_TEXT[m["mechanism"]])
 
     if explained:
         print(f"\nwhat differs under {printable(a.explain)}, against {printable(explained['first']['point'])}:")
@@ -1725,6 +1759,62 @@ def would_tag(a, closure, head_entries, labels, vpath, by_label, drifting,
         print("and is not what this answer is about; run without --would-tag to see it.")
     print_next(TAG_NEXT if verdict == "no_label_at_head" and vpath == TAG_SOURCE and not rejected else verdict)
     print_coverage(coverage, a.max_commits, None)
+    print_method(stamp, dirty, dirty_note)
+    return code
+
+
+def check_tag(a, objects, labels, head_sha) -> int:
+    """After tagging: the versions the tag's name can name against the label its commit declares. A tag
+    pushed before the version was bumped names one version and builds another (§28)."""
+    name = a.tag
+    sha = git(["rev-parse", "--verify", "--quiet", "--end-of-options", "refs/tags/" + name + "^{commit}"],
+              a.repo, may_fail=True).strip()
+    if not sha:
+        raise Refusal(f"--tag: no tag {printable(repr(name))} in this repository. Before tagging, run --would-tag.")
+    named = sorted(v for v in tag_versions(name) if v[:1].isdigit())
+    if not named:
+        raise Refusal(f"--tag: the name {printable(repr(name))} names no version (a date, a build number or a "
+                      "word), so there is nothing to compare it with.")
+    entries = objects.entries(sha)
+    src = labels.source(entries)
+    label = labels.at(entries, name, count=False)
+    if not label:
+        raise Refusal(NO_LABEL)
+    from_tag = bool(src and src[0] == TAG_SOURCE)
+    verdict = "tag_matches" if version_key(label) in tag_versions(name) else "tag_mismatch"
+    code = {"tag_matches": 0, "tag_mismatch": 1}[verdict]
+    vpath = src[0] if src else None
+
+    dirty, dirty_note = working_tree_state(a.repo)
+    stamp = {"measured_at_head": head_sha[:12], "working_tree_dirty": dirty,
+             "detector_closure": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:16]}
+    if dirty_note:
+        stamp["working_tree_dirty_note"] = dirty_note
+    if a.badge:
+        print(badge(verdict, stamp["measured_at_head"]))
+        return code
+    if a.json:
+        emit({"report_format": REPORT_FORMAT, "stamp": stamp, "mode": "tag", "repo": a.repo,
+              "version_file": vpath, "verdict": verdict, "tag": name, "tag_commit": sha[:12],
+              "tag_names": named, "label_at_tag": label, "version_from_tag": from_tag})
+        return code
+
+    print(f"repository        {printable(a.repo)}")
+    print(f"version from      {printable(vpath or '(nothing at the tag)')}")
+    print(f"tag               {printable(name)}   (commit {sha[:12]})")
+    print(f"declared there    {printable(label)}")
+    print("\n" + "=" * 62)
+    if from_tag:
+        print(f"TAG MATCHES: the version of this project is the tag itself, so {printable(name)} and the build")
+        print("agree by construction. What can still go wrong is the name: one reused or moved, or")
+        print("two names that give the same version on different code.")
+    elif verdict == "tag_matches":
+        print(f"TAG MATCHES: the tag {printable(name)} names {printable(label)}, and its commit declares {printable(label)}.")
+    else:
+        print(f"TAG MISMATCH: the tag {printable(name)} does not name {printable(label)}, the version its commit")
+        print(f"declares in {printable(vpath or '?')}.")
+        print(f"A build from this tag is labelled {printable(label)}. The version was probably bumped after the tag.")
+    print_next(verdict)
     print_method(stamp, dirty, dirty_note)
     return code
 
@@ -1897,6 +1987,9 @@ NEXT = {   # one line per verdict: what to do now (§24)
     "drift": "run --explain LABEL to see the paths that differ. A new release needs a new version; "
              "never move a published tag.",
     "would_be_clean": "tag this commit.",
+    "tag_matches": "publish from this tag.",
+    "tag_mismatch": "do not publish from this tag. Change the version in the file that declares it, commit, "
+                    "and tag that commit with a new name; leave this tag as it is.",
     "would_drift": "do not tag. Agree on a new version, change it in the file that declares it, commit, "
                    "and run --would-tag again.",
     "identical": "nothing to fix: the two references hold the same code.",
