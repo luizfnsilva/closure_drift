@@ -1356,3 +1356,25 @@ name or JSON field changes.
 
 Mutants M64 (the `never in it` line removed: NX04 red) and M65 (the hint never printed: NX05 red).
 The regression corpus must give the recorded answer on every repository still checkable.
+
+## 27. Added 2026-11-03, before any of it was written — 1.3.3
+
+**A version file whose name the default pattern does not read.** Running the tool over the author's
+own repositories (2026-11-02): `--version-file src/sealcore/__init__.py`, a file that declares
+`VERSION = "1.3.1"`, gave `no_labels` and named no way out. The default pattern reads `version`, in
+lower case. The verdict (`no_labels`) and the exit (2) do not change, and nothing is read from the
+hint: a label is declared, not guessed (§20). What changes is the text.
+
+1. With `--version-file` and no `--version-regex`, when the verdict is `no_labels` and the file at
+   HEAD has a line assigning a quoted value to a name that contains `version` in any case
+   (`VERSION = "1.0"`, `APP_VERSION: '2'`), the text report names that line and prints a
+   `--version-regex` that reads it.
+2. The README's section for agents starts with the skill, which says when to check, and puts the MCP
+   server, which runs the check, after it. Not measured: a documentation change.
+
+| proof | required | on 1.3.2 |
+|---|---|---|
+| NX06 | `src/pkg/__init__.py` with `VERSION = "1.0"`, then `"2.0"`, two tags on different code: `--version-file src/pkg/__init__.py` exits 2 and names `VERSION` and `--version-regex`; run again with the printed pattern, it exits 0 | no such line: red |
+
+Mutant M66: the hint never printed (NX06 red). The regression corpus must give the recorded answer
+on every repository still checkable.

@@ -3,6 +3,18 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 1.3.3 — 2026-11-03
+
+A version file the default pattern does not read now gets a way out (`tests/PREREGISTRATION.md`
+§27). Verdicts, exit codes and JSON unchanged.
+
+### Changed
+- With `--version-file` and no `--version-regex`, when nothing declares a version and the file has
+  a line like `VERSION = "1.0"`, the report names that line and prints the `--version-regex` that
+  reads it. Found running the tool on the author's own repositories.
+- README: the section for agents starts with the skill (when to check), then the plugin, then the
+  MCP server alone (how to run it).
+
 ## 1.3.2 — 2026-11-02
 
 Two limits that were only in the README are now in the report (`tests/PREREGISTRATION.md` §26).

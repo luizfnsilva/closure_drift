@@ -18,6 +18,7 @@ import hashlib
 import json
 import os
 import re
+import shlex
 import shutil
 import stat
 import subprocess
@@ -2725,6 +2726,23 @@ def nx05(root):
     rc, _d, out, _e = run(s, text=True)
     check(rc == 0, "same code: exit %d, required 0" % rc)
     check("1.0 and 1.0.0" not in out, "same code: it gives the hint")
+
+
+@proof("NX06")
+def nx06(root):
+    r = Repo(root, "nx06")
+    for tag, version, code in (("v1.0", "1.0", "1\n"), ("v2.0", "2.0", "2\n")):
+        r.write("src/pkg/__init__.py", 'VERSION = "%s"\n' % version)
+        r.write("src/pkg/a.py", code)
+        r.commit()
+        r.tag(tag)
+    rc, _d, out, _e = run(r, "--version-file", "src/pkg/__init__.py", text=True)
+    check(rc == 2, "exit %d, required 2" % rc)
+    line = next((l for l in out.splitlines() if "--version-regex" in l), "")
+    check("VERSION" in out and line, "it does not name VERSION and a --version-regex")
+    pattern = shlex.split(line.split("--version-regex", 1)[1])[0] if line else ""
+    rc, _d, out, _e = run(r, "--version-file", "src/pkg/__init__.py", "--version-regex", pattern, text=True)
+    check(rc == 0, "with the printed pattern %r: exit %d, required 0" % (pattern, rc))
 
 
 @proof("DOC01")

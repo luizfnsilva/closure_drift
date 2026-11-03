@@ -108,6 +108,7 @@ MUTANTS = [
     ("M63", "NX03", [('    print_next(TAG_NEXT if verdict', '    print_next("x" if verdict')]),
     ("M64", "NX04", [('        print(f"never in it       {NEVER_IN_CLOSURE}; --closure does not change this")\n', '')]),
     ("M65", "NX05", [('    for twins in label_twins(by_label, labels.equality):', '    for twins in []:')]),
+    ("M66", "NX06", [('              + version_name_hint(a.repo, vfile, vregex))', '              + "")')]),
     ("M62", "NX01", [('    "would_drift": "do not tag. Agree on a new version', '    "would_driftX": "do not tag. Agree on a new version')]),
     ("M61", "PJ01", [('        extra += (f"\\npackage.json declares', '        extra += ("" if True else f"\\npackage.json declares')]),
     ("M60", "EN01", [('stream.reconfigure(encoding="utf-8", errors="backslashreplace")', 'stream.reconfigure(errors="backslashreplace")')]),

@@ -32,7 +32,7 @@ import warnings
 from collections import OrderedDict, defaultdict
 from pathlib import Path
 
-__version__ = "1.3.2"
+__version__ = "1.3.3"
 REPORT_FORMAT = 2
 
 # Where a version can be declared. Python build files are read first; a repository that has
@@ -831,6 +831,23 @@ def label_twins(by_label: dict, equality: str) -> list[list[str]]:
             if len(vs) > 1 and len({f for v in vs for f in by_label[v]}) > 1][:5]
 
 
+def version_name_hint(repo: str, vfile, vregex) -> str:
+    """`--version-file` read with the default pattern, which reads `version` in lower case: when the
+    file at HEAD assigns a quoted value to another name with `version` in it (`VERSION = "1.0"`),
+    name the line and the pattern that reads it. Only said, never read from (§27)."""
+    if not vfile or vregex:
+        return ""
+    text = git(["show", "HEAD:" + vfile], repo, may_fail=True)[:MAX_BUILD_FILE]
+    for m in re.finditer(r'^[ \t]*([A-Za-z_]\w*)[ \t]*[:=][ \t]*(["\'])([^"\'\n]+)\2', text, re.M):
+        if "version" in m.group(1).lower() and m.group(1) != "version":
+            q = m.group(2)
+            pattern = re.escape(m.group(1)) + r"\s*[:=]\s*" + q + "([^" + q + "]+)" + q
+            return (f"\n{printable(vfile)} has {printable(m.group(0).strip())}, which the default pattern does not "
+                    "read (it reads `version`, in lower case).\n"
+                    f"If that is your version, run again with --version-regex {shlex.quote(pattern)}")
+    return ""
+
+
 def tag_versions(name: str) -> set:
     """The versions a tag can name, as written: the whole name, without a leading `v`, after a prefix
     ending in `-v`, `_v` or `/`, or after a `word-` prefix when what follows has a dot. A date or a
@@ -1604,7 +1621,8 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
         print("so it is probably not your version. Nothing is decided from it.")
         print("Pass --version-file with the file that declares your version.")
     elif verdict == "no_labels":
-        print("NO LABELS: no publication point declared a version. Nothing to compare.")
+        print("NO LABELS: no publication point declared a version. Nothing to compare."
+              + version_name_hint(a.repo, vfile, vregex))
     elif verdict == "inconclusive":
         print("INCONCLUSIVE: only one distinct label across the range scanned.")
     elif verdict == "incomplete" and compared < no_label + empty:

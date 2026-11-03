@@ -38,7 +38,7 @@ git clone -q https://github.com/luizfnsilva/closure_drift && python3 closure_dri
 python3 closure_drift/closure_drift.py /path/to/your/repo
 ```
 
-Or without cloning: `curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.3.2/closure_drift.py`
+Or without cloning: `curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.3.3/closure_drift.py`
 then `python3 closure_drift.py` inside any git repository. Needs Python 3.9+ and git. The last
 lines say what to do next. (`./reproduce.sh` is something else: it validates closure_drift itself,
 a long run, and does not look at your repository.)
@@ -60,7 +60,7 @@ Exit 0 pass, 1 drift, 2 nothing decided (a failure by default).
 # GitHub Actions
 - uses: actions/checkout@v4
   with: { fetch-depth: 0 }
-- uses: luizfnsilva/closure_drift@v1.3.2
+- uses: luizfnsilva/closure_drift@v1.3.3
 ```
 
 Push the workflow before the first tag: a tag pushed together with the workflow that should run on
@@ -71,7 +71,7 @@ with `would-tag` from the first tag.
 ```yaml
 # pre-commit, on git push
 - repo: https://github.com/luizfnsilva/closure_drift
-  rev: v1.3.2
+  rev: v1.3.3
   hooks: [{ id: closure-drift-would-tag }]
 ```
 
@@ -81,16 +81,22 @@ Other pipelines: [`docs/CI.md`](docs/CI.md).
 
 [![closure_drift MCP server](https://glama.ai/mcp/servers/luizfnsilva/closure_drift/badges/score.svg)](https://glama.ai/mcp/servers/luizfnsilva/closure_drift)
 
-An agent that tags and publishes can ask the same question first, through a Model Context Protocol
-(MCP) server, standard library only, with a `would_tag` tool:
+An agent needs two things: to know **when** to check (before it creates a tag, bumps a version or
+publishes), and a way to run the check. The skill gives the first; the MCP server, the second.
+
+1. **The skill**, in any agent that reads skills: `gh skill install luizfnsilva/closure_drift closure-drift --agent claude-code`
+   (or `codex`, `cursor`, `gemini-cli`, `github-copilot`, …).
+2. **In Claude Code, both at once**, as a plugin: `/plugin marketplace add luizfnsilva/closure_drift`,
+   then `/plugin install closure-drift@closure-drift`.
+3. **The MCP server alone** (standard library only, a `would_tag` tool), for other clients:
 
 ```bash
 claude mcp add closure-drift -- uvx --from git+https://github.com/luizfnsilva/closure_drift closure-drift-mcp
 ```
 
-Codex CLI, Gemini CLI, Cursor, VS Code, Windsurf, an agent skill that says when to run it, and a rule to paste into `AGENTS.md`, `CLAUDE.md` or `.cursorrules`:
-[`integrations/`](integrations/). The server makes the check available; the agent has to call it
-and respect the answer. The barrier is CI.
+Codex CLI, Gemini CLI, Cursor, VS Code, Windsurf, and a rule to paste into `AGENTS.md`, `CLAUDE.md`
+or `.cursorrules`: [`integrations/`](integrations/). An agent can still skip the check; the barrier
+is CI.
 
 ## The answer
 
@@ -223,7 +229,7 @@ CI runs the same four on Linux (Python 3.9 to 3.14), macOS and Windows; what eac
 run is in
 [`tests/RECORD.md`](tests/RECORD.md). These scores describe the cases executed, not inputs nobody
 tried. `./reproduce.sh` runs all of it. The 100 projects of the study are also a regression corpus,
-pinned to recorded commits: 1.3.2 gives the recorded answer on all 99 still checkable (one tag of `apache/arrow` moved upstream), as predicted before it ran
+pinned to recorded commits: 1.3.3 gives the recorded answer on all 99 still checkable (one tag of `apache/arrow` moved upstream), as predicted before it ran
 ([`tools/regression/`](tools/regression/)).
 
 **Ten large repositories** (the Linux kernel, LLVM, CPython and seven more), protocol written
@@ -241,6 +247,8 @@ both on private repositories. `closure-drift --json > result.json`, then
 or write to lfnsilva.invest@gmail.com. A result showing the tool is wrong is the most useful kind.
 
 ## Version
+
+**1.3.3** names the pattern to pass when a version file declares `VERSION = "x"` instead of `version`, and the section for agents starts with the skill.
 
 **1.3.2** puts two limits in the report itself: what is never in the closure, and when `1.0` and `1.0.0` on different code are counted as two labels.
 **1.3.0** opens the README with three ways in, ends every text report with a `Next:` line, and adds [`docs/EVIDENCE.md`](docs/EVIDENCE.md) and a usability protocol; the verdicts are unchanged.
