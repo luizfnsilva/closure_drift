@@ -1828,12 +1828,24 @@ def manifest_name(path: str, text: str) -> str | None:
     return m.group(1) if m else None
 
 
+def scm_derived(t: dict) -> bool:
+    """A pyproject.toml whose build takes the version from the tag (rule 2 of docs/LABELS.md)."""
+    project, hatch, build = t.get("project", {}), t.get("tool.hatch.version", {}), t.get("build-system", {})
+    requires = {requirement(q) for q in re.findall(r'["\']([^"\'\n]*)["\']', build.get("requires", ""))}
+    return bool(set(t) & SCM_TABLES or string(hatch.get("source")) == "vcs"
+                or t.get("tool.poetry-dynamic-versioning", {}).get("enable", "").startswith("true")
+                or string(t.get("tool.pdm.version", {}).get("source")) == "scm"
+                or (requires & SCM_TOOLS and not string(project.get("version"))))
+
+
 def prefixed_source(objects, labels, entries, name: str):
     """§29: the manifest a tag's prefix names, as (path, how); None when the prefix is absent, generic,
     the root's own package, or the root declares no name; a Refusal when nothing or more than one fits."""
     p = tag_prefix(name)
     if not p or p.lower() in GENERIC_TAG_WORDS:
         return None
+    if re.match(r"^(?:[vV]?[0-9]|[^A-Za-z@])", p):
+        return None                                       # a version, not a package name (amendment 4)
     blobs = {path: oid for path, kind, oid in entries if kind == "blob"}
     roots = [manifest_name(f, objects.text(blobs[f])) for f in MANIFESTS if f in blobs]
     roots = [n for n in roots if n]
@@ -1866,10 +1878,13 @@ def check_tag(a, objects, labels, head_sha) -> int:
                       "word), so there is nothing to compare it with.")
     entries = objects.entries(sha)
     by_prefix = None if labels.fixed else prefixed_source(objects, labels, entries, name)
+    prefix_from_tag = False
     if by_prefix:
         src = by_prefix
         blobs = {path: oid for path, kind, oid in entries if kind == "blob"}
         label = labels.sources.read(blobs, by_prefix[0], by_prefix[1])
+        if not label and by_prefix[1] == "project" and scm_derived(tables(objects.text(blobs[by_prefix[0]]))):
+            label, prefix_from_tag = tag_label(name), True    # that package's version is the tag (amendment 4)
         if not label:
             raise Refusal(f"--tag: the prefix of {printable(repr(name))} names {printable(by_prefix[0])}, which "
                           "declares no version there. Pass --version-file / --version-regex.")
@@ -1878,7 +1893,7 @@ def check_tag(a, objects, labels, head_sha) -> int:
         label = labels.at(entries, name, count=False)
     if not label:
         raise Refusal(NO_LABEL)
-    from_tag = bool(src and src[0] == TAG_SOURCE)
+    from_tag = bool(src and src[0] == TAG_SOURCE) or prefix_from_tag
     # build metadata takes no part in precedence (SemVer 2.0.0 §10): 1.2.3+45 is what v1.2.3 names (§29)
     keys = {version_key(label), version_key(label.split("+", 1)[0])}
     keys |= {prerelease_key(k) for k in keys}

@@ -13,6 +13,7 @@ verdicts and exit codes unchanged, except where a prefixed tag now names its own
   root's package, the version is read from the manifest that declares `pkg` (`Cargo.toml`,
   `package.json`, `pyproject.toml`, `Chart.yaml`, `pubspec.yaml`), or the one in a folder named
   `pkg`. If none or several fit: exit 2, naming `--version-file`. JSON: `version_file_from_tag_prefix`.
+  A package whose `pyproject.toml` takes its version from the tag gives `tag_matches` by construction.
 - `pubspec.yaml` (Dart, Flutter): its top-level `version:`.
 - `--tag` ignores build metadata: `1.2.3+45` matches `v1.2.3` (SemVer §10).
 - `--tag` compares pre-releases in one spelling: `v2.9.0-rc0` matches `2.9.0rc0`, `0.15.0a1` matches

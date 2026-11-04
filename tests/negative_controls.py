@@ -123,6 +123,8 @@ MUTANTS = [
     ("M73", "PS02", [('    keys = {version_key(label), version_key(label.split("+", 1)[0])}\n', '    keys = {version_key(label)}\n')]),
     ("M75", "VD01", [('        return bool(folders) and any(folders <= named_folders(g)', '        return False and any(folders <= named_folders(g)')]),
     ("M76", "PR01", [('    keys |= {prerelease_key(k) for k in keys}\n    named_keys = tag_versions(name)\n    named_keys |= {prerelease_key(k) for k in named_keys}\n', '    named_keys = tag_versions(name)\n')]),
+    ("M77", "TP06", [('    if re.match(r"^(?:[vV]?[0-9]|[^A-Za-z@])", p):\n', '    if False:\n')]),
+    ("M78", "TP06", [('        if not label and by_prefix[1] == "project" and scm_derived(', '        if False and scm_derived(')]),
     ("M60", "EN01", [('stream.reconfigure(encoding="utf-8", errors="backslashreplace")', 'stream.reconfigure(errors="backslashreplace")')]),
 ]
 
