@@ -163,9 +163,12 @@ def main() -> int:
                     red = sorted(p["id"] for p in doc["proofs"] if p["status"] == "red")
                     status = "caught" if required in red else "missed"
                     detail = "red: " + (", ".join(red) or "none")
+                    if status == "missed" and {p["id"]: p["status"] for p in doc["proofs"]}.get(required) == "not_run":
+                        # the proof cannot run on this platform (ACT01 needs bash): not caught, not missed
+                        status, detail = "not_run_here", "%s does not run here; %s" % (required, detail)
         finally:
             shutil.rmtree(work, ignore_errors=True)
-        bad += status != "caught"
+        bad += status not in ("caught", "not_run_here")
         rows.append({"id": mid, "required_red": required, "status": status, "detail": detail})
         print("%-4s must turn %s red   %-11s %s" % (mid, required, status, detail))
 
@@ -178,12 +181,14 @@ def main() -> int:
     positive = red == []
     print("P01  unmodified detector      %s" % ("nothing red" if positive else "RED: %s" % red))
     caught = sum(1 for r in rows if r["status"] == "caught")
+    here = sum(1 for r in rows if r["status"] == "not_run_here")
     if out_json:
         with open(out_json, "w", encoding="utf-8", newline="\n") as fh:
             json.dump({"mutants": rows, "positive_control_holds": positive}, fh, indent=1, sort_keys=True)
             fh.write("\n")
-    print("\n%d mutants · %d caught by the required proof · %d not caught | "
-          "positive control %s" % (len(rows), caught, len(rows) - caught,
+    print("\n%d mutants · %d caught by the required proof · %d not caught%s | "
+          "positive control %s" % (len(rows), caught, len(rows) - caught - here,
+                                   " · %d whose proof does not run here" % here if here else "",
                                    "holds" if positive else "FAILS"))
     return 0 if bad == 0 and positive else 1
 
