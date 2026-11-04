@@ -21,7 +21,7 @@ The 100 repositories of `tools/study/`, each pinned to a recorded HEAD and set o
 | `checks/v1.3.2-candidate-045362a0.json` | the 1.3.2 script | 99 of 99 checkable match, as predicted (§26); `apache/arrow` not checkable |
 | `checks/v1.3.3-candidate-7d4bbe46.json` | the 1.3.3 script | 99 of 99 checkable match, as predicted (§27); `apache/arrow` not checkable |
 | `checks/v1.4.0-candidate-8ed98594.json` | the 1.4.0 script | 99 of 99 checkable match, as predicted (§28); the labels in drift split 79 / 7 / 1 by mechanism, as predicted; `apache/arrow` not checkable |
-| `checks/v1.5.0-candidate-1c393943.json` | the 1.5.0 script | 99 of 99 checkable match, as predicted (§29); mechanisms 79 / 7 / 1 unchanged; `apache/arrow` not checkable |
+| `checks/v1.5.0-candidate-c0c6ae18.json` | the 1.5.0 script | 99 of 99 checkable match, as predicted (§29); mechanisms 79 / 7 / 1 unchanged; `apache/arrow` not checkable |
 
 Run it: push a branch named `regression-check/<anything>` (this branch's detector) or
 `regression-check-<tag>/<anything>` (that tag's), then
