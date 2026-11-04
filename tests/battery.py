@@ -2927,6 +2927,23 @@ def tp05(root):
     expect(r, "tag_mismatch", 1, "--tag", "helper-v0.5.0", "--version-file", "Cargo.toml")
 
 
+@proof("TP06")
+def tp06(root):
+    r = Repo(root, "tp06")
+    r.write("pyproject.toml", '[project]\nname = "app"\nversion = "1.0"\n')
+    r.write("pkg/pyproject.toml", '[project]\nname = "pkg"\ndynamic = ["version"]\n\n[tool.setuptools_scm]\nroot = ".."\n')
+    r.write("pkg/src/pkg/__init__.py", "1\n")
+    r.commit()
+    r.tag("pkg-v2.0")
+    expect(r, "tag_matches", 0, "--tag", "pkg-v2.0", version_from_tag=True)
+    f = Repo(root, "tp06f")
+    f.write("Cargo.toml", '[package]\nname = "foo"\nversion = "1.0.0"\n')
+    f.write("src/lib.rs", "1\n")
+    f.commit()
+    f.tag("v1.1.0-1")
+    expect(f, "tag_mismatch", 1, "--tag", "v1.1.0-1")
+
+
 @proof("PS01")
 def ps01(root):
     r = Repo(root, "ps01")

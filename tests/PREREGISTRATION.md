@@ -1506,5 +1506,22 @@ compared in one spelling: `a`/`alpha`, `b`/`beta`, `c`/`rc`/`pre`/`preview`, wit
 
 Mutant: M76 (pre-releases compared as written: PR01 red).
 
+**Amendment 4 (2026-11-04, before code), from re-running 1.5.0 on the 29 repositories with a
+`tag_mismatch` under 1.4.0** (every prefixed answer named above became `tag_matches` or exit 2,
+the unprefixed ones stayed exit 1, as predicted). Two readings were wrong: (a) a "prefix" that is
+itself a version (`3.14.4` in `3.14.4-1`, `v1.81.14-stable.gpt` in litellm) was taken for a package
+name and refused; a prefix now starts with a letter and is not `v` followed by a digit, so these
+tags are compared as in 1.4.0; (b) a package whose `pyproject.toml` takes its version from the tag
+(`setuptools-scm-v10.0.0` names `setuptools-scm/pyproject.toml`, version dynamic with
+setuptools-scm) was refused for declaring no version; it now gives `tag_matches` by construction,
+`version_from_tag: true`, as the root does since 1.4.0.
+
+| proof | required | on 1.4.0 |
+|---|---|---|
+| TP06 | `pkg/pyproject.toml` named `pkg`, `dynamic = ["version"]`, `[tool.setuptools_scm]`, root `pyproject.toml` `app` 1.0: `--tag pkg-v2.0` exits 0, `version_from_tag` true; `foo` 1.0 at the root tagged `v1.1.0-1`: exits 1 | red |
+
+Mutants: M77 (a version-like prefix is taken for a package: TP06 red), M78 (a tag-derived package
+is refused: TP06 red).
+
 **Not decided here, decided after the F-Droid sweep and recorded as an amendment before code:**
 reading `versionName` from `app/build.gradle(.kts)` by default.
