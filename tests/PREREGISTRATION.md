@@ -1488,5 +1488,10 @@ reported as found.
 `VERSION`, `version.txt`, a gemspec), a prefixed tag is compared with the root's version, as in
 1.4.0: `proj-1.1` on a `VERSION` of 1.0 still exits 1. TP04 adds this case.
 
+**Amendment 2 (2026-11-03, before release).** Item 4 is withdrawn, with NL01 and M74: E01 and E02
+(X6) require a label holding a line break and escapes to be measured, printed escaped and returned
+exactly in the JSON; refusing it would erase what they protect. The label seen in the sweep was a
+sweep's own pattern; the detector's text already escaped it.
+
 **Not decided here, decided after the F-Droid sweep and recorded as an amendment before code:**
 reading `versionName` from `app/build.gradle(.kts)` by default.

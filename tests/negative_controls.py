@@ -121,7 +121,6 @@ MUTANTS = [
     ("M71", "TP03", [('    if len(hits) != 1:\n', '    if not hits:\n        return None\n    if len(hits) != 1:\n')]),
     ("M72", "PS01", [('("Chart.yaml", "helm"), ("pubspec.yaml", "helm"))', '("Chart.yaml", "helm"))')]),
     ("M73", "PS02", [('    keys = {version_key(label), version_key(label.split("+", 1)[0])}\n', '    keys = {version_key(label)}\n')]),
-    ("M74", "NL01", [('            if label is not None and any(ord(c) < 32 or ord(c) == 127 for c in label):\n', '            if False:\n')]),
     ("M75", "VD01", [('        return bool(folders) and any(folders <= named_folders(g)', '        return False and any(folders <= named_folders(g)')]),
     ("M60", "EN01", [('stream.reconfigure(encoding="utf-8", errors="backslashreplace")', 'stream.reconfigure(errors="backslashreplace")')]),
 ]

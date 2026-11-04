@@ -432,11 +432,9 @@ def label_of(m) -> str | None:
 
 def plausible(label) -> bool:
     """A label is a version someone wrote: it has a digit, and it is not a format template
-    (`%(version)s`, `{}.{}`), a placeholder, nor text holding a line break or another control
-    character (a pattern that captured across lines, §29)."""
+    (`%(version)s`, `{}.{}`) nor a placeholder."""
     return (isinstance(label, str) and any(c.isdigit() for c in label)
-            and not any(c in label for c in "%{}") and label not in PLACEHOLDERS
-            and not any(ord(c) < 32 or ord(c) == 127 for c in label))
+            and not any(c in label for c in "%{}") and label not in PLACEHOLDERS)
 
 
 _KEY = re.compile(r'^([A-Za-z_][\w.-]*)[ \t]*=[ \t]*(.*)$')
@@ -1006,8 +1004,6 @@ class Labels:
                         label = self.objects.text(oid).strip()
             if label is not None and not any(c.isalnum() for c in label):
                 label = None                                  # punctuation only (a captured quote) is no version
-            if label is not None and any(ord(c) < 32 or ord(c) == 127 for c in label):
-                label = None                                  # captured across lines: no version (§29)
         else:
             blobs = {path: oid for path, kind, oid in entries if kind == "blob"}
             src = self.sources.find(blobs)

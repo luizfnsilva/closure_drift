@@ -2953,19 +2953,6 @@ def ps02(root):
     expect(r, "tag_mismatch", 1, "--tag", "v2.0.1")
 
 
-@proof("NL01")
-def nl01(root):
-    r = Repo(root, "nl01")
-    r.write("app/build.gradle", 'val code = versionName\nval build = 3\n')
-    r.write("src/a.py", "1\n")
-    r.commit()
-    r.tag("v1.0")
-    rc, _d, out, err = run(r, "--tag", "v1.0", "--version-file", "app/build.gradle",
-                           "--version-regex", r'versionName\s*=?\s*"?([^"]+)', text=True)
-    refusal(rc, out, err)
-    check("val build" not in out, "a label holding a line break was printed")
-
-
 @proof("VD01")
 def vd01(root):
     r = Repo(root, "vd01")
