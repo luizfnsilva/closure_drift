@@ -1427,3 +1427,62 @@ Mutants: M67 (`--tag` compares nothing: always `tag_matches`; TG01 red), M68 (ev
 and the labels in drift across the corpus split 79 / 7 / 1 as above. A different split is reported
 as found, each difference named; it does not block the release unless it shows a classification
 the definition above does not produce.
+
+## 29. Added 2026-11-03, before any of it was written — 1.5.0
+
+**What the sweeps of 2026 tags found wrong in `--tag`.** 1.4.0 was run with `--tag` on every tag
+created in 2026 in seven sets of repositories (the 100 of the study, 200 more from the same
+ranking, the top 100 of crates.io, npm and RubyGems, 200 F-Droid apps, Helm and Flutter
+repositories by stars). Most `tag_mismatch` answers were wrong, all for one reason: the tag names
+another package of the same repository (`clap_complete-v4.6.1`, `lock_api-v0.5.0`, `ctest-v0.5.0`,
+`core-v2.46.0` in pydantic, `monitor-v0.1.0`), and `--tag` compared it with the root's version.
+The real cases (mrab-regex; servo/rust-smallvec `v1.16.0` and `v2.0.0-alpha.13`, against the commit
+crates.io records in `.cargo_vcs_info.json`) had no prefix. Monorepos released with changesets name
+tags `name@1.2.3`, which `tag_versions` does not read.
+
+1. **A tag prefix that names a package.** With `--tag NAME` and no `--version-file`, when the name
+   has a prefix before the version (`p-1.2`, `p-v1.2`, `p_v1.2`, `p/1.2`, `p@1.2`, `@scope/p@1.2`)
+   and `p` is not a generic word (`release`, `rel`, `version`, `ver`, `v`) nor the name of the
+   package the root declares: the version file is the one manifest, below the root and outside the
+   folders never in a closure, whose package name is `p` (`Cargo.toml` `[package] name`,
+   `package.json` `name` or its part after the scope, `pyproject.toml` `[project] name`,
+   `Chart.yaml` and `pubspec.yaml` `name:`), names compared with `-` and `_` as one; or, if none,
+   the one manifest in a folder named `p`. The answer says which file, and the JSON adds
+   `version_file_from_tag_prefix: true`. If no manifest or more than one qualifies: refused, exit 2,
+   naming `p` and `--version-file`. `tag_versions` reads `@` as a separator.
+2. **`pubspec.yaml`** (Dart, Flutter) is read like `Chart.yaml`: the top-level `version:` line,
+   after the files 1.4.0 reads. The label is written as found (`1.2.3+45`).
+3. **Build metadata in `--tag`.** A label with `+build` matches a tag naming the version without it
+   (SemVer 2.0.0 §10: build metadata does not take part in precedence). Only in `--tag`; every
+   other comparison of labels is unchanged.
+4. **A label holding a line break, a tab or another control character is not a label**: a pattern
+   that captures across lines no longer reports a label like `)\nif (x == null) {`.
+5. **O13: a `--closure` glob that names a folder never in a closure brings it in.** `vendor/**`
+   puts `vendor/` in the closure; a path stays out when it is out for another reason (a `tests/`
+   inside `vendor/`, a `*.md`). `.git/` never comes in. The line under the closure says which of
+   the folders came in. Without such a glob nothing changes.
+
+| proof | required | on 1.4.0 |
+|---|---|---|
+| TP01 | root `Cargo.toml` `app` 2.0, `crates/helper/Cargo.toml` `helper` 0.5, tag `helper-v0.5`: `--tag` exits 0, `version_file` `crates/helper/Cargo.toml`, `version_file_from_tag_prefix` true; tag `helper-v0.6` on the same commit exits 1 | exit 1, root file: red |
+| TP02 | `packages/b/package.json` `@s/b` 1.2.0, root `package.json` private: tags `@s/b@1.2.0` and `b@1.2.0` exit 0 | red |
+| TP03 | root `pyproject.toml` `pydantic` 2.13, no package `core`, tag `core-v2.42.0`: exit 2, the cause names `core` and `--version-file` | exit 1: red |
+| TP04 | root `Cargo.toml` `foo` 1.0 tagged `foo-v1.1` and `release-1.1`: each exits 1, as in 1.4.0 | green (kept) |
+| TP05 | TP01's repository with `--version-file Cargo.toml`: `helper-v0.5` exits 1 (the file given wins) | green (kept) |
+| PS01 | only `pubspec.yaml` `version: 1.2.3+45`, tagged `v1.2.3`: `--tag` exits 0 and `label_at_tag` is `1.2.3+45`; two tags on different code both at `1.2.3+45`: drift, exit 1 | red |
+| PS02 | `VERSION` `2.0.0+7` tagged `v2.0.0`: exit 0; tagged `v2.0.1`: exit 1 | red |
+| NL01 | `--version-regex 'versionName\s*=?\s*"?([^"]+)'` capturing across a line break: the label is refused (exit 2, no label), never printed | red |
+| VD01 | `v1`, `v2` at 1.0, only `vendor/x/a.go` changed: default closure plus `--closure 'vendor/**' 'src/**'` exits 1; without it exits 0; `vendor/x/tests/t.go` changed alone exits 0 with the glob | red |
+
+Mutants: M70 (the prefix is never resolved: TP01 red), M71 (no refusal when nothing qualifies:
+TP03 red), M72 (`pubspec.yaml` not read: PS01 red), M73 (build metadata kept in `--tag`: PS02 red),
+M74 (control characters accepted: NL01 red), M75 (the glob does not bring the folder in: VD01 red).
+
+**Prediction on the regression corpus:** every repository still checkable gives the recorded
+answer; mechanisms 79 / 7 / 1 unchanged. **On the sweeps** (re-run with 1.5.0, same lists): the
+prefixed `tag_mismatch` answers named above become `tag_matches` or exit 2, none stays exit 1; the
+unprefixed ones (mrab-regex, smallvec, huggingface_hub `v1.3.6`) stay exit 1. Any other change is
+reported as found.
+
+**Not decided here, decided after the F-Droid sweep and recorded as an amendment before code:**
+reading `versionName` from `app/build.gradle(.kts)` by default.
