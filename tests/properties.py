@@ -664,9 +664,9 @@ CONTROLS = [
      'full.update(raw + b"\\0" + kind.encode() + b" " + oid.encode() + mode + b"\\n")',
      'full.update(raw + b"\\0" + oid.encode() + mode + b"\\n")'),
     ("K03", "paths are matched without regard to case", ("PR01", "PR15"),
-     "            got = matches(path, self.include) and not excluded(path, is_file)",
+     "            got = matches(path, self.include) and (not excluded(path, is_file) or self.brought_in(path, is_file))",
      "            got = (matches(path.lower(), [g.lower() for g in self.include])\n"
-     "                   and not excluded(path.lower(), is_file))"),
+     "                   and (not excluded(path.lower(), is_file) or self.brought_in(path, is_file)))"),
     ("K04", "`only_in_a` and `only_in_b` are exchanged in --compare", ("PR02", "PR10"),
      '"changed": changed, "only_in_a": only_a, "only_in_b": only_b})',
      '"changed": changed, "only_in_a": only_b, "only_in_b": only_a})'),
