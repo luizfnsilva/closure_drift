@@ -3,6 +3,21 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 1.5.0 — 2026-11-04
+
+What a sweep of 2026 tags with `--tag` found wrong (`tests/PREREGISTRATION.md` §29). Existing
+verdicts and exit codes unchanged, except where a prefixed tag now names its own package.
+
+### Added
+- `--tag pkg-v1.2` (also `pkg_v1.2`, `pkg/1.2`, `pkg@1.2`, `@scope/pkg@1.2`): when `pkg` is not the
+  root's package, the version is read from the manifest that declares `pkg` (`Cargo.toml`,
+  `package.json`, `pyproject.toml`, `Chart.yaml`, `pubspec.yaml`), or the one in a folder named
+  `pkg`. If none or several fit: exit 2, naming `--version-file`. JSON: `version_file_from_tag_prefix`.
+- `pubspec.yaml` (Dart, Flutter): its top-level `version:`.
+- `--tag` ignores build metadata: `1.2.3+45` matches `v1.2.3` (SemVer §10).
+- A `--closure` glob that names `vendor/` (or `tests/`, `docs/`, `spec/`, `node_modules/`) brings
+  that folder into the closure (O13). The report names the folders brought in.
+
 ## 1.4.0 — 2026-11-04
 
 The tag pushed before the version bump (`tests/PREREGISTRATION.md` §28). Existing verdicts, exit

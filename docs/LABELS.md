@@ -18,7 +18,7 @@ turns all of it off and reads that one file.
    `setup.py` lists, or the only top-level package there is.
 
 **Otherwise**: `Cargo.toml`, `package.json`, `composer.json`, `build.gradle`, `VERSION`, `version.txt`,
-`Chart.yaml` (its top-level `version:`); then the first `*.gemspec` at the root (`.version = "…"`, or,
+`Chart.yaml` and `pubspec.yaml` (their top-level `version:`; 1.5.0); then the first `*.gemspec` at the root (`.version = "…"`, or,
 when it reads `Foo::VERSION`, `VERSION = "…"` in the shallowest `lib/**/version.rb`); then `go.mod`,
 which declares no version: a Go module's version is its tag, as with `setuptools_scm`. (1.1.0)
 
