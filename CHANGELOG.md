@@ -15,6 +15,8 @@ verdicts and exit codes unchanged, except where a prefixed tag now names its own
   `pkg`. If none or several fit: exit 2, naming `--version-file`. JSON: `version_file_from_tag_prefix`.
 - `pubspec.yaml` (Dart, Flutter): its top-level `version:`.
 - `--tag` ignores build metadata: `1.2.3+45` matches `v1.2.3` (SemVer §10).
+- `--tag` compares pre-releases in one spelling: `v2.9.0-rc0` matches `2.9.0rc0`, `0.15.0a1` matches
+  `0.15.0-alpha.1` (PEP 440 normalization).
 - A `--closure` glob that names `vendor/` (or `tests/`, `docs/`, `spec/`, `node_modules/`) brings
   that folder into the closure (O13). The report names the folders brought in.
 

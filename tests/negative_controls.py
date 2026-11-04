@@ -122,6 +122,7 @@ MUTANTS = [
     ("M72", "PS01", [('("Chart.yaml", "helm"), ("pubspec.yaml", "helm"))', '("Chart.yaml", "helm"))')]),
     ("M73", "PS02", [('    keys = {version_key(label), version_key(label.split("+", 1)[0])}\n', '    keys = {version_key(label)}\n')]),
     ("M75", "VD01", [('        return bool(folders) and any(folders <= named_folders(g)', '        return False and any(folders <= named_folders(g)')]),
+    ("M76", "PR01", [('    keys |= {prerelease_key(k) for k in keys}\n    named_keys = tag_versions(name)\n    named_keys |= {prerelease_key(k) for k in named_keys}\n', '    named_keys = tag_versions(name)\n')]),
     ("M60", "EN01", [('stream.reconfigure(encoding="utf-8", errors="backslashreplace")', 'stream.reconfigure(errors="backslashreplace")')]),
 ]
 

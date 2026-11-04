@@ -1791,6 +1791,16 @@ MANIFESTS = {"Cargo.toml": "cargo", "package.json": "json", "pyproject.toml": "p
              "Chart.yaml": "helm", "pubspec.yaml": "helm"}
 
 
+_PRE = {"a": "a", "alpha": "a", "b": "b", "beta": "b", "c": "rc", "rc": "rc", "pre": "rc", "preview": "rc"}
+
+
+def prerelease_key(key: str) -> str:
+    """One spelling of a pre-release (PEP 440 normalization): `2.9.0-rc0`, `2.9.0rc0` and
+    `0.15.0-alpha.1` / `0.15.0a1` compare equal in --tag (§29 amendment 3)."""
+    m = re.match(r"^([0-9]+(?:\.[0-9]+)*)[-_.]?(alpha|beta|preview|pre|rc|a|b|c)[-_.]?([0-9]*)$", key, re.I)
+    return f"{m.group(1)}{_PRE[m.group(2).lower()]}{int(m.group(3) or 0)}" if m else key
+
+
 def tag_prefix(name: str) -> str | None:
     """The part of a tag's name before its version: `helper` in `helper-v0.5`, `@s/b` in `@s/b@1.2`."""
     m = re.match(r"^(.+?)(?:[-_]v|[-_/@]v?)(?=\d)", name, re.S)
@@ -1871,7 +1881,10 @@ def check_tag(a, objects, labels, head_sha) -> int:
     from_tag = bool(src and src[0] == TAG_SOURCE)
     # build metadata takes no part in precedence (SemVer 2.0.0 §10): 1.2.3+45 is what v1.2.3 names (§29)
     keys = {version_key(label), version_key(label.split("+", 1)[0])}
-    verdict = "tag_matches" if keys & tag_versions(name) else "tag_mismatch"
+    keys |= {prerelease_key(k) for k in keys}
+    named_keys = tag_versions(name)
+    named_keys |= {prerelease_key(k) for k in named_keys}
+    verdict = "tag_matches" if keys & named_keys else "tag_mismatch"
     code = {"tag_matches": 0, "tag_mismatch": 1}[verdict]
     vpath = src[0] if src else None
 
