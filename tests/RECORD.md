@@ -1,3 +1,23 @@
+# Record of the battery runs — closure_drift 1.4.0
+
+Detector 1.4.0: `closure_drift.py`, sha256 `8ed98594de2946ff45053476c8dbe71e3cf09d03ba1cd0c43fdf85fe025eafa5`. CI run 41782256913 (`80001bf`).
+
+| platform | CPython | battery | mutants | adversarial | oracle | properties |
+|---|---|---|---|---|---|---|
+| Ubuntu | 3.9, 3.10, 3.11, 3.12, 3.13, 3.14 | 233 · 233 green · 0 red · 0 not run | 69 of 69 | 315 · 304 as required · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 controls |
+| macOS | 3.10, 3.14 | 233 · 232 green · 0 red · 1 not run | 69 of 69 | 315 · 304 · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+| Windows | 3.9, 3.14 | 233 · 227 green · 0 red · 6 not run | 68 of 68 that can run there; M69's proof (ACT01, bash) does not | 315 · 281 · 2 loose · 32 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+
+The 2 loose are ZA02 and ZA04 (`docs/FAILURES.md` O2b, O2a). Two earlier matrices did not count:
+run 41725575568 had M40's anchor broken by the line `--tag` changed (fixed in `aa880f7`, 69 of 69
+locally); run 41751485016 counted M69 as missed on Windows, where ACT01 cannot run (the mutant
+script now reports such a mutant apart, `80001bf`). As before, the job "the nine files match
+DEPOSIT.sha256" failed in that run: the manifest is regenerated in the next commit.
+
+Regression corpus (`tools/regression/`), the same script (run 41725575205,
+`checks/v1.4.0-candidate-8ed98594.json`): 99 of 99 checkable match, as predicted in §28; the labels
+in drift split 79 / 7 / 1 by mechanism, as predicted; `apache/arrow` not checkable.
+
 # Record of the battery runs — closure_drift 1.3.3
 
 Detector 1.3.3: `closure_drift.py`, sha256 `7d4bbe464f8c6c9704bf777894812a3a7b09b5ad4f0d3fde8e72456a41148aac`. CI run 41671278470 (`319a9a6`).
