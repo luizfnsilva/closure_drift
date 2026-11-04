@@ -1493,5 +1493,18 @@ reported as found.
 exactly in the JSON; refusing it would erase what they protect. The label seen in the sweep was a
 sweep's own pattern; the detector's text already escaped it.
 
+**Amendment 3 (2026-11-04, before code).** The sweep of 200 more PyPI projects found two more
+wrong `tag_mismatch` answers of one kind: a pre-release spelled two ways (googleapis/python-genai
+tag `v2.9.0-rc0`, file `2.9.0rc0`; aminalaee/uuid-utils tag `0.15.0a1`, `Cargo.toml`
+`0.15.0-alpha.1`, which maturin publishes as `0.15.0a1`). In `--tag` only, a pre-release is
+compared in one spelling: `a`/`alpha`, `b`/`beta`, `c`/`rc`/`pre`/`preview`, with or without a
+`.`, `-` or `_` before and after, and no number read as 0 (PEP 440 normalization).
+
+| proof | required | on 1.4.0 |
+|---|---|---|
+| PR01 | `pyproject.toml` `2.9.0rc0` tagged `v2.9.0-rc0`: exit 0; tagged `v2.9.0-rc1`: exit 1; `Cargo.toml` `0.15.0-alpha.1` tagged `0.15.0a1`: exit 0 | red |
+
+Mutant: M76 (pre-releases compared as written: PR01 red).
+
 **Not decided here, decided after the F-Droid sweep and recorded as an amendment before code:**
 reading `versionName` from `app/build.gradle(.kts)` by default.

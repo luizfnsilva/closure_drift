@@ -2953,6 +2953,24 @@ def ps02(root):
     expect(r, "tag_mismatch", 1, "--tag", "v2.0.1")
 
 
+@proof("PR01")
+def pr01(root):
+    r = Repo(root, "pr01")
+    r.write("pyproject.toml", '[project]\nname = "g"\nversion = "2.9.0rc0"\n')
+    r.write("src/g/__init__.py", "1\n")
+    r.commit()
+    r.tag("v2.9.0-rc0")
+    r.tag("v2.9.0-rc1")
+    expect(r, "tag_matches", 0, "--tag", "v2.9.0-rc0")
+    expect(r, "tag_mismatch", 1, "--tag", "v2.9.0-rc1")
+    c = Repo(root, "pr01c")
+    c.write("Cargo.toml", '[package]\nname = "u"\nversion = "0.15.0-alpha.1"\n')
+    c.write("src/lib.rs", "1\n")
+    c.commit()
+    c.tag("0.15.0a1")
+    expect(c, "tag_matches", 0, "--tag", "0.15.0a1")
+
+
 @proof("VD01")
 def vd01(root):
     r = Repo(root, "vd01")
