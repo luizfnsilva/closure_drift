@@ -85,7 +85,7 @@ MUTANTS = [
                        'if False:')]),
     ("M42", "PUB08", [('"tags_included": total, "tags_left_out": left_out}', '"tags_included": total, "tags_left_out": 0}')]),
     ("M43", "PUB12", [('            if self.published is not None and tag and src[0] != TAG_SOURCE:', '            if False:')]),
-    ("M44", "VS01", [('("version.txt", "token"),\n                    ("Chart.yaml", "helm"))', '("version.txt", "token"))')]),
+    ("M44", "VS01", [('("version.txt", "token"),\n                    ("Chart.yaml", "helm"), ("pubspec.yaml", "helm"))', '("version.txt", "token"),\n                    ("pubspec.yaml", "helm"))')]),
     ("M45", "ER01", [('    if not vfile and vsrc is None and not a.would_tag and not any(root_has_source(objects, s) for s, _d, _n in pts):',
                       '    if False:')]),
     ("M46", "ER02", [('    return bool(names & set(ROOT_SOURCES)) or any(n.endswith(".gemspec") for n in names)', '    return False')]),
@@ -110,7 +110,7 @@ MUTANTS = [
     ("M64", "NX04", [('        print(f"never in it       {NEVER_IN_CLOSURE}; a --closure glob that names one of these folders brings it in"\n'
                      '              + (f"\\n                  brought in here: {\', \'.join(sorted(f + \'/\' for f in brought))}" if brought else ""))\n', '')]),
     ("M65", "NX05", [('    for twins in label_twins(by_label, labels.equality):', '    for twins in []:')]),
-    ("M67", "TG01", [('    verdict = "tag_matches" if version_key(label) in tag_versions(name) else "tag_mismatch"',
+    ("M67", "TG01", [('    verdict = "tag_matches" if keys & named_keys else "tag_mismatch"',
                       '    verdict = "tag_matches"')]),
     ("M68", "MX01", [('        kind = ("every_tag_names_it" if not other else', '        kind = ("every_tag_names_it" if True else')]),
     ("M69", "ACT01", [("action.yml", 'if [ "$CD_REF_TYPE" = "tag" ]; then CD_MODE=tag;', 'if false; then CD_MODE=tag;')]),
