@@ -2913,6 +2913,12 @@ def tp04(root):
     r.tag("release-1.1.0")
     for t in ("foo-v1.1.0", "release-1.1.0"):
         expect(r, "tag_mismatch", 1, "--tag", t)
+    v = Repo(root, "tp04v")
+    v.write("VERSION", "1.0\n")
+    v.write("src/a.py", "1\n")
+    v.commit()
+    v.tag("proj-1.1")
+    expect(v, "tag_mismatch", 1, "--tag", "proj-1.1")
 
 
 @proof("TP05")

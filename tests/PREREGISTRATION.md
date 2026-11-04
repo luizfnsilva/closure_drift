@@ -1484,5 +1484,9 @@ prefixed `tag_mismatch` answers named above become `tag_matches` or exit 2, none
 unprefixed ones (mrab-regex, smallvec, huggingface_hub `v1.3.6`) stay exit 1. Any other change is
 reported as found.
 
+**Amendment 1 (2026-11-03, before code).** When the root declares no package name (only a
+`VERSION`, `version.txt`, a gemspec), a prefixed tag is compared with the root's version, as in
+1.4.0: `proj-1.1` on a `VERSION` of 1.0 still exits 1. TP04 adds this case.
+
 **Not decided here, decided after the F-Droid sweep and recorded as an amendment before code:**
 reading `versionName` from `app/build.gradle(.kts)` by default.
