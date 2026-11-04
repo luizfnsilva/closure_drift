@@ -2854,6 +2854,137 @@ def act01(root):
               "%s %s: exit %d, %r; required %d and %s" % (ref_type, ref_name, p.returncode, out[-200:], want_rc, want_text))
 
 
+# ---------------------------------------------------------------- §29 — 1.5.0
+
+def _workspace(root, name):
+    r = Repo(root, name)
+    r.write("Cargo.toml", '[package]\nname = "app"\nversion = "2.0.0"\n')
+    r.write("src/main.rs", "fn main() {}\n")
+    r.write("crates/helper/Cargo.toml", '[package]\nname = "helper"\nversion = "0.5.0"\n')
+    r.write("crates/helper/src/lib.rs", "pub fn h() {}\n")
+    r.commit()
+    r.tag("helper-v0.5.0")
+    r.tag("helper-v0.6.0")
+    return r
+
+
+@proof("TP01")
+def tp01(root):
+    r = _workspace(root, "tp01")
+    doc = expect(r, "tag_matches", 0, "--tag", "helper-v0.5.0", version_file="crates/helper/Cargo.toml")
+    check(doc.get("version_file_from_tag_prefix") is True, "version_file_from_tag_prefix is not true")
+    expect(r, "tag_mismatch", 1, "--tag", "helper-v0.6.0", version_file="crates/helper/Cargo.toml")
+    rc, _d, out, _e = run(r, "--tag", "helper-v0.5.0", text=True)
+    check(rc == 0 and "crates/helper/Cargo.toml" in out, "the text does not name the file the prefix chose")
+
+
+@proof("TP02")
+def tp02(root):
+    r = Repo(root, "tp02")
+    r.write("package.json", json.dumps({"name": "mono", "private": True, "version": "0.0.1"}) + "\n")
+    r.write("packages/b/package.json", json.dumps({"name": "@s/b", "version": "1.2.0"}) + "\n")
+    r.write("packages/b/index.js", "1\n")
+    r.commit()
+    r.tag("@s/b@1.2.0")
+    r.tag("b@1.2.0")
+    for t in ("@s/b@1.2.0", "b@1.2.0"):
+        expect(r, "tag_matches", 0, "--tag", t, version_file="packages/b/package.json")
+
+
+@proof("TP03")
+def tp03(root):
+    r = Repo(root, "tp03")
+    r.write("pyproject.toml", '[project]\nname = "pydantic"\nversion = "2.13"\n')
+    r.write("src/pydantic/__init__.py", "x = 1\n")
+    r.commit()
+    r.tag("core-v2.42.0")
+    rc, _d, out, err = run(r, "--tag", "core-v2.42.0", text=True)
+    refusal(rc, out, err, "--version-file")
+    check("core" in (out + err), "the cause does not name the prefix core")
+
+
+@proof("TP04")
+def tp04(root):
+    r = Repo(root, "tp04")
+    r.write("Cargo.toml", '[package]\nname = "foo"\nversion = "1.0.0"\n')
+    r.write("src/lib.rs", "1\n")
+    r.commit()
+    r.tag("foo-v1.1.0")
+    r.tag("release-1.1.0")
+    for t in ("foo-v1.1.0", "release-1.1.0"):
+        expect(r, "tag_mismatch", 1, "--tag", t)
+
+
+@proof("TP05")
+def tp05(root):
+    r = _workspace(root, "tp05")
+    expect(r, "tag_mismatch", 1, "--tag", "helper-v0.5.0", "--version-file", "Cargo.toml")
+
+
+@proof("PS01")
+def ps01(root):
+    r = Repo(root, "ps01")
+    r.write("pubspec.yaml", "name: app\nversion: 1.2.3+45\n")
+    r.write("lib/main.dart", "1\n")
+    r.commit()
+    r.tag("v1.2.3")
+    expect(r, "tag_matches", 0, "--tag", "v1.2.3", label_at_tag="1.2.3+45")
+    r.write("lib/main.dart", "2\n")
+    r.commit()
+    r.tag("v1.2.3-again")
+    expect(r, "drift", 1)
+
+
+@proof("PS02")
+def ps02(root):
+    r = Repo(root, "ps02")
+    r.write("VERSION", "2.0.0+7\n")
+    r.write("src/a.py", "1\n")
+    r.commit()
+    r.tag("v2.0.0")
+    r.tag("v2.0.1")
+    expect(r, "tag_matches", 0, "--tag", "v2.0.0")
+    expect(r, "tag_mismatch", 1, "--tag", "v2.0.1")
+
+
+@proof("NL01")
+def nl01(root):
+    r = Repo(root, "nl01")
+    r.write("app/build.gradle", 'val code = versionName\nval build = 3\n')
+    r.write("src/a.py", "1\n")
+    r.commit()
+    r.tag("v1.0")
+    rc, _d, out, err = run(r, "--tag", "v1.0", "--version-file", "app/build.gradle",
+                           "--version-regex", r'versionName\s*=?\s*"?([^"]+)', text=True)
+    refusal(rc, out, err)
+    check("val build" not in out, "a label holding a line break was printed")
+
+
+@proof("VD01")
+def vd01(root):
+    r = Repo(root, "vd01")
+    r.write("VERSION", "0.9\n")
+    r.write("src/a.go", "0\n")
+    r.commit()
+    r.tag("v0")
+    r.write("VERSION", "1.0\n")
+    r.write("src/a.go", "1\n")
+    r.write("vendor/x/a.go", "1\n")
+    r.write("vendor/x/tests/t.go", "1\n")
+    r.commit()
+    r.tag("v1")
+    r.write("vendor/x/tests/t.go", "2\n")
+    r.commit()
+    r.tag("v2")
+    glob = ("--closure", "vendor/**", "--closure", "src/**")
+    expect(r, "clean", 0, *glob)
+    r.write("vendor/x/a.go", "2\n")
+    r.commit()
+    r.tag("v3")
+    expect(r, "drift", 1, *glob)
+    expect(r, "clean", 0)
+
+
 @proof("DOC01")
 def doc01(root):
     top = HERE.parent
