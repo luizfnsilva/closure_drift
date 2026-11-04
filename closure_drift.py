@@ -1835,7 +1835,7 @@ def scm_derived(t: dict) -> bool:
     return bool(set(t) & SCM_TABLES or string(hatch.get("source")) == "vcs"
                 or t.get("tool.poetry-dynamic-versioning", {}).get("enable", "").startswith("true")
                 or string(t.get("tool.pdm.version", {}).get("source")) == "scm"
-                or (requires & SCM_TOOLS and not string(project.get("version"))))
+                or (bool(requires & SCM_TOOLS) and not string(project.get("version"))))
 
 
 def prefixed_source(objects, labels, entries, name: str):
