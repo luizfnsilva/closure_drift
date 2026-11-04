@@ -1,3 +1,28 @@
+# Record of the battery runs — closure_drift 1.5.0
+
+Detector 1.5.0: `closure_drift.py`, sha256 `c0c6ae18b25eddbab227cdfc10de621ff3443f78a57f97f3098655e30be0918d`. CI run 41797509801 (`ec7895b`; the same detector as after the rebase onto 1.4.0).
+
+| platform | CPython | battery | mutants | adversarial | oracle | properties |
+|---|---|---|---|---|---|---|
+| Ubuntu | 3.9, 3.10, 3.11, 3.12, 3.13, 3.14 | 243 · 243 green · 0 red · 0 not run | 77 of 77 | 315 · 304 as required · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 controls |
+| macOS | 3.10, 3.14 | 243 · 242 green · 0 red · 1 not run | 77 of 77 | 315 · 304 · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+| Windows | 3.9, 3.14 | 243 · 237 green · 0 red · 6 not run | 76 of 76 that can run there (M69: ACT01 needs bash) | 315 · 281 · 2 loose · 32 not run | 147 of 147 | 17 of 17; controls 10 of 10 on 3.9, not reached on 3.14 |
+
+The Windows 3.14 job was cut by GitHub's six-hour limit during the last step, the property
+controls; every other step had finished as shown. The 2 loose are ZA02 and ZA04 (O2b, O2a).
+
+Locally (macOS, 3.14) before the matrix: three mutant anchors and one property-control anchor that
+the 1.5.0 lines had moved or duplicated (M44, M67, M18, K03) were fixed and re-run; 77 of 77, 10 of 10.
+
+Regression corpus (`tools/regression/`), the same script (run 41797508973,
+`checks/v1.5.0-candidate-c0c6ae18.json`): 99 of 99 checkable match, as predicted in §29;
+mechanisms 79 / 7 / 1 unchanged; `apache/arrow` not checkable.
+
+The sweep prediction of §29: re-run on the 29 repositories with a `tag_mismatch` under 1.4.0, no
+prefixed tag of another package stayed exit 1 (they became `tag_matches`, e.g. clap, libc, cc-rs,
+setuptools-scm; or exit 2, e.g. pydantic `core-v*`), and the unprefixed ones stayed exit 1
+(mrab-regex, servo/rust-smallvec, huggingface_hub `v1.3.6`, pytest-timeout `2.5.0`).
+
 # Record of the battery runs — closure_drift 1.4.0
 
 Detector 1.4.0: `closure_drift.py`, sha256 `8ed98594de2946ff45053476c8dbe71e3cf09d03ba1cd0c43fdf85fe025eafa5`. CI run 41782256913 (`80001bf`).
