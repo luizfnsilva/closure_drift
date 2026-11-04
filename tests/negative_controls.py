@@ -107,7 +107,8 @@ MUTANTS = [
     ("M59", "DT01", [('stamp["working_tree_dirty_in_closure"] = dirty_in_closure(a.repo, closure)\n    coverage = {',
                       'stamp["working_tree_dirty_in_closure"] = dirty\n    coverage = {')]),
     ("M63", "NX03", [('    print_next(TAG_NEXT if verdict', '    print_next("x" if verdict')]),
-    ("M64", "NX04", [('        print(f"never in it       {NEVER_IN_CLOSURE}; --closure does not change this")\n', '')]),
+    ("M64", "NX04", [('        print(f"never in it       {NEVER_IN_CLOSURE}; a --closure glob that names one of these folders brings it in"\n'
+                     '              + (f"\\n                  brought in here: {\', \'.join(sorted(f + \'/\' for f in brought))}" if brought else ""))\n', '')]),
     ("M65", "NX05", [('    for twins in label_twins(by_label, labels.equality):', '    for twins in []:')]),
     ("M67", "TG01", [('    verdict = "tag_matches" if version_key(label) in tag_versions(name) else "tag_mismatch"',
                       '    verdict = "tag_matches"')]),
@@ -116,6 +117,12 @@ MUTANTS = [
     ("M66", "NX06", [('              + version_name_hint(a.repo, vfile, vregex))', '              + "")')]),
     ("M62", "NX01", [('    "would_drift": "do not tag. Agree on a new version', '    "would_driftX": "do not tag. Agree on a new version')]),
     ("M61", "PJ01", [('        extra += (f"\\npackage.json declares', '        extra += ("" if True else f"\\npackage.json declares')]),
+    ("M70", "TP01", [('    by_prefix = None if labels.fixed else prefixed_source(objects, labels, entries, name)\n', '    by_prefix = None\n')]),
+    ("M71", "TP03", [('    if len(hits) != 1:\n', '    if not hits:\n        return None\n    if len(hits) != 1:\n')]),
+    ("M72", "PS01", [('("Chart.yaml", "helm"), ("pubspec.yaml", "helm"))', '("Chart.yaml", "helm"))')]),
+    ("M73", "PS02", [('    keys = {version_key(label), version_key(label.split("+", 1)[0])}\n', '    keys = {version_key(label)}\n')]),
+    ("M74", "NL01", [('            if label is not None and any(ord(c) < 32 or ord(c) == 127 for c in label):\n', '            if False:\n')]),
+    ("M75", "VD01", [('        return bool(folders) and any(folders <= named_folders(g)', '        return False and any(folders <= named_folders(g)')]),
     ("M60", "EN01", [('stream.reconfigure(encoding="utf-8", errors="backslashreplace")', 'stream.reconfigure(errors="backslashreplace")')]),
 ]
 

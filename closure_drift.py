@@ -40,7 +40,7 @@ REPORT_FORMAT = 2
 BUILD_FILES = ("pyproject.toml", "setup.cfg", "setup.py")
 OTHER_ECOSYSTEMS = (("Cargo.toml", "cargo"), ("package.json", "json"), ("composer.json", "json"),
                     ("build.gradle", "gradle"), ("VERSION", "token"), ("version.txt", "token"),
-                    ("Chart.yaml", "helm"))
+                    ("Chart.yaml", "helm"), ("pubspec.yaml", "helm"))
 # Root files whose presence anywhere in history means a label might be found (refusal before the
 # scan, §16.3). `*.gemspec` is matched as a glob.
 ROOT_SOURCES = BUILD_FILES + tuple(p for p, _ in OTHER_ECOSYSTEMS) + ("go.mod",)
@@ -70,6 +70,8 @@ CLOSURE_EXCLUDE = ["**/test/**", "**/tests/**", "**/*_test.*", "**/*.test.*", "*
                    "**/docs/**", "**/*.md", "**/node_modules/**", "**/vendor/**", "**/.git/**"]
 
 NEVER_IN_CLOSURE = "test/, tests/, spec/, docs/, vendor/, node_modules/, .git/, *_test.*, *.test.*, *.md"
+# folders a --closure glob brings back in when it names them (O13, §29); .git/ and file patterns never
+NAMEABLE_FOLDERS = {"test", "tests", "spec", "docs", "vendor", "node_modules"}
 
 # Seconds a user-supplied version pattern may spend on one file.
 REGEX_BUDGET = 5
@@ -164,6 +166,20 @@ def excluded(path: str, is_file: bool = True) -> bool:
     name = path.rsplit("/", 1)[-1]
     return any((is_file and fnmatch.fnmatchcase(name, g[3:])) if g.startswith("**/") and "/" not in g[3:]
                else matches(path, [g]) for g in CLOSURE_EXCLUDE)
+
+
+def excluded_folders(path: str, is_file: bool = True) -> set | None:
+    """The excluded folders a path lies in, when only folders exclude it; None when a file pattern
+    or `.git/` does, which no glob undoes (§29)."""
+    if is_file and any(fnmatch.fnmatchcase(path.rsplit("/", 1)[-1], g[3:]) for g in CLOSURE_EXCLUDE
+                       if g.startswith("**/") and "/" not in g[3:]):
+        return None
+    segs = set(path.split("/")[:-1] if is_file else path.split("/"))
+    return None if ".git" in segs else segs & NAMEABLE_FOLDERS
+
+
+def named_folders(glob: str) -> set:
+    return set(glob.split("/")) & NAMEABLE_FOLDERS
 
 
 def check_globs(globs: list[str], what: str) -> None:
@@ -323,9 +339,14 @@ class Closure:
     def holds(self, path: str, is_file: bool = True) -> bool:
         got = self.known.get((path, is_file))
         if got is None:
-            got = matches(path, self.include) and not excluded(path, is_file)
+            got = matches(path, self.include) and (not excluded(path, is_file) or self.brought_in(path, is_file))
             self.known[(path, is_file)] = got
         return got
+
+    def brought_in(self, path: str, is_file: bool) -> bool:
+        """A glob that names every excluded folder the path lies in brings it in (O13, §29)."""
+        folders = excluded_folders(path, is_file)
+        return bool(folders) and any(folders <= named_folders(g) and matches(path, [g]) for g in self.include)
 
     def members(self, entries: list[tuple[str, str, str]]) -> list[tuple[str, str, str]]:
         return [e for e in entries if e[1] in ("blob", "commit") and self.holds(e[0], e[1] == "blob")]
@@ -411,9 +432,11 @@ def label_of(m) -> str | None:
 
 def plausible(label) -> bool:
     """A label is a version someone wrote: it has a digit, and it is not a format template
-    (`%(version)s`, `{}.{}`) nor a placeholder."""
+    (`%(version)s`, `{}.{}`), a placeholder, nor text holding a line break or another control
+    character (a pattern that captured across lines, §29)."""
     return (isinstance(label, str) and any(c.isdigit() for c in label)
-            and not any(c in label for c in "%{}") and label not in PLACEHOLDERS)
+            and not any(c in label for c in "%{}") and label not in PLACEHOLDERS
+            and not any(ord(c) < 32 or ord(c) == 127 for c in label))
 
 
 _KEY = re.compile(r'^([A-Za-z_][\w.-]*)[ \t]*=[ \t]*(.*)$')
@@ -873,7 +896,7 @@ def tag_versions(name: str) -> set:
     ending in `-v`, `_v` or `/`, or after a `word-` prefix when what follows has a dot. A date or a
     build number (`nightly-2024-02-01`, `build-1`) names no version here (§16 amendment 3)."""
     out = {name}
-    m = re.match(r"^.*?(?:[-_]v|/)(\d.*)$", name, re.S)
+    m = re.match(r"^.*?(?:[-_]v|/|@)(\d.*)$", name, re.S)
     if m:
         out.add(m.group(1))
     m = re.match(r"^[A-Za-z][\w]*-(\d[^-_/]*\.[^/]*)$", name)
@@ -884,7 +907,7 @@ def tag_versions(name: str) -> set:
 
 NO_LABEL = ("could not find a version label. Pass --version-file / --version-regex.\n"
             "tried: pyproject.toml, setup.cfg, setup.py and the project's own package; "
-            "Cargo.toml, package.json, composer.json, build.gradle, VERSION, version.txt, Chart.yaml, "
+            "Cargo.toml, package.json, composer.json, build.gradle, VERSION, version.txt, Chart.yaml, pubspec.yaml, "
             "*.gemspec; go.mod (the version is the tag).\n"
             "A version spread over several lines: name the groups part1, part2, ..., e.g. "
             "'VERSION = (?P<part1>\\d+)\\nPATCHLEVEL = (?P<part2>\\d+)' reads 6.1. Recipes: docs/LABELS.md.\n"
@@ -893,7 +916,7 @@ NO_LABEL = ("could not find a version label. Pass --version-file / --version-reg
 
 
 LABEL_FILES = ("pyproject.toml", "setup.cfg", "setup.py", "Cargo.toml", "package.json", "composer.json",
-               "build.gradle", "VERSION", "version.txt", "Chart.yaml")
+               "build.gradle", "VERSION", "version.txt", "Chart.yaml", "pubspec.yaml")
 
 
 def no_label_refusal(repo: str) -> Refusal:
@@ -983,6 +1006,8 @@ class Labels:
                         label = self.objects.text(oid).strip()
             if label is not None and not any(c.isalnum() for c in label):
                 label = None                                  # punctuation only (a captured quote) is no version
+            if label is not None and any(ord(c) < 32 or ord(c) == 127 for c in label):
+                label = None                                  # captured across lines: no version (§29)
         else:
             blobs = {path: oid for path, kind, oid in entries if kind == "blob"}
             src = self.sources.find(blobs)
@@ -1469,7 +1494,9 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
         print(f"repository        {printable(a.repo)}")
         print(f"version from      {printable(vpath or '(nothing at HEAD)')}")
         print(f"closure           {printable(', '.join(include))}")
-        print(f"never in it       {NEVER_IN_CLOSURE}; --closure does not change this")
+        brought = set().union(*(named_folders(g) for g in include))
+        print(f"never in it       {NEVER_IN_CLOSURE}; a --closure glob that names one of these folders brings it in"
+              + (f"\n                  brought in here: {', '.join(sorted(f + '/' for f in brought))}" if brought else ""))
         print(f"publication point {at} ({len(pts)} scanned"
               + (f", the most recent of {total}" if total > len(pts) else "")
               + (f"; --tags {printable(' '.join(tag_globs))}" if tag_globs else "") + ")"
@@ -1763,6 +1790,62 @@ def would_tag(a, closure, head_entries, labels, vpath, by_label, drifting,
     return code
 
 
+GENERIC_TAG_WORDS = {"release", "rel", "version", "ver", "v", "r", "tag", "stable"}
+MANIFESTS = {"Cargo.toml": "cargo", "package.json": "json", "pyproject.toml": "project",
+             "Chart.yaml": "helm", "pubspec.yaml": "helm"}
+
+
+def tag_prefix(name: str) -> str | None:
+    """The part of a tag's name before its version: `helper` in `helper-v0.5`, `@s/b` in `@s/b@1.2`."""
+    m = re.match(r"^(.+?)(?:[-_]v|[-_/@]v?)(?=\d)", name, re.S)
+    return m.group(1) if m else None
+
+
+def same_name(a: str, b: str) -> bool:
+    return a.lower().replace("_", "-") == b.lower().replace("_", "-")
+
+
+def manifest_name(path: str, text: str) -> str | None:
+    """The package name a manifest declares."""
+    base = path.rsplit("/", 1)[-1]
+    if base == "package.json":
+        try:
+            doc = json.loads(text, strict=False)
+        except (ValueError, RecursionError):
+            return None
+        return doc.get("name") if isinstance(doc, dict) and isinstance(doc.get("name"), str) else None
+    if base in ("Cargo.toml", "pyproject.toml"):
+        t = tables(text)
+        return (string(t.get("package", {}).get("name")) or string(t.get("project", {}).get("name"))
+                or string(t.get("tool.poetry", {}).get("name")))
+    m = re.search(r'^name:[ \t]*["\']?([^"\'\s#]+)', text, re.M)
+    return m.group(1) if m else None
+
+
+def prefixed_source(objects, labels, entries, name: str):
+    """§29: the manifest a tag's prefix names, as (path, how); None when the prefix is absent, generic,
+    the root's own package, or the root declares no name; a Refusal when nothing or more than one fits."""
+    p = tag_prefix(name)
+    if not p or p.lower() in GENERIC_TAG_WORDS:
+        return None
+    blobs = {path: oid for path, kind, oid in entries if kind == "blob"}
+    roots = [manifest_name(f, objects.text(blobs[f])) for f in MANIFESTS if f in blobs]
+    roots = [n for n in roots if n]
+    if not roots or any(same_name(n, p) or same_name(n.rsplit("/", 1)[-1], p) for n in roots):
+        return None
+    found = [f for f in blobs if "/" in f and f.rsplit("/", 1)[-1] in MANIFESTS and not excluded(f)]
+    by_name = [f for f in found if (lambda n: n and (same_name(n, p) or same_name(n.rsplit("/", 1)[-1], p)
+                                                       or same_name(n, p.rsplit("/", 1)[-1])))(
+        manifest_name(f, objects.text(blobs[f])))]
+    hits = by_name or [f for f in found if same_name(f.rsplit("/", 2)[-2], p.rsplit("/", 1)[-1])]
+    if len(hits) != 1:
+        what = "no package" if not hits else "more than one package (" + ", ".join(printable(h) for h in sorted(hits)[:5]) + ")"
+        raise Refusal(f"--tag: the prefix {printable(repr(p))} of {printable(repr(name))} names {what} in this "
+                      f"repository, and not the root's ({printable(', '.join(roots))}). Pass --version-file "
+                      "with the file that declares that package's version.")
+    return hits[0], MANIFESTS[hits[0].rsplit("/", 1)[-1]]
+
+
 def check_tag(a, objects, labels, head_sha) -> int:
     """After tagging: the versions the tag's name can name against the label its commit declares. A tag
     pushed before the version was bumped names one version and builds another (§28)."""
@@ -1776,12 +1859,23 @@ def check_tag(a, objects, labels, head_sha) -> int:
         raise Refusal(f"--tag: the name {printable(repr(name))} names no version (a date, a build number or a "
                       "word), so there is nothing to compare it with.")
     entries = objects.entries(sha)
-    src = labels.source(entries)
-    label = labels.at(entries, name, count=False)
+    by_prefix = None if labels.fixed else prefixed_source(objects, labels, entries, name)
+    if by_prefix:
+        src = by_prefix
+        blobs = {path: oid for path, kind, oid in entries if kind == "blob"}
+        label = labels.sources.read(blobs, by_prefix[0], by_prefix[1])
+        if not label:
+            raise Refusal(f"--tag: the prefix of {printable(repr(name))} names {printable(by_prefix[0])}, which "
+                          "declares no version there. Pass --version-file / --version-regex.")
+    else:
+        src = labels.source(entries)
+        label = labels.at(entries, name, count=False)
     if not label:
         raise Refusal(NO_LABEL)
     from_tag = bool(src and src[0] == TAG_SOURCE)
-    verdict = "tag_matches" if version_key(label) in tag_versions(name) else "tag_mismatch"
+    # build metadata takes no part in precedence (SemVer 2.0.0 §10): 1.2.3+45 is what v1.2.3 names (§29)
+    keys = {version_key(label), version_key(label.split("+", 1)[0])}
+    verdict = "tag_matches" if keys & tag_versions(name) else "tag_mismatch"
     code = {"tag_matches": 0, "tag_mismatch": 1}[verdict]
     vpath = src[0] if src else None
 
@@ -1796,11 +1890,13 @@ def check_tag(a, objects, labels, head_sha) -> int:
     if a.json:
         emit({"report_format": REPORT_FORMAT, "stamp": stamp, "mode": "tag", "repo": a.repo,
               "version_file": vpath, "verdict": verdict, "tag": name, "tag_commit": sha[:12],
-              "tag_names": named, "label_at_tag": label, "version_from_tag": from_tag})
+              "tag_names": named, "label_at_tag": label, "version_from_tag": from_tag,
+              **({"version_file_from_tag_prefix": True} if by_prefix else {})})
         return code
 
     print(f"repository        {printable(a.repo)}")
-    print(f"version from      {printable(vpath or '(nothing at the tag)')}")
+    print(f"version from      {printable(vpath or '(nothing at the tag)')}"
+          + ("   (the package the tag's prefix names)" if by_prefix else ""))
     print(f"tag               {printable(name)}   (commit {sha[:12]})")
     print(f"declared there    {printable(label)}")
     print("\n" + "=" * 62)
