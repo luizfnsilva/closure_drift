@@ -1525,3 +1525,18 @@ is refused: TP06 red).
 
 **Not decided here, decided after the F-Droid sweep and recorded as an amendment before code:**
 reading `versionName` from `app/build.gradle(.kts)` by default.
+
+## 30. Added 2026-11-08, before any of it was written — 1.5.1
+
+**Results from others, a demonstration, and a CI job that fits its time limit.** The detector's
+behaviour does not change: the script differs from 1.5.0 only in `__version__`, so every result is
+the same, and the regression corpus must give the recorded answer on all 99 still checkable.
+
+1. `RESULTS.md` gains the two measurements of #12 (Silvio, 1.5.0, stamps as emitted).
+2. `docs/demo-tag.gif`: a tag cut before the bump, `--tag` saying so, a new tag after the bump,
+   `--tag` agreeing. The README shows it, and links `RESULTS.md` and `docs/FAILURES.md` near the top.
+3. CI: the negative controls run in a job of their own, with the same matrix. In run 41797509801 the
+   Windows job on Python 3.14 reached GitHub's six-hour limit in its last step; each job now has
+   its own limit.
+
+No proof or mutant is added: the detector is unchanged.
