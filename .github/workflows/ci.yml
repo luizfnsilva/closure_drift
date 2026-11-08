@@ -93,8 +93,6 @@ jobs:
         run: python tests/fixture_label_only.py
       - name: Acceptance battery — the pre-registered proofs
         run: python tests/battery.py
-      - name: Negative controls — the battery must go red on a broken detector
-        run: python tests/negative_controls.py
       - name: Adversarial campaign — hostile repositories and hostile input
         run: python tests/adversarial.py
       - name: Independent oracle — its own check
@@ -104,10 +102,39 @@ jobs:
       - name: Controls — each broken detector must turn its property red
         run: python tests/properties.py --controls
 
+  mutants:
+    # The negative controls run the whole battery once per mutant; on Windows that alone takes
+    # hours, so they have a job, and a six-hour limit, of their own (tests/PREREGISTRATION.md §30).
+    name: negative controls · py${{ matrix.python }} · ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # every Python the package declares runs on Linux; macOS and Windows take the oldest
+          # and the newest they can run
+          - {os: ubuntu-latest,  python: '3.9'}
+          - {os: ubuntu-latest,  python: '3.10'}
+          - {os: ubuntu-latest,  python: '3.11'}
+          - {os: ubuntu-latest,  python: '3.12'}
+          - {os: ubuntu-latest,  python: '3.13'}
+          - {os: ubuntu-latest,  python: '3.14'}
+          - {os: macos-latest,   python: '3.10'}
+          - {os: macos-latest,   python: '3.14'}
+          - {os: windows-latest, python: '3.9'}
+          - {os: windows-latest, python: '3.14'}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Negative controls — the battery must go red on a broken detector
+        run: python tests/negative_controls.py
+
   self:
     name: measure this repository with itself
     runs-on: ubuntu-latest
-    needs: [version, deposit, test]
+    needs: [version, deposit, test, mutants]
     steps:
       - uses: actions/checkout@v4
         with:

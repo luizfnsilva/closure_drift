@@ -3,6 +3,21 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 1.5.1 — 2026-11-08
+
+Results from others and a demonstration (`tests/PREREGISTRATION.md` §30). The detector differs from
+1.5.0 only in `__version__`.
+
+### Added
+- `RESULTS.md`: two measurements by Silvio (#12), with 1.5.0: both `drift` under `--at commits`, where
+  every commit is a publication.
+- `docs/demo-tag.gif`, shown in the README with links to `RESULTS.md` and `docs/FAILURES.md`;
+  `tools/demo/` regenerates it.
+
+### CI
+- The negative controls run in a job of their own: on Windows the battery and the mutants together
+  passed GitHub's six-hour job limit.
+
 ## 1.5.0 — 2026-11-04
 
 What a sweep of 2026 tags with `--tag` found wrong (`tests/PREREGISTRATION.md` §29). Existing

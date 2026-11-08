@@ -28,6 +28,13 @@ address names two artefacts — and nothing notices, because the version is all 
 
 One command checks it. Read-only, one file, no dependencies, no network.
 
+Before you push a tag, `--tag` says whether it names the version its commit declares:
+
+![A tag cut before the version bump, caught by --tag; a new tag after the bump, matching](docs/demo-tag.gif)
+
+What others measured with it, including results that are not clean: [`RESULTS.md`](RESULTS.md).
+Every failure of the tool found so far: [`docs/FAILURES.md`](docs/FAILURES.md).
+
 ## Three ways in
 
 **Try it now** (recommended first). See the three answers on tiny repositories it builds and
@@ -38,7 +45,7 @@ git clone -q https://github.com/luizfnsilva/closure_drift && python3 closure_dri
 python3 closure_drift/closure_drift.py /path/to/your/repo
 ```
 
-Or without cloning: `curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.5.0/closure_drift.py`
+Or without cloning: `curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.5.1/closure_drift.py`
 then `python3 closure_drift.py` inside any git repository. Needs Python 3.9+ and git. The last
 lines say what to do next. (`./reproduce.sh` is something else: it validates closure_drift itself,
 a long run, and does not look at your repository.)
@@ -63,7 +70,7 @@ drift came about. On a tag push the Action runs `--tag`; on any other push, `--w
 # GitHub Actions
 - uses: actions/checkout@v4
   with: { fetch-depth: 0 }
-- uses: luizfnsilva/closure_drift@v1.5.0
+- uses: luizfnsilva/closure_drift@v1.5.1
 ```
 
 Push the workflow before the first tag: a tag pushed together with the workflow that should run on
@@ -74,7 +81,7 @@ with the default mode from the first tag.
 ```yaml
 # pre-commit, on git push
 - repo: https://github.com/luizfnsilva/closure_drift
-  rev: v1.5.0
+  rev: v1.5.1
   hooks: [{ id: closure-drift-would-tag }]
 ```
 
@@ -251,6 +258,8 @@ both on private repositories. `closure-drift --json > result.json`, then
 or write to lfnsilva.invest@gmail.com. A result showing the tool is wrong is the most useful kind.
 
 ## Version
+
+**1.5.1** adds two measurements by others to `RESULTS.md` and a demonstration of `--tag`.
 
 **1.5.0** reads the version of the package a tag's prefix names (`clap_complete-v4.6.1`, `@scope/pkg@1.2.0`), reads `pubspec.yaml`, and lets `--closure 'vendor/**'` bring vendored code in.
 
