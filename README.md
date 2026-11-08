@@ -240,7 +240,7 @@ CI runs the same four on Linux (Python 3.9 to 3.14), macOS and Windows; what eac
 run is in
 [`tests/RECORD.md`](tests/RECORD.md). These scores describe the cases executed, not inputs nobody
 tried. `./reproduce.sh` runs all of it. The 100 projects of the study are also a regression corpus,
-pinned to recorded commits: 1.5.0 gives the recorded answer on all 99 still checkable (one tag of `apache/arrow` moved upstream), as predicted before it ran
+pinned to recorded commits: 1.5.1 gives the recorded answer on all 99 still checkable (one tag of `apache/arrow` moved upstream), as predicted before it ran
 ([`tools/regression/`](tools/regression/)).
 
 **Ten large repositories** (the Linux kernel, LLVM, CPython and seven more), protocol written
