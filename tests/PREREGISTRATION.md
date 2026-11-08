@@ -1540,3 +1540,16 @@ the same, and the regression corpus must give the recorded answer on all 99 stil
    its own limit.
 
 No proof or mutant is added: the detector is unchanged.
+
+**Amendment 1 (2026-11-08, before any of it was written).** Also in 1.5.1, still without touching the
+detector:
+
+4. The README becomes a short entry (what it checks, how to try it, the three answers, the limits,
+   where the rest is). Everything it held moves unchanged to `docs/USAGE.md`, with links adjusted.
+   DOC01 keeps holding: the README's first section names `examples/demo.py`,
+   `skills/closure-drift` and `docs/CI.md`.
+5. Two statements that contradicted 1.5.0 are fixed: `SCOPE.md` said the excluded folders are
+   outside every closure even when a `--closure` glob names them (false since 1.5.0, O13);
+   `ROADMAP.md` listed `pubspec.yaml` as a future version source (read since 1.5.0).
+6. CI: `ubuntu-latest` became Ubuntu 26.04, which has no Python 3.9 (run 42491212885 failed to set
+   it up). Python 3.9 runs on `ubuntu-24.04`.
