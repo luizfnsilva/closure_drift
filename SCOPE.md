@@ -31,15 +31,17 @@ These are not gaps waiting to be filled. They are the boundary, and the boundary
   measurement and stamps the state it was measured in.
 - **It does not judge your process.** Drift is a property of an addressing scheme, not a defect of
   character. `lodash` and `polars` are in drift by a naming-scheme property, not by an oversight,
-  and the README distinguishes the two mechanisms for exactly that reason.
+  and `docs/USAGE.md` distinguishes the two mechanisms for exactly that reason.
 - **It does not decide what determines your output.** The default closure globs are a guess. If
   they are wrong for your project, the number is wrong, and the tool prints what it used so you can
   see that.
 - **It does not see a change of file mode alone.** The closure is `(path, object id)`. A file made
   executable, or replaced by a symbolic link holding the same bytes, keeps the same object id.
-- **It never looks under the excluded folders.** `test/`, `tests/`, `spec/`, `docs/`, `vendor/`,
-  `node_modules/` and `*.md` are outside every closure, even when a `--closure` glob matches them.
-  Code that determines your output and lives there can change without this tool noticing.
+- **By default it does not look under the excluded folders.** `test/`, `tests/`, `spec/`, `docs/`,
+  `vendor/`, `node_modules/`, `.git/` and files named `*_test.*`, `*.test.*`, `*.md` are outside the
+  closure. A `--closure` glob that names one of these folders brings it in (`--closure 'vendor/**'`,
+  since 1.5.0); `.git/` and the file patterns never come in. Code that determines your output and
+  lives in an excluded folder you did not name can change without this tool noticing.
 - **Its closure identifiers are not a defence against someone crafting collisions.** The 16-hex
   value is kept for comparability; identity is decided by a full SHA-256, which is as strong as
   git's own object ids are, and no stronger.

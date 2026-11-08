@@ -14,7 +14,14 @@ Results from others and a demonstration (`tests/PREREGISTRATION.md` §30). The d
 - `docs/demo-tag.gif`, shown in the README with links to `RESULTS.md` and `docs/FAILURES.md`;
   `tools/demo/` regenerates it.
 
+### Documentation
+- The README is a short entry: what it checks, how to try it, the answers, the limits. Everything it
+  held is in `docs/USAGE.md`, unchanged.
+- `SCOPE.md` no longer says a `--closure` glob cannot bring an excluded folder in (it can since
+  1.5.0); `ROADMAP.md` no longer lists `pubspec.yaml` as future.
+
 ### CI
+- Python 3.9 runs on `ubuntu-24.04`: `ubuntu-latest` (26.04) has no Python 3.9.
 - The negative controls run in a job of their own: on Windows the battery and the mutants together
   passed GitHub's six-hour job limit.
 

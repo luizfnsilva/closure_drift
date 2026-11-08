@@ -4,7 +4,7 @@
     python3 tools/reference/measure.py CLONES_DIR      # CLONES_DIR holds click.git, requests.git, …
 
 Each file holds the repository's HEAD, the command, the exit code and the report as emitted, at
-the default range and at every tag. README's reference table is read from these files.
+the default range and at every tag. The reference table in docs/USAGE.md is read from these files.
 """
 import json
 import subprocess

@@ -1,0 +1,289 @@
+# closure_drift — usage and reference
+
+The short introduction is the [README](../README.md). This page is everything else: options, integrations, tests, limits, versions.
+
+
+**Does `v1.4.2` mean one thing in your repository?**
+
+```
+$ git clone -q https://github.com/psf/requests && cd requests
+$ closure-drift --compare v2.16.0 v2.16.1
+A  v2.16.0  (commit bcd0e170ac20)
+   label    2.16.0
+   closure  3d2886b87c2a7b94   17 file(s)
+B  v2.16.1  (commit f687e9f3d8b0)
+   label    2.16.0
+   closure  696b71ed6023f563   18 file(s)
+   changed    requests/__init__.py
+   only in B  requests/packages.py
+
+==============================================================
+DIFFERS UNDER ONE LABEL: both declare 2.16.0, and the code differs
+in 2 path(s). If both were published, that label names two things.
+```
+
+Check it without this tool: `git show v2.16.1:requests/__version__.py` says `2.16.0`. closure_drift reads
+the git history, not a package index: it shows what the tags contain, not which commit a published package
+was built from.
+
+A version is a string a human edits. When two releases share a version and differ in code, one
+address names two artefacts — and nothing notices, because the version is all that was recorded.
+
+One command checks it. Read-only, one file, no dependencies, no network.
+
+Before you push a tag, `--tag` says whether it names the version its commit declares:
+
+![A tag cut before the version bump, caught by --tag; a new tag after the bump, matching](demo-tag.gif)
+
+What others measured with it, including results that are not clean: [`RESULTS.md`](../RESULTS.md).
+Every failure of the tool found so far: [`docs/FAILURES.md`](FAILURES.md).
+
+## Three ways in
+
+**Try it now** (recommended first). See the three answers on tiny repositories it builds and
+deletes, then measure yours:
+
+```bash
+git clone -q https://github.com/luizfnsilva/closure_drift && python3 closure_drift/examples/demo.py
+python3 closure_drift/closure_drift.py /path/to/your/repo
+```
+
+Or without cloning: `curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.5.1/closure_drift.py`
+then `python3 closure_drift.py` inside any git repository. Needs Python 3.9+ and git. The last
+lines say what to do next. (`./reproduce.sh` is something else: it validates closure_drift itself,
+a long run, and does not look at your repository.)
+
+**With your agent.** Install the skill ([`skills/closure-drift/`](../skills/closure-drift/SKILL.md)),
+which tells the agent when to check before a tag and how to read the answer:
+`gh skill install luizfnsilva/closure_drift closure-drift --agent claude-code` (or `codex`,
+`cursor`, `gemini-cli`, `github-copilot`, …). In Claude Code, skill and MCP server together:
+`/plugin marketplace add luizfnsilva/closure_drift`. Other clients: [`integrations/`](../integrations/).
+
+**In CI**, the barrier that holds when nobody remembers to check: [`docs/CI.md`](CI.md).
+Exit 0 pass, 1 drift, 2 nothing decided (a failure by default).
+
+## Check before you tag
+
+`--would-tag` answers: *if I tag this commit now, does its version already name different code?*
+After tagging, `--tag NAME` answers: *does this tag name the version its commit declares?* A tag
+pushed before the version was bumped fails there; in the study it is how 79 of the 87 labels in
+drift came about. On a tag push the Action runs `--tag`; on any other push, `--would-tag`.
+
+```yaml
+# GitHub Actions
+- uses: actions/checkout@v4
+  with: { fetch-depth: 0 }
+- uses: luizfnsilva/closure_drift@v1.5.1
+```
+
+Push the workflow before the first tag: a tag pushed together with the workflow that should run on
+it may not start it (then run it by hand, with `workflow_dispatch:` in its `on:`). `mode: measure`
+concludes only from two distinct labels; on the first release it is `inconclusive`, exit 2, so gate
+with the default mode from the first tag.
+
+```yaml
+# pre-commit, on git push
+- repo: https://github.com/luizfnsilva/closure_drift
+  rev: v1.5.1
+  hooks: [{ id: closure-drift-would-tag }]
+```
+
+Other pipelines: [`docs/CI.md`](CI.md).
+
+## For AI agents
+
+[![closure_drift MCP server](https://glama.ai/mcp/servers/luizfnsilva/closure_drift/badges/score.svg)](https://glama.ai/mcp/servers/luizfnsilva/closure_drift)
+
+An agent needs two things: to know **when** to check (before it creates a tag, bumps a version or
+publishes), and a way to run the check. The skill gives the first; the MCP server, the second.
+
+1. **The skill**, in any agent that reads skills: `gh skill install luizfnsilva/closure_drift closure-drift --agent claude-code`
+   (or `codex`, `cursor`, `gemini-cli`, `github-copilot`, …).
+2. **In Claude Code, both at once**, as a plugin: `/plugin marketplace add luizfnsilva/closure_drift`,
+   then `/plugin install closure-drift@closure-drift`.
+3. **The MCP server alone** (standard library only, a `would_tag` tool), for other clients:
+
+```bash
+claude mcp add closure-drift -- uvx --from git+https://github.com/luizfnsilva/closure_drift closure-drift-mcp
+```
+
+Codex CLI, Gemini CLI, Cursor, VS Code, Windsurf, and a rule to paste into `AGENTS.md`, `CLAUDE.md`
+or `.cursorrules`: [`integrations/`](../integrations/). An agent can still skip the check; the barrier
+is CI.
+
+## The answer
+
+| verdict | exit | |
+|---|---|---|
+| `clean` | 0 | every label names one closure, over at least as many points compared as not |
+| `drift` | 1 | a label names more than one closure |
+| any other verdict ([list](REPORT.md)) | 2 | not enough to tell; the report says why |
+| refusal | 2 | cause on stderr |
+
+Exit 0 means `clean` and nothing else. No input we tried produces a traceback, and no failure exits 1.
+
+- **label** — the version your project declares at each tag: in its build files, in the module
+  they point to, or the tag itself when the version is derived from it
+- **closure** — SHA-256 over `(path, git object id)` of the files that determine your output
+
+The report also says how many tags it could **not** compare.
+
+## Options
+
+| | |
+|---|---|
+| `--would-tag` | would tagging this commit reuse a label? |
+| `--tags 'py-*'` | only these tags are publication points (monorepos) |
+| `--at commits` | you publish at every commit |
+| `--closure 'src/**'` | which files determine your output |
+| `--strict` | `clean` only if every point was compared |
+| `--explain LABEL` | which paths differ under a label in drift: `--compare` over every tag of that label, found by the scan |
+| `--compare A B` | two tags side by side |
+| `--version-file`, `--version-regex` | where the label is |
+| `--published FILE` | only tags of versions you published: a local list, one per line. `--tags` picks by name; use this when a tag that matches was never released |
+| `--label-equality version` | `1.0`, `1.0.0` and `v1` are one label |
+| `--modes` | a file's mode (executable bit, symlink) is part of the closure |
+| `--component NAME` | one component of a monorepo (below) |
+| `--json`, `--badge`, `--diagnose` | report ([contract](REPORT.md)), README badge, bug-report block |
+
+Settings can be committed in `.closure-drift.json`. Flags override it, except beside `components`,
+where they need `--component`; a broken file is refused.
+
+A monorepo declares its components, and gets one verdict each:
+
+```json
+{"components": {
+  "python": {"tags": ["py-*"], "version_file": "py/pyproject.toml", "closure": ["py/**"]},
+  "rust":   {"tags": ["rs-*"], "version_file": "rs/Cargo.toml",     "closure": ["rs/**"]}
+}}
+```
+
+The answer is `drift` if any component is in drift, `clean` if all are clean, otherwise
+`incomplete`. Components are declared, never guessed. A gate in such a repository passes
+`--component NAME` to `--would-tag`.
+
+## What it found
+
+**The 100 most-downloaded PyPI projects with a public repository, at the defaults**, measured with a build of 0.10.0 that prints
+the same reports as the release — rule and method
+fixed before the first run; no repository tuned ([full table and every collision](../tools/study/STUDY.md)):
+
+| | repositories |
+|---|---|
+| `clean` | 59 |
+| `drift` | 29 |
+| `incomplete` — fewer tags compared than not | 4 |
+| no version label found, or inconclusive | 8 |
+
+A version label names two different code states in **29 of the 88** decided, 29 of all 100. Each
+of the 87 labels is in `collisions.tsv`, one line per tag involved, reproducible by hand:
+
+```
+$ closure-drift --compare v2.16.0 v2.16.1        # in psf/requests
+DIFFERS UNDER ONE LABEL: both declare 2.16.0, and the code differs in 2 path(s).
+```
+
+A collision is not a verdict on a project. The usual causes are a tag created without bumping the
+version, branch markers such as `7.x`, and tag families in a monorepo. A first run, kept in the
+repository, decided only 63 of 100 — it read the version from one file chosen at HEAD — and that
+is why this release finds the label where each project keeps it.
+
+Six reference repositories, measured with 1.0.0 at every tag ([`tools/reference/`](../tools/reference/)):
+
+| Repository | verdict | labels in drift | tags compared |
+|---|---|---|---|
+| `pallets/click` | drift | 3 of 66 | 71 of 71 |
+| `psf/requests` | drift | 3 of 140 | 145 of 162 |
+| `pypa/packaging` | clean | 0 of 50 | 50 of 53 |
+| `encode/httpx` | clean | 0 of 88 | 88 of 88 |
+| `impress/impress.js` | drift | 2 of 4 | 6 of 15 |
+| `lodash/lodash` | drift | 60 of 107 | 209 of 440 |
+
+Two causes: a release tagged without bumping the version (`impress.js`), and tag families sharing
+one version file (`lodash`). Neither project is badly run. `--would-tag` addresses the first,
+`--tags` or components the second.
+
+## Limits
+
+- It never runs your code and attests nothing. `clean` is about addressing, not reproducibility.
+- A change of file mode alone is not seen, unless `--modes`.
+- Never in the closure: folders `test/`, `tests/`, `spec/`, `docs/`, `vendor/`, `node_modules/`,
+  `.git/`; files named `*_test.*`, `*.test.*`, `*.md`. A `--closure` glob that names one of these
+  folders brings it in (`--closure 'vendor/**'`); `.git/` and the file patterns never.
+- The default closure globs are a guess. Pass `--closure`.
+- Labels are compared as written: `1.0` and `1.0.0` are two labels, unless `--label-equality version`.
+- It reads git, not a package index: a tag never released counts, unless `--published` lists what
+  was. A tag left off the list is left out of the analysis, not shown unpublished.
+- How the label is found is a set of rules, not a build: [`docs/LABELS.md`](LABELS.md).
+
+- In a gate, pass `--version-file`, or `--published`: the rules can still read the wrong file when
+  one tag happens to agree with it.
+
+Every failure found so far: [`docs/FAILURES.md`](FAILURES.md). More: [`SCOPE.md`](../SCOPE.md),
+[`docs/WHY.md`](WHY.md).
+
+## Safety
+
+It starts `git` and, for a version pattern you supply, itself; nothing else. It never writes to the repository, and does not run commands named
+in that repository's git config. What is defended and what is not:
+[`THREAT_MODEL.md`](../THREAT_MODEL.md). Reporting: [`SECURITY.md`](../SECURITY.md).
+
+## Tests
+
+Four suites, each pre-registered before the code. Scores are never added together.
+
+| suite | macOS, Python 3.14 |
+|---|---|
+| `tests/battery.py` — acceptance proofs | 243 declared · 242 green · 0 red · 1 not run |
+| `tests/negative_controls.py` — the battery must fail on a broken detector | 77 mutants · 77 caught · 0 not caught |
+| `tests/adversarial.py` — written by reviewers who did not write the fixes | 315 attacks · 304 as required · 2 loose · 9 not run; the 2 loose are declared limits ([`docs/FAILURES.md`](FAILURES.md) O2a, O2b) |
+| `tests/properties.py` — 60 generated repositories against `tests/oracle.py`, a second implementation written from a specification by someone who did not read this one | 17 properties · 17 green · 0 red · 10 controls · 10 caught |
+
+CI runs the same four on Linux (Python 3.9 to 3.14), macOS and Windows; what each platform could not
+run is in
+[`tests/RECORD.md`](../tests/RECORD.md). These scores describe the cases executed, not inputs nobody
+tried. `./reproduce.sh` runs all of it. The 100 projects of the study are also a regression corpus,
+pinned to recorded commits: 1.5.1 gives the recorded answer on all 99 still checkable (one tag of `apache/arrow` moved upstream), as predicted before it ran
+([`tools/regression/`](../tools/regression/)).
+
+**Ten large repositories** (the Linux kernel, LLVM, CPython and seven more), protocol written
+first. Every tag of the kernel: 6.5 GB for the whole process tree with 0.9.1, 900 MB with 1.0.0.
+0.9.1 gave three wrong or near-empty answers there; 1.0.0 gives none of them. With a declared
+version file ([`docs/LABELS.md`](LABELS.md)) every tag of the kernel is compared: `clean`,
+947 of 947, in four minutes.
+[`tools/benchmark/READING.md`](../tools/benchmark/READING.md).
+
+## Send a result
+
+[`RESULTS.md`](../RESULTS.md) is for measurements made by someone other than the author: two so far,
+both on private repositories. `closure-drift --json > result.json`, then
+[open an issue](https://github.com/luizfnsilva/closure_drift/issues/new?template=measurement-result.yml)
+or write to lfnsilva.invest@gmail.com. A result showing the tool is wrong is the most useful kind.
+
+## Version
+
+**1.5.1** adds two measurements by others to `RESULTS.md` and a demonstration of `--tag`.
+
+**1.5.0** reads the version of the package a tag's prefix names (`clap_complete-v4.6.1`, `@scope/pkg@1.2.0`), reads `pubspec.yaml`, and lets `--closure 'vendor/**'` bring vendored code in.
+
+**1.4.0** checks the tag just pushed (`--tag NAME`, and the Action's default on a tag push) and says how each label in drift came about.
+
+**1.3.3** names the pattern to pass when a version file declares `VERSION = "x"` instead of `version`, and the section for agents starts with the skill.
+
+**1.3.2** puts two limits in the report itself: what is never in the closure, and when `1.0` and `1.0.0` on different code are counted as two labels.
+**1.3.0** opens the README with three ways in, ends every text report with a `Next:` line, and adds [`docs/EVIDENCE.md`](EVIDENCE.md) and a usability protocol; the verdicts are unchanged.
+**1.2.2** adds an agent skill ([`skills/closure-drift/`](../skills/closure-drift/SKILL.md)): when to run the check, how to read the answer, and never to move a published tag; the detector is unchanged.
+**1.2.1** adds the first third-party results to `RESULTS.md`, and the refusal names a `package.json` it skipped because it is marked private.
+**1.2.0** names a version file one level down, says whether a dirty tree touches the closure, and writes UTF-8 when the output is not a terminal (from [issue #12](https://github.com/luizfnsilva/closure_drift/issues/12)).
+**1.1.3** says when to use `--explain` or `--compare`, and `--tags` or `--published`; the detector is unchanged.
+**1.1.2** installs the MCP server in one line (`closure-drift-mcp`); the detector is unchanged.
+**1.1.1** fixes O11: a version file over the size limit (1 MB) is named and the answer is
+`incomplete`, never `clean`. It adds [`integrations/`](../integrations/) for AI agents. **1.1.0** (script sha256 `e2a67a5a9148fe273d2c95ad4bcce9bc589a43711fc34443a4a9491fde575913`)
+adds `--published`, three version sources, an earlier refusal and two opt-in comparisons; with
+no new option, results change only under `--at commits` ([`CHANGELOG.md`](../CHANGELOG.md)). What it
+had to meet was written first ([`tests/PREREGISTRATION.md`](../tests/PREREGISTRATION.md) §16), and a
+reviewer who did not write it found 13 problems before the tag ([`docs/REVIEW-1.1.0.md`](REVIEW-1.1.0.md)).
+[`SCOPE.md`](../SCOPE.md) says what stays stable until 2.0.
+
+Apache-2.0. Cite the version DOI, under concept DOI `10.5281/zenodo.21763931`
+([`CITATION.cff`](../CITATION.cff)). Planned next: [`ROADMAP.md`](../ROADMAP.md).

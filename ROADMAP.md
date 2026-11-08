@@ -5,6 +5,8 @@ ships with pre-registered proofs and an entry in `CHANGELOG.md`; nothing here is
 
 ## Next
 
+Done in 1.5.0: `pubspec.yaml`; `--closure` can bring `vendor/` in (O13); a tag's prefix names its package.
+
 Done in 1.1.0: `--published` (O10, and O2a with the list), the refusal before the scan (O5),
 `--label-equality` and `--modes` (O7), `--at commits` voted by tags (O2c), `Chart.yaml`, gemspec
 and `go.mod` (O3).
@@ -23,7 +25,7 @@ size, network file systems, git older than 2.24.
 
 ## Small, self-contained tasks — a good place to start
 
-- Add another ecosystem's version file to the rules (`mix.exs`, `pubspec.yaml`, `*.csproj`…), with
+- Add another ecosystem's version file to the rules (`mix.exs`, `*.csproj`, `pom.xml`…), with
   a battery proof and a mutant.
 - Translate nothing: the tool's output is English only, by decision.
 

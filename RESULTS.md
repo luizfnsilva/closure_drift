@@ -4,7 +4,7 @@ Every measurement in this file was produced by **someone other than the author**
 the author does not control, and is reproducible by anyone with the same deposit and the same
 commit.
 
-That is the point of the file. The reference table in the README is the author measuring other
+That is the point of the file. The reference table in `docs/USAGE.md` is the author measuring other
 people's repositories from the outside. This table is other people measuring their own, from the
 inside, where the author cannot reach — including private repositories whose contents never leave
 their machine, because the tool is read-only, needs no network, and the JSON report contains no

@@ -69,7 +69,7 @@ jobs:
         include:
           # every Python the package declares runs on Linux; macOS and Windows take the oldest
           # and the newest they can run
-          - {os: ubuntu-latest,  python: '3.9'}
+          - {os: ubuntu-24.04,   python: '3.9'}    # ubuntu-latest (26.04) has no Python 3.9
           - {os: ubuntu-latest,  python: '3.10'}
           - {os: ubuntu-latest,  python: '3.11'}
           - {os: ubuntu-latest,  python: '3.12'}
@@ -113,7 +113,7 @@ jobs:
         include:
           # every Python the package declares runs on Linux; macOS and Windows take the oldest
           # and the newest they can run
-          - {os: ubuntu-latest,  python: '3.9'}
+          - {os: ubuntu-24.04,   python: '3.9'}    # ubuntu-latest (26.04) has no Python 3.9
           - {os: ubuntu-latest,  python: '3.10'}
           - {os: ubuntu-latest,  python: '3.11'}
           - {os: ubuntu-latest,  python: '3.12'}
