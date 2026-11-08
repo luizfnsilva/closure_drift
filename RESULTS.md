@@ -64,6 +64,8 @@ without the state it was measured in, and this project does not publish those.
 |---|---|---|---|---|---|---|---|
 | 2026-10-22 | private ([#13](https://github.com/luizfnsilva/closure_drift/issues/13)) | anonymous | 101 commits | 1 | `0.1.0`: 91 closures | `drift`, under `--at commits` as a diagnostic: the reporter did not confirm that each commit is a publication | 1.1.3, [10.5281/zenodo.23458648](https://doi.org/10.5281/zenodo.23458648) |
 | 2026-10-27 | private (sent by e-mail) | anonymous | 2 commits | 1 | `0.1.0`: 1 closure | `inconclusive`: one label, nothing to compare yet | 1.2.0, [10.5281/zenodo.23557140](https://doi.org/10.5281/zenodo.23557140) |
+| 2026-11-05 | [spfilho10-cpu/jogo-interativo-triagem-cognitiva](https://github.com/spfilho10-cpu/jogo-interativo-triagem-cognitiva) ([#12](https://github.com/luizfnsilva/closure_drift/issues/12)) | Silvio | 6 commits | 2 | `2.1.0`: 4 closures | `drift`, `--at commits`: each push is published to GitHub Pages | 1.5.0, [10.5281/zenodo.23953081](https://doi.org/10.5281/zenodo.23953081) |
+| 2026-11-05 | private ([#12](https://github.com/luizfnsilva/closure_drift/issues/12)) | Silvio | 32 commits | 2 | `0.0.0`: 28 closures | `drift`, `--at commits`: each commit is deployed | 1.5.0, [10.5281/zenodo.23953081](https://doi.org/10.5281/zenodo.23953081) |
 
 Stamps, as the tool emitted them:
 
@@ -75,6 +77,15 @@ Stamps, as the tool emitted them:
   `--version-file` no label was found: `package.json` is marked private, and the refusal did not
   say so. 1.2.1 says so (`tests/PREREGISTRATION.md` §21).
 
-Neither result contradicts the tool. The first report of use
-([#12](https://github.com/luizfnsilva/closure_drift/issues/12), two projects, both `drift` under
-`--at commits`) is not in the table yet: it waits for the reporter's attribution and stamps.
+- 2026-11-05, public: `measured_at_head` `999c01eb315f`, `working_tree_dirty` false,
+  `detector_closure` `c0c6ae18b25eddba`; `--at commits --closure 'index.html' --closure 'css/*'
+  --closure 'js/*' --closure 'manifest.json' --closure 'sw.js' --closure 'package.json'`. With the
+  default `--at tags`: `inconclusive`, one tag (`v2.2.0`).
+- 2026-11-05, private: `measured_at_head` `3b4dc50a125c`, `working_tree_dirty` false,
+  `detector_closure` `c0c6ae18b25eddba`; `--at commits --version-file <subfolder>/package.json`,
+  closure from `.closure-drift.json` (10 globs in the app's subfolder). With the default
+  `--at tags`: `inconclusive`, one tag (`v0.1.0`). The first report (#12) gave 26 closures for
+  `0.0.0` with the default closure, before the configuration file existed.
+
+None of the four results contradicts the tool. The two of 2026-11-05 gave the same answers with
+1.3.1 on the same commits.
