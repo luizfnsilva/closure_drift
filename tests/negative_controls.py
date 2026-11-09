@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """Negative controls: the battery must go red on a broken detector (PREREGISTRATION.md §3).
 
-    python3 tests/negative_controls.py [--json OUT]
+    python3 tests/negative_controls.py [--json OUT] [--part K/N]
 
 Each mutant is a copy of the detector with one change. The battery is run against it and the
 proof named in the pre-registration must be red. A mutant whose change could not be applied is
 a FAILED control, never a skipped one: a control that silently tests nothing is the defect.
 One positive control closes the set: against the unmodified detector nothing is red.
+--part K/N runs only the mutants whose position i satisfies i % N == K - 1, and the positive
+control; the N parts together are the whole set, each mutant in exactly one (CI splits Windows).
 
 Exit 0 when every mutant is caught by its required proof and the positive control holds,
 1 otherwise, 2 when the controls could not run.
@@ -145,10 +147,19 @@ def battery(detector: Path, work: Path) -> dict | None:
 
 def main() -> int:
     out_json = sys.argv[sys.argv.index("--json") + 1] if "--json" in sys.argv else None
+    k, n = 1, 1
+    if "--part" in sys.argv:
+        try:
+            k, n = (int(x) for x in sys.argv[sys.argv.index("--part") + 1].split("/"))
+        except (IndexError, ValueError):
+            k = n = 0
+        if not 1 <= k <= n:
+            print("--part takes K/N with 1 <= K <= N", file=sys.stderr)
+            return 2
     source = DETECTOR.read_text(encoding="utf-8")
     action = (HERE.parent / "action.yml").read_text(encoding="utf-8")
     rows, bad = [], 0
-    for mid, required, changes in MUTANTS:
+    for mid, required, changes in [m for i, m in enumerate(MUTANTS) if i % n == k - 1]:
         work = Path(tempfile.mkdtemp(prefix="cd-mutant-"))
         try:
             texts, applied = {"closure_drift.py": source, "action.yml": action}, True
@@ -193,10 +204,10 @@ def main() -> int:
     here = sum(1 for r in rows if r["status"] == "not_run_here")
     if out_json:
         with open(out_json, "w", encoding="utf-8", newline="\n") as fh:
-            json.dump({"mutants": rows, "positive_control_holds": positive}, fh, indent=1, sort_keys=True)
+            json.dump({"mutants": rows, "part": "%d/%d" % (k, n), "positive_control_holds": positive}, fh, indent=1, sort_keys=True)
             fh.write("\n")
-    print("\n%d mutants · %d caught by the required proof · %d not caught%s | "
-          "positive control %s" % (len(rows), caught, len(rows) - caught - here,
+    print("\n%s%d mutants · %d caught by the required proof · %d not caught%s | "
+          "positive control %s" % ("part %d of %d · " % (k, n) if n > 1 else "", len(rows), caught, len(rows) - caught - here,
                                    " · %d whose proof does not run here" % here if here else "",
                                    "holds" if positive else "FAILS"))
     return 0 if bad == 0 and positive else 1

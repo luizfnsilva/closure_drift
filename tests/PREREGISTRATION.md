@@ -1553,3 +1553,14 @@ detector:
    `ROADMAP.md` listed `pubspec.yaml` as a future version source (read since 1.5.0).
 6. CI: `ubuntu-latest` became Ubuntu 26.04, which has no Python 3.9 (run 42491212885 failed to set
    it up). Python 3.9 runs on `ubuntu-24.04`.
+
+**Amendment 2 (2026-11-09, after 1.5.1, before the change).** On `main` after 1.5.1 (run
+42541778266, the 1.5.1 detector) the Windows mutant job on Python 3.14 was cut at six hours; in the
+release run the same job took just under five. The jobs alone sit near the limit on Windows.
+
+7. `tests/negative_controls.py --part K/N` runs the mutants at positions `i` with `i % N == K - 1`,
+   plus the positive control. The N parts are disjoint and together are the whole set. On Windows
+   CI runs `1/2` and `2/2`; elsewhere the whole set. A mutant counts as caught on Windows when the
+   part that holds it says so; the sum of the two parts is reported, never one part alone.
+
+Nothing measured changes. This touches no deposited file, so it is not a release.

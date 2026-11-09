@@ -105,7 +105,7 @@ jobs:
   mutants:
     # The negative controls run the whole battery once per mutant; on Windows that alone takes
     # hours, so they have a job, and a six-hour limit, of their own (tests/PREREGISTRATION.md §30).
-    name: negative controls · py${{ matrix.python }} · ${{ matrix.os }}
+    name: negative controls · py${{ matrix.python }} · ${{ matrix.os }}${{ matrix.part && format(' · part {0}', matrix.part) || '' }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -121,15 +121,17 @@ jobs:
           - {os: ubuntu-latest,  python: '3.14'}
           - {os: macos-latest,   python: '3.10'}
           - {os: macos-latest,   python: '3.14'}
-          - {os: windows-latest, python: '3.9'}
-          - {os: windows-latest, python: '3.14'}
+          - {os: windows-latest, python: '3.9',  part: '1/2'}   # on Windows the mutants take
+          - {os: windows-latest, python: '3.9',  part: '2/2'}   # about five hours: two halves,
+          - {os: windows-latest, python: '3.14', part: '1/2'}   # each well under the six-hour
+          - {os: windows-latest, python: '3.14', part: '2/2'}   # limit (§30, amendment 2)
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
       - name: Negative controls — the battery must go red on a broken detector
-        run: python tests/negative_controls.py
+        run: python tests/negative_controls.py --part ${{ matrix.part || '1/1' }}
 
   self:
     name: measure this repository with itself
