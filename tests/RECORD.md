@@ -1,3 +1,22 @@
+# Record of the battery runs — closure_drift 1.5.1
+
+Detector 1.5.1: `closure_drift.py`, sha256 `3fafc146ab0f9e6c316687ff803d1ee4f7974c439a34311322b72cca8966916d`; the 1.5.0 code with only `__version__` changed. CI run 42513399171 (`8e25d1c`).
+
+| platform | CPython | battery | mutants | adversarial | oracle | properties |
+|---|---|---|---|---|---|---|
+| Ubuntu | 3.9 (24.04), 3.10, 3.11, 3.12, 3.13, 3.14 | 243 · 243 green · 0 red · 0 not run | 77 of 77 | 315 · 304 as required · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 controls |
+| macOS | 3.10, 3.14 | 243 · 242 green · 0 red · 1 not run | 77 of 77 | 315 · 304 · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+| Windows | 3.9, 3.14 | 243 · 237 green · 0 red · 6 not run | 76 of 76 that can run there (M69: ACT01 needs bash) | 315 · 281 · 2 loose · 32 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+
+Two changes to the run, none to what is measured (§30): the mutants are a job of their own, so no
+job reaches GitHub's six-hour limit (the Windows 3.14 controls, not reached in 1.5.0, ran); and
+Python 3.9 runs on `ubuntu-24.04`, since `ubuntu-latest` (26.04) has none. The run before this one
+(`ubuntu-latest`, 3.9) did not count. As before, the deposit jobs failed: the manifest is
+regenerated in the next commit. The 2 loose are ZA02 and ZA04 (O2b, O2a).
+
+Regression corpus (`checks/v1.5.1-candidate-3fafc146.json`): 99 of 99 checkable match;
+mechanisms 79 / 7 / 1 unchanged.
+
 # Record of the battery runs — closure_drift 1.5.0
 
 Detector 1.5.0: `closure_drift.py`, sha256 `c0c6ae18b25eddbab227cdfc10de621ff3443f78a57f97f3098655e30be0918d`. CI run 41797509801 (`ec7895b`; the same detector as after the rebase onto 1.4.0).
