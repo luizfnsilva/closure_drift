@@ -3,6 +3,19 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 1.6.0 — 2026-11-10
+
+Cargo workspaces (`tests/PREREGISTRATION.md` §31).
+
+### Fixed
+- A member `Cargo.toml` with `version.workspace = true` (or `version = { workspace = true }`) now has
+  the workspace's version: `[workspace.package].version` of the file `package.workspace` names, or
+  of the nearest ancestor `Cargo.toml` with `[workspace]`. Before, it gave no label (exit 2).
+
+### Not changed
+- A refusal under `--json` still writes nothing to standard output, as `docs/REPORT.md` documents
+  (§31, amendment 1).
+
 ## 1.5.1 — 2026-11-08
 
 Results from others and a demonstration (`tests/PREREGISTRATION.md` §30). The detector differs from

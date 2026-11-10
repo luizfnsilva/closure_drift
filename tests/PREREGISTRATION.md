@@ -1591,3 +1591,9 @@ member pointing by `package.workspace` to a root elsewhere; P-D1d no `[workspace
 (D1: ignore the workspace root; D2: drop the JSON on refusal); each must be caught. The regression
 corpus must give the recorded answer on all 99 still checkable, or the difference is explained
 here before release.
+
+**Amendment 1 (2026-11-10, after the code, before release). Item 2 is RETIRED.** Running the battery
+on it turned K02 and D14 red: `docs/REPORT.md` documents an operational refusal as exit 2 with **no
+JSON on standard output**, and K02 has held that since 0.9.0. What the survey called D2 is the
+documented contract, not a defect; changing it would change what an exit code means, which `SCOPE.md`
+keeps stable until 2.0. Its code, proof (P-D2, written as RJ01) and mutant are removed. 1.6.0 is item 1 only.

@@ -3149,6 +3149,47 @@ def mm03(root):
         del os.environ["CLOSURE_DRIFT_TREE_CACHE"]
 
 
+def _ws(root, name, member, rootfile='[workspace]\nmembers = ["pkg"]\n[workspace.package]\nversion = "1.2.0"\n',
+        where="Cargo.toml", vfile="pkg/Cargo.toml"):
+    r = Repo(root, name)
+    r.write(where, rootfile)
+    r.write("pkg/Cargo.toml", member)
+    r.write("pkg/src/lib.rs", "1\n")
+    r.commit()
+    r.tag("v1.2.0")
+    r.write("pkg/src/lib.rs", "2\n")
+    r.write(where, rootfile.replace("1.2.0", "1.3.0"))
+    r.commit()
+    r.tag("v1.3.0")
+    return r, vfile
+
+
+@proof("WS01")
+def ws01(root):
+    r, v = _ws(root, "ws01", '[package]\nname = "pkg"\nversion.workspace = true\n')
+    expect(r, "clean", 0, "--version-file", v, labels=2)
+
+
+@proof("WS02")
+def ws02(root):
+    r, v = _ws(root, "ws02", '[package]\nname = "pkg"\nversion = { workspace = true }\n')
+    expect(r, "clean", 0, "--version-file", v, labels=2)
+
+
+@proof("WS03")
+def ws03(root):
+    r, v = _ws(root, "ws03", '[package]\nname = "pkg"\nworkspace = "../ws"\nversion.workspace = true\n',
+               where="ws/Cargo.toml")
+    expect(r, "clean", 0, "--version-file", v, labels=2)
+
+
+@proof("WS04")
+def ws04(root):
+    r, v = _ws(root, "ws04", '[package]\nname = "pkg"\nversion.workspace = true\n',
+               rootfile='[workspace]\nmembers = ["pkg"]\n# 1.2.0\n')
+    expect(r, "no_labels", 2, "--version-file", v)
+
+
 def main() -> int:
     global DETECTOR
     args = sys.argv[1:]

@@ -32,7 +32,7 @@ import warnings
 from collections import OrderedDict, defaultdict
 from pathlib import Path
 
-__version__ = "1.5.1"
+__version__ = "1.6.0"
 REPORT_FORMAT = 2
 
 # Where a version can be declared. Python build files are read first; a repository that has
@@ -470,6 +470,14 @@ def tables(text: str) -> dict:
     return out
 
 
+def inherits_workspace_version(package: dict) -> bool:
+    """`version.workspace = true` or `version = { workspace = true }` in a member's [package]."""
+    if (package.get("version.workspace") or "").strip() == "true":
+        return True
+    v = (package.get("version") or "").strip()
+    return bool(re.fullmatch(r"\{\s*workspace\s*=\s*true\s*\}", v))
+
+
 def string(rhs) -> str | None:
     m = _STRING.match(rhs or "")
     return m.group(2) if m else None
@@ -595,6 +603,32 @@ class Sources:
             self.parsed[(oid, "setup")] = setup_info(self.text(blobs, "setup.py"))
         return self.parsed[(oid, "setup")]
 
+    def workspace_version(self, blobs: dict, path: str, package: dict) -> str | None:
+        """[workspace.package].version of the root Cargo builds this member with: the file
+        `package.workspace` names, else the nearest ancestor Cargo.toml with a [workspace] table."""
+        here = path.rsplit("/", 1)[0] if "/" in path else ""
+        named = string(package.get("workspace"))
+        if named is not None:
+            parts = [p for p in (here.split("/") if here else [])]
+            for seg in named.strip("/").split("/"):
+                if seg == "..":
+                    if not parts:
+                        return None
+                    parts.pop()
+                elif seg not in ("", "."):
+                    parts.append(seg)
+            candidates = ["/".join(parts + ["Cargo.toml"])]
+        else:
+            parts = here.split("/") if here else []
+            candidates = ["/".join(parts[:i] + ["Cargo.toml"]) for i in range(len(parts) - 1, -1, -1)]
+        for c in candidates:
+            if c == path or c not in blobs:
+                continue
+            t = tables(self.text(blobs, c))
+            if "workspace" in t or any(k.startswith("workspace.") for k in t):
+                return string(t.get("workspace.package", {}).get("version"))
+        return None
+
     def read(self, blobs: dict, path: str, how) -> str | None:
         """The label a source gives at this commit, or None when it gives no plausible one."""
         oid = blobs.get(path)
@@ -609,6 +643,9 @@ class Sources:
         elif how == "cargo":
             t = tables(text)
             value = string(t.get("package", {}).get("version")) or string(t.get("workspace.package", {}).get("version"))
+            if value is None and inherits_workspace_version(t.get("package", {})):
+                value = self.workspace_version(blobs, path, t.get("package", {}))   # §31 item 1
+                return value if plausible(value) else None    # depends on the root too: not cached by this blob
         elif how == "cfg":
             value = tables(text).get("metadata", {}).get("version")
         elif how == "setup":
@@ -1002,6 +1039,9 @@ class Labels:
                     if path == src[0] and kind == "blob" and len(self.objects.text(oid).split()) == 1 \
                             and plausible(self.objects.text(oid).strip()):
                         label = self.objects.text(oid).strip()
+            if label is None and src[1] == DEFAULT_VERSION_REGEX and src[0].rsplit("/", 1)[-1] == "Cargo.toml":
+                blobs = {path: oid for path, kind, oid in entries if kind == "blob"}
+                label = self.sources.read(blobs, src[0], "cargo")      # §31 item 1: version.workspace = true
             if label is not None and not any(c.isalnum() for c in label):
                 label = None                                  # punctuation only (a captured quote) is no version
         else:
