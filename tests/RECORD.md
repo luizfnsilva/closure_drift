@@ -1,3 +1,21 @@
+# Record of the battery runs — closure_drift 1.6.0
+
+Detector 1.6.0: `closure_drift.py`, sha256 `0e4e5a2633b8b98535d34a7084baf930aabddae9bd7b0ddb3cf2abbfa7f8172e`. CI run 42874351797 (`bc2b431`, branch `release-1.6.0`).
+
+| platform | CPython | battery | mutants | adversarial | oracle | properties |
+|---|---|---|---|---|---|---|
+| Ubuntu | 3.9 (24.04), 3.10, 3.11, 3.12, 3.13, 3.14 | 247 · 247 green · 0 red · 0 not run | 78 of 78 | 315 · 304 as required · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 controls |
+| macOS | 3.10, 3.14 | 247 · 246 green · 0 red · 1 not run | 78 of 78 | 315 · 304 · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+| Windows | 3.9, 3.14 | 247 · 241 green · 0 red · 6 not run | 77 of 77 that can run there (M69: ACT01 needs bash); parts 1/2 + 2/2 = 39 + 39 | 315 · 281 · 2 loose · 32 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+
+§31: four proofs added (WS01–WS04), one mutant (M79, caught by WS01). Item 2 (D2) retired by
+amendment 1: its proof and mutant were removed before this run, after K02 and D14 turned red
+locally. As before, the deposit jobs failed: the manifest is regenerated in the next commit. The 2
+loose are ZA02 and ZA04 (O2b, O2a).
+
+Regression corpus (run 42874250402, `regression-check/v1.6.0`): 99 of 99 checkable match, as
+predicted in §31; `apache/arrow` not checkable.
+
 # Record of the battery runs — closure_drift 1.5.1
 
 Detector 1.5.1: `closure_drift.py`, sha256 `3fafc146ab0f9e6c316687ff803d1ee4f7974c439a34311322b72cca8966916d`; the 1.5.0 code with only `__version__` changed. CI run 42513399171 (`8e25d1c`).
