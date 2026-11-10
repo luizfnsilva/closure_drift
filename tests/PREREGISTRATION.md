@@ -1564,3 +1564,30 @@ release run the same job took just under five. The jobs alone sit near the limit
    part that holds it says so; the sum of the two parts is reported, never one part alone.
 
 Nothing measured changes. This touches no deposited file, so it is not a release.
+
+## 31. Added 2026-11-10, before any of it was written — 1.6.0
+
+**Two defects found by the 2026-11-08 survey, both reproduced on 1.5.1 before this was written.**
+
+1. **D1.** A member `Cargo.toml` with `version.workspace = true` (or `version = { workspace = true }`)
+   gives no label on 1.5.1 (`NO LABELS`, exit 2), though Cargo builds it with the version of the
+   workspace. From 1.6.0 the label is `[workspace.package].version` of the workspace root, at the
+   same publication point: the file named by `package.workspace` when the member sets it, otherwise
+   the nearest ancestor `Cargo.toml` that has a `[workspace]` table. If no such root exists, or it
+   has no `[workspace.package].version`, the member gives no label, as before. Nothing else changes
+   for Cargo: a member with its own `version` is read as before.
+2. **D2.** With `--json`, a refusal (exit 2 raised as a refusal: `--tag` naming no tag, `--compare`
+   naming no commit, `--explain` with nothing to explain, `--json --badge`, …) wrote nothing to
+   stdout on 1.5.1. From 1.6.0 it writes one JSON object, `{"report_format": 2, "verdict":
+   "refused", "note": <the same message>}`, and still writes the message to stderr and exits 2.
+   `refused` is a new verdict name (an addition; no existing name changes). Errors from argument
+   parsing itself (unknown option) stay as they are: they are usage, not a refusal.
+
+Proofs added before the code: P-D1a member with `version.workspace = true` under a root with
+`[workspace.package] version` → label read, `clean`; P-D1b same with the inline-table form; P-D1c
+member pointing by `package.workspace` to a root elsewhere; P-D1d no `[workspace.package].version`
+→ no label (unchanged); P-D2a…c `--json` with each of three refusals → stdout parses as JSON with
+`verdict == "refused"`, exit 2. Each proof must fail on 1.5.1 except P-D1d. One mutant per item
+(D1: ignore the workspace root; D2: drop the JSON on refusal); each must be caught. The regression
+corpus must give the recorded answer on all 99 still checkable, or the difference is explained
+here before release.
