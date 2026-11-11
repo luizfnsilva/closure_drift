@@ -3052,6 +3052,35 @@ def ec04(root):
           "Action: exit %d, verdict %r; required 0, clean, no empty points named" % (rc, out.get("verdict")))
 
 
+# ---------------------------------------------------------------- §34 R18-08 — Next: per cause
+
+@proof("NX07")
+def nx07(root):
+    nxt = _next(run(_d4(root, "nx07"), "--tag", "v1.2.0", text=True)[2])
+    check(".github/workflows/publish.yml" in nxt and "built package" in nxt and "not a pass" in nxt,
+          "Next does not name the workflow, the built package and not a pass: %r" % nxt)
+
+
+@proof("NX08")
+def nx08(root):
+    r = _three_labels(root, "nx08", [{"src/a.py": "1\n"}, {"src/a.py": "2\n"}, {"src/a.py": "3\n"}])
+    nxt = _next(run(r, "--closure", "nothing/**", text=True)[2])
+    check("--closure" in nxt and "not a pass" in nxt, "empty_closure: Next does not name --closure: %r" % nxt)
+
+
+@proof("NX09")
+def nx09(root):
+    r = Repo(root, "nx09")
+    r.write("VERSION", "1.0\n")
+    r.write("src/a.py", "1\n")
+    r.commit()
+    r.tag("v1.0")
+    rc, _d, out, _e = run(r, text=True)
+    check(rc == 2, "one label: exit %d, required 2" % rc)
+    nxt = _next(out)
+    check("--diagnose" in nxt and "not a pass" in nxt, "inconclusive: Next does not name --diagnose: %r" % nxt)
+
+
 # ---------------------------------------------------------------- §29 — 1.5.0
 
 def _workspace(root, name):
