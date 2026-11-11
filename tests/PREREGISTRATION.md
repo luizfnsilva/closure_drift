@@ -1693,3 +1693,54 @@ ACT05 measures is a refusal either way. It is caught by ACT06 (a crash read as `
 copy before this was written; it is registered against ACT06. (b) **1.7.1 will not be published.** By
 the owner's decision, everything here is folded into one release, 1.8.0 (§34). Items 1–6 of this
 section are R18-01 to R18-04 there, with these proofs and mutants.
+
+## 34. Added 2026-11-11, before the code of R18-05 onward — 1.8.0, release integrity and usability
+
+One release. Nothing is published before it unless a defect already distributed needs an urgent fix.
+Central rule: **no change to usability may turn an absence of evidence into a pass.**
+
+| ID | what | accepted when |
+|---|---|---|
+| R18-01 | arguments reach the CLI intact | §33 item 1 + amendment item 4; ACT02 (the hidden drift reproduced on 1.7.0, found after), ACT03, ACT04, ACT07; M82, M84 |
+| R18-02 | an empty closure never reads as a pass | below |
+| R18-03 | one run, one canonical result | §33 item 5; ACT08; the log, annotations, summary and outputs all come from the one report |
+| R18-04 | exit codes, verdicts and errors coherent | §33 item 2; ACT05, ACT06; M83; the CLI's contract (`docs/REPORT.md`) unchanged |
+| R18-05 | real gates | a publish job with `needs:` on the check does not run on exit 1 or 2, shown in a public run |
+| R18-06 | three public scenarios | below |
+| R18-07 | the user knows when the tool does not fit | one short page answering: does it fit, which mode, what the answer means, what next; README not longer |
+| R18-08 | `incomplete` explained | reason, evidence (file:line when there is one) and next step, in the Action's log and summary (done in §33) and in the CLI's `Next:` line |
+| R18-09 | D5 | below |
+| R18-10 | the tool's own distribution | wheel, sdist, Action, container and MCP entry name one version and one commit; checksums; tags and docs pins checked (`tools/conferir_versao.py`); GitHub immutable releases evaluated, and used if they fit the rite |
+| R18-11 | historical audit of the quoting defect | below |
+| R18-12 | full regression | battery on Linux, macOS, Windows; mutants; adversarial; oracle; properties; corpus 99 of 99 checkable as recorded, or each difference named here before release |
+
+**R18-02.** Three cases, kept apart: (a) the closure globs are invalid or match nothing anywhere →
+`empty_closure` / `empty_closure_at_head` (exit 2), as today; (b) the closure matches at some points
+and not others (files added later) → `clean` stays possible only on the points compared, and the
+report and summary state how many points had no file; (c) the scope cannot be evaluated → exit 2.
+Open question, decided **before its code** by a measurement written here: when `--closure` is passed
+explicitly and matches no file at `HEAD` (measure mode), should `clean` become `incomplete`? First
+count, on the regression corpus and the 51 Nix repositories, how many answers that would change. A
+change from exit 0 to exit 2 for some inputs is a change of meaning: if it is made, `SCOPE.md` and the
+version number are reviewed (2.0 instead of 1.8.0 if the contract requires it).
+
+**R18-06.** In `closure-drift-release-examples`, three scenarios with a publish job behind the check,
+each with pinned inputs, a public run and a test that fails when the behaviour stops: A, a correct
+release (the check passes and the page says when it only confirms controls already there); B, a real
+drift introduced on purpose (the check fails and the publish job does not run); C, a version written at
+release time (`incomplete`, nothing published, the reason shown). The aggregating job tells an
+expected red apart from a broken suite. Run against the candidate as a user receives it: the Action
+from a ref, a clean checkout, no import of the development tree.
+
+**R18-09.** No interpreter of Bash, `sed` or CI pipelines. One of two outcomes, both acceptable:
+(1) a narrow rule, written here before its code, with evidence enough and proofs against false
+negatives, that recognises the dspy mechanism and answers `incomplete`; or (2) a documented limit
+(`docs/FAILURES.md` and the fit page): versions written by arbitrary commands are not verifiable by
+this instrument, and `--tag` may answer `tag_mismatch` there.
+
+**R18-11.** Every run that passed `args` with quotes or globs through the Action (1.4.0–1.7.0): the
+examples repository's runs, the docs examples, any run of ours. Each is classed as affected (the
+argument reached the detector changed), not affected, or not reconstructible. Affected results are
+repeated with 1.8.0 or qualified where they are cited.
+
+**Freeze.** After R18-01 to R18-09 are in, only fixes that make the criteria above pass.
