@@ -46,6 +46,7 @@ package was built from. It attests and signs nothing. More: [`SCOPE.md`](SCOPE.m
 
 ## More
 
+- [`docs/START.md`](docs/START.md): does it fit, which mode, what the answer means, what next
 - [`docs/USAGE.md`](docs/USAGE.md): every option, the GitHub Action, pre-commit, agents, tests
 - [`RESULTS.md`](RESULTS.md): measurements by others, including results that are not clean
 - [`docs/FAILURES.md`](docs/FAILURES.md): every failure of the tool found so far
