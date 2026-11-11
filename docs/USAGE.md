@@ -61,7 +61,7 @@ git clone -q https://github.com/luizfnsilva/closure_drift && python3 closure_dri
 python3 closure_drift/closure_drift.py /path/to/your/repo
 ```
 
-Or without cloning: `curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.7.0/closure_drift.py`
+Or without cloning: `curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.8.0/closure_drift.py`
 then `python3 closure_drift.py` inside any git repository. Needs Python 3.9+ and git. The last
 lines say what to do next. (`./reproduce.sh` is something else: it validates closure_drift itself,
 a long run, and does not look at your repository.)
@@ -86,7 +86,7 @@ drift came about. On a tag push the Action runs `--tag`; on any other push, `--w
 # GitHub Actions
 - uses: actions/checkout@v4
   with: { fetch-depth: 0 }
-- uses: luizfnsilva/closure_drift@v1.7.0
+- uses: luizfnsilva/closure_drift@v1.8.0
 ```
 
 Push the workflow before the first tag: a tag pushed together with the workflow that should run on
@@ -97,7 +97,7 @@ with the default mode from the first tag.
 ```yaml
 # pre-commit, on git push
 - repo: https://github.com/luizfnsilva/closure_drift
-  rev: v1.7.0
+  rev: v1.8.0
   hooks: [{ id: closure-drift-would-tag }]
 ```
 
@@ -273,7 +273,7 @@ CI runs the same four on Linux (Python 3.9 to 3.14), macOS and Windows; what eac
 run is in
 [`tests/RECORD.md`](../tests/RECORD.md). These scores describe the cases executed, not inputs nobody
 tried. `./reproduce.sh` runs all of it. The 100 projects of the study are also a regression corpus,
-pinned to recorded commits: 1.7.0 gives the recorded answer on all 99 still checkable (one tag of `apache/arrow` moved upstream), as predicted before it ran
+pinned to recorded commits: 1.8.0 gives the recorded answer on all 99 still checkable (one tag of `apache/arrow` moved upstream), as predicted before it ran
 ([`tools/regression/`](../tools/regression/)).
 
 **Ten large repositories** (the Linux kernel, LLVM, CPython and seven more), protocol written
@@ -291,6 +291,8 @@ both on private repositories. `closure-drift --json > result.json`, then
 or write to lfnsilva.invest@gmail.com. A result showing the tool is wrong is the most useful kind.
 
 ## Version
+
+**1.8.0** fixes how the Action passes `args` (quoted globs reached the detector with the quotes), runs the detector once, adds `closure`, `tags`, `version-file` and `version-regex` inputs, tells `refused` from `error`, names the cause in every exit-2 `Next:` line, and recognises the release event's tag and `git describe --tags` as the source of a version written at publish time.
 
 **1.7.0** answers `incomplete`, not `tag_mismatch`, when the release job writes the version from the tag, and names the file and line.
 

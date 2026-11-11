@@ -3,6 +3,44 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 1.8.0 — 2026-11-11
+
+Release integrity and usability (`tests/PREREGISTRATION.md` §33, §34 and amendments).
+
+### Fixed
+- The Action passed `args` to the detector unquoted: `--closure 'src/**'` arrived with the quotes and
+  matched no file, so a drift read as `empty_closure` (exit 2), and passed under
+  `allow-undetermined: true`; unquoted globs were expanded by bash. Every release with the Action
+  (0.9.0 to 1.7.0) showed the quoted form in its examples. `args` now follows POSIX word rules, with no
+  glob or variable expansion; an unclosed quote fails the step.
+- `--tag` now also counts `github.event.release.tag_name` and `git describe --tags` as naming the tag
+  when a workflow writes the version at publish time: `incomplete`, file and line, not `tag_mismatch`.
+
+### Added
+- Action inputs `closure` and `tags` (one glob per line), `version-file`, `version-regex`: each value
+  reaches the detector as written.
+- The Action runs the detector once; the log, annotations and summary come from that one report. The
+  log and summary name points with an empty closure.
+- `docs/START.md`: does it fit, which mode, what the answer means, what next.
+- `release-assets.yml`: wheel and sdist built from the tag in CI, with a provenance attestation.
+
+### Changed
+- Every exit-2 `Next:` line names the cause and the step (`--version-file`, `--closure`,
+  `--diagnose`, or the workflow file and line). Text only.
+- `tools/conferir_versao.py` also reads the docs' pins, the MCP entry and its image.
+
+### Compatibility
+- CLI: verdicts, exit codes and the JSON report are unchanged in meaning. Two inputs change answer,
+  both toward abstention: a version written at publish time from the release event's tag or `git
+  describe --tags` gives `incomplete` (exit 2) where it gave `tag_mismatch` (exit 1).
+- Action: the `verdict` output can now be `error` (the detector did not finish), which always fails
+  the step, also under `allow-undetermined`; `refused` now means only the documented refusal. `args`
+  written with quotes now means what it says.
+
+### Known limit
+- A version written by `sed`, a script or through job outputs is not recognised (`docs/FAILURES.md`
+  O14); `--tag` can answer `tag_mismatch` there.
+
 ## 1.7.0 — 2026-11-11
 
 A version written from the tag at publish time (`tests/PREREGISTRATION.md` §32).
