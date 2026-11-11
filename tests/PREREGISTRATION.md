@@ -1811,3 +1811,16 @@ pinned); D5D `github.event.release.tag_name` in the file but no version command 
 D5E a version command with a literal version in a file that also names the release tag elsewhere →
 `tag_mismatch`. D5A and D5B must fail on the candidate; D5C–D5E must hold before and after. One
 mutant: `github.event.release.tag_name` dropped from the evidence, must turn D5A red.
+
+**Amendment 4 to §34 (2026-11-11): R18-10, before its code.** Read from the repository: the release's
+wheel and sdist are built on the author's machine, from a clone of the tag, with no provenance
+attestation; `publish.yml` (PyPI) builds in CI but has never run; GitHub immutable releases are off;
+`tools/conferir_versao.py` does not read `integrations/mcp/server.json` nor the MCP `serverInfo`, which
+agree today only because they are updated by hand. From 1.8.0: (a) `conferir_versao` also reads the
+version and the image tag in `server.json` and `serverInfo` in both MCP files, and fails when one
+differs (checked by changing one and requiring exit 1); (b) a workflow `release-assets.yml`, run on a
+tag, builds wheel and sdist from that tag in CI, requires the wheel's `closure_drift.py` to be the
+tag's byte for byte, attests their provenance (`actions/attest-build-provenance`), writes
+`SHA256SUMS`, and uploads the three files to the release, which the rite creates as a draft and
+publishes only after; local builds are no longer uploaded; (c) immutable releases are the owner's
+decision, a repository setting, recommended once (b) has run once.
