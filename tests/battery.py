@@ -2998,6 +2998,60 @@ def act09(root):
     check(rc == 2, "a closure matching no file: exit %d, verdict %r; required 2, never a pass" % (rc, out.get("verdict")))
 
 
+# ---------------------------------------------------------------- §34 R18-02 — empty closures
+
+def _three_labels(root, name, layout):
+    """layout: per tag, {path: content}; VERSION is 1.0, 2.0, 3.0."""
+    r = Repo(root, name)
+    for i, files in enumerate(layout, 1):
+        for path in list(r.path.rglob("*")):
+            if path.is_file() and ".git" not in path.parts and path.name != "VERSION":
+                path.unlink()
+        r.write("VERSION", "%d.0\n" % i)
+        for path, content in files.items():
+            r.write(path, content)
+        r.commit()
+        r.tag("v%d.0" % i)
+    return r
+
+
+@proof("EC01")
+def ec01(root):
+    r = _three_labels(root, "ec01", [{"src/a.py": "1\n"}, {"src/a.py": "2\n"}, {"src/a.py": "3\n"}])
+    expect(r, "empty_closure", 2, "--closure", "nothing/**")
+    rc, log, out, _s = _act(root, r, closure="nothing/**")
+    check(rc == 2 and out.get("verdict") == "empty_closure", "Action: exit %d, verdict %r; required 2, empty_closure" % (rc, out.get("verdict")))
+
+
+@proof("EC02")
+def ec02(root):
+    r = _three_labels(root, "ec02", [{"lib/a.py": "1\n"}, {"lib/a.py": "2\n"}, {"pkg/a.py": "2\n"}])
+    expect(r, "clean", 0, "--closure", "lib/**")
+    expect(r, "empty_closure_at_head", 2, "--closure", "lib/**", "--would-tag")
+    rc, log, out, _s = _act(root, r, mode="would-tag", closure="lib/**")
+    check(rc == 2 and out.get("verdict") == "empty_closure_at_head",
+          "Action would-tag: exit %d, verdict %r; required 2, empty_closure_at_head" % (rc, out.get("verdict")))
+
+
+@proof("EC03")
+def ec03(root):
+    r = _three_labels(root, "ec03", [{"other.txt": "1\n"}, {"src/a.py": "1\n"}, {"src/a.py": "2\n"}])
+    doc = expect(r, "clean", 0, "--closure", "src/**")
+    check(doc.get("points_with_empty_closure") == 1, "points_with_empty_closure %r, required 1" % doc.get("points_with_empty_closure"))
+    rc, log, out, _s = _act(root, r, closure="src/**")
+    check(rc == 0 and "points with empty closure: 1" in log,
+          "Action: exit %d; required 0 and the log naming 1 point with an empty closure: %s" % (rc, log[-200:]))
+
+
+@proof("EC04")
+def ec04(root):
+    r = _three_labels(root, "ec04", [{"src/a.py": "1\n"}, {"src/a.py": "2\n"}, {"src/a.py": "3\n"}])
+    expect(r, "clean", 0, "--closure", "src/**")
+    rc, log, out, _s = _act(root, r, closure="src/**")
+    check(rc == 0 and out.get("verdict") == "clean" and "empty closure" not in log,
+          "Action: exit %d, verdict %r; required 0, clean, no empty points named" % (rc, out.get("verdict")))
+
+
 # ---------------------------------------------------------------- §29 — 1.5.0
 
 def _workspace(root, name):
