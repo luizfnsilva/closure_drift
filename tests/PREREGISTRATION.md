@@ -1626,3 +1626,40 @@ the ref → unchanged (`tag_mismatch`). Each of D4a must fail on 1.6.0; D4b–D4
 after. One mutant: ignore the workflow evidence; it must turn D4a red. Real case: aio-pika `10.2.3`
 gives `incomplete` after the change, recorded in RECORD. Regression corpus: 99 of 99 checkable give
 the recorded answer, or each difference is named here before release.
+
+## 33. Added 2026-11-11, before any of it was written — 1.7.1
+
+**The Action, not the detector.** An outside review of `action.yml` (release engineering) named three
+points; each was checked against the code before this was written.
+
+1. **`args` is split by the shell without quote removal, and its globs are expanded.** Confirmed: the
+   step runs `$CD_ARGS` unquoted. The input documented in `action.yml` itself, `--closure 'src/**'`,
+   reaches the detector as `'src/**'` with the quotes; on `mosquito/caio`, `--closure 'caio/**'` gives
+   `empty_closure` (exit 2) where `--closure caio/**` on the command line gives `drift` (exit 1). With
+   `allow-undetermined: true`, that drift passes. Unquoted, a glob that matches files in the working
+   directory is expanded by bash before the detector sees it. `docs/CI.md` shows `--tags 'v*'`, which
+   then matches no tag. From 1.7.1: `args` is split by POSIX shell word rules (quotes removed, no
+   pathname expansion, no variable expansion); an unclosed quote fails the step with exit 2 and an
+   error naming the input, before the detector runs.
+2. **`refused` covers three different things.** Confirmed: the `verdict` output is `refused` whenever
+   the JSON file does not parse. From 1.7.1 the output says which: the report's verdict; `refused`
+   only for the documented refusal (exit 2, nothing on standard output), with the detector's stderr
+   shown in the job summary; `error` when the exit code is not 0, 1 or 2, or standard output is not
+   empty and does not parse. `error` fails the step with exit 2, also under `allow-undetermined`.
+3. **The detector runs twice** (once for JSON, once for text). Confirmed. Both runs read the same
+   local repository in the same step, so the two reports cannot measure different states unless the
+   repository is changed by another process during the step; the cost is real. Removing it needs one
+   run to write both forms, which is a change to the detector: **not in 1.7.1**; a candidate for later.
+
+Nothing in `closure_drift.py` changes except `__version__`. Verdicts, exit codes and the report are
+unchanged; `refused` and `error` are values of the Action's output, not verdicts of the report.
+
+Proofs before the code, each run through the step's script as ACT01 does: ACT02 `args` `--closure
+'src/**'` on a repository in drift → exit 1, `drift`, as the same arguments on the command line;
+ACT03 a glob in `args` that matches a file in the working directory is passed unexpanded; ACT04 an
+unclosed quote → exit 2, an error naming `args`, no report written; ACT05 `--tag` naming no tag →
+output `verdict=refused`, exit 2, and the summary holds the detector's message; ACT06 under
+`allow-undetermined: true`, a step whose run ends with output `error` still exits 2. ACT02–ACT05 must
+fail on 1.7.0, ACT06 must hold on 1.7.0 or fail with the reason named here. Mutants: unquoted `$CD_ARGS`
+(must turn ACT02 red); `refused` for every unparsed report (must turn ACT05 red). Regression corpus:
+detector unchanged, 99 of 99 checkable as recorded.
