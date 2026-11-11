@@ -15,12 +15,15 @@ reported from outside.
 |---|---|---|---|
 | O2b | **Build-number tags (`release-41`) read as versions**: a correct file can be refused, exit 2. Kept in 1.1.0: taking their vote away would turn this refusal into a possible wrong 0 or 1 (§16.6) | adversarial ZA02 | `--version-file`, or `--published` |
 | O2a | **A wrong file is still believed when one tag agrees by chance** (ZA04). The repository alone cannot tell it from real drift (LR01). With `--published` (1.1.0) it is decided when the file's label was never published; when that label was itself a real release (a helper stuck at a real `0.1.0`), the list cannot tell it from a tag cut before the bump either (review R12) | adversarial ZA04, review R12 | `--version-file` in any gate |
+| O14 | **A version written at release time by `sed`, a script, or through job outputs is not recognised** (D5, §34). `--tag` answers `tag_mismatch` where the published package has the tag's version. Recognised since 1.7.0/1.8.0: `uv`/`poetry`/`hatch`/`npm`/`pnpm version` with the tag from the ref, the release event, or `git describe --tags`. Interpreting arbitrary commands is outside what this tool does; 6 of 44 residual cases in one sample (dspy among them) | survey of 51 Nix packages | read the release workflow; check the built package's version |
 | O7 | A submodule's content is not read. (Labels as versions and file modes: opt-in since 1.1.0) | declared since 0.9.0 | `SCOPE.md` |
 
 ## Fixed
 
 | release | what failed | found by |
 |---|---|---|
+| 1.8.0 | **The Action passed `args` on unquoted**: `--closure 'src/**'` reached the detector with the quotes and matched nothing, so a drift read as `empty_closure` (exit 2), and passed under `allow-undetermined: true`; unquoted globs were expanded by bash. Now `args` follows POSIX word rules, and `closure`/`tags` take one glob per line | an outside review of `action.yml` |
+| 1.8.0 | **`--tag` did not see the release event's tag** (`github.event.release.tag_name`) nor `git describe --tags` as the source of a version written at publish time: answered `tag_mismatch`. Now `incomplete`, file and line | survey of 51 Nix packages (D5) |
 | 1.5.0 | **`vendor/` was never in the closure** (O13): vendored code that changed under one version was not seen. A `--closure` glob that names the folder now brings it in | 1.4.0, reviewing the fixed exclusion |
 | 1.5.0 | **`--tag` compared a prefixed tag (`clap_complete-v4.6.1`) with the root's version**: answered `tag_mismatch` for another package's tag. The prefix now chooses the package, or the answer is exit 2 | a sweep of 2026 tags in seven sets of repositories |
 | 1.4.0 | this file still listed O9, "`RESULTS.md` is empty", after two measurements by others had been added to it; an outside review read it as current | an outside review |

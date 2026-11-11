@@ -1904,7 +1904,8 @@ def prefixed_source(objects, labels, entries, name: str):
     return hits[0], MANIFESTS[hits[0].rsplit("/", 1)[-1]]
 
 
-_REF = re.compile(r"GITHUB_REF_NAME|GITHUB_REF\b|github\.ref_name")
+_REF = re.compile(r"GITHUB_REF_NAME|GITHUB_REF\b|github\.ref_name"
+                  r"|github\.event\.release\.tag_name|git\s+describe\s+--tags")   # §34 R18-09: C1, C2
 _SETS_VERSION = re.compile(r"\b(?:uv|poetry|hatch|npm|pnpm)\s+version\b(.*)")
 
 
