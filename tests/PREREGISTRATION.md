@@ -1686,3 +1686,10 @@ matching no file → exit 2, never a pass. ACT07 and ACT08 must fail on 1.7.0; A
 and after. A third mutant, the `closure` input ignored, must turn ACT07 red. Outside the battery, a CI
 job runs the Action itself through `uses: ./` in a real workflow, on a repository it builds, with a
 quoted glob and a path with a space, and fails unless the outputs are the ones required.
+
+**Amendment 2 (2026-11-11, after the code of items 1–5, before any run in CI).** Two corrections.
+(a) The second mutant, `refused` for every report that does not parse, does not touch ACT05: the case
+ACT05 measures is a refusal either way. It is caught by ACT06 (a crash read as `refused`), checked on a
+copy before this was written; it is registered against ACT06. (b) **1.7.1 will not be published.** By
+the owner's decision, everything here is folded into one release, 1.8.0 (§34). Items 1–6 of this
+section are R18-01 to R18-04 there, with these proofs and mutants.
