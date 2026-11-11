@@ -3081,6 +3081,50 @@ def nx09(root):
     check("--diagnose" in nxt and "not a pass" in nxt, "inconclusive: Next does not name --diagnose: %r" % nxt)
 
 
+# ---------------------------------------------------------------- §34 R18-09 — D5
+
+D5_RELEASE = ('on: {release: {types: [published]}}\njobs:\n  release:\n    runs-on: ubuntu-latest\n    steps:\n'
+              '      - name: Set package version\n        run: |\n'
+              '          version="${{ github.event.release.tag_name }}"\n'
+              '          version="${version#v}"\n'
+              '          poetry version --no-interaction "${version}"\n')
+D5_DESCRIBE = ('on: {release: {types: [published]}}\njobs:\n  publish:\n    runs-on: ubuntu-latest\n    steps:\n'
+               '      - run: uv version $(git describe --tags --abbrev=0)\n')
+D5_SED = ('on: {push: {tags: ["v*"]}}\njobs:\n  publish:\n    runs-on: ubuntu-latest\n    steps:\n'
+          '      - run: sed -i "s/^version = .*/version = \\"${GITHUB_REF_NAME#v}\\"/" pyproject.toml\n')
+D5_NO_CMD = ('on: {release: {types: [published]}}\njobs:\n  notes:\n    runs-on: ubuntu-latest\n    steps:\n'
+             '      - run: echo "${{ github.event.release.tag_name }}" > notes.txt\n')
+D5_LITERAL = ('on: {release: {types: [published]}}\njobs:\n  publish:\n    runs-on: ubuntu-latest\n    steps:\n'
+              '      - run: echo "${{ github.event.release.tag_name }}"\n'
+              '      - run: poetry version 1.1.0\n')
+
+
+@proof("D5A")
+def d5a(root):
+    doc = expect(_d4(root, "d5a", workflow=D5_RELEASE), "incomplete", 2, "--tag", "v1.2.0")
+    check((doc.get("version_written_at_publish") or {}).get("line") == 10, "line %r, required 10" % doc.get("version_written_at_publish"))
+
+
+@proof("D5B")
+def d5b(root):
+    expect(_d4(root, "d5b", workflow=D5_DESCRIBE), "incomplete", 2, "--tag", "v1.2.0")
+
+
+@proof("D5C")
+def d5c(root):
+    expect(_d4(root, "d5c", workflow=D5_SED), "tag_mismatch", 1, "--tag", "v1.2.0")
+
+
+@proof("D5D")
+def d5d(root):
+    expect(_d4(root, "d5d", workflow=D5_NO_CMD), "tag_mismatch", 1, "--tag", "v1.2.0")
+
+
+@proof("D5E")
+def d5e(root):
+    expect(_d4(root, "d5e", workflow=D5_LITERAL), "tag_mismatch", 1, "--tag", "v1.2.0")
+
+
 # ---------------------------------------------------------------- §29 — 1.5.0
 
 def _workspace(root, name):
