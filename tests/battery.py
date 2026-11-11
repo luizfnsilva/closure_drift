@@ -3190,6 +3190,54 @@ def ws04(root):
     expect(r, "no_labels", 2, "--version-file", v)
 
 
+PUBLISH_STEP = ('on: {push: {tags: ["v*"]}}\njobs:\n  publish:\n    runs-on: ubuntu-latest\n    steps:\n'
+                '      - name: Set version from release tag\n        run: uv version "${GITHUB_REF_NAME#v}"\n'
+                '      - run: uv publish\n')
+
+
+def _d4(root, name, declared="1.0.0", workflow=PUBLISH_STEP, manifest="pyproject.toml"):
+    r = Repo(root, name)
+    if manifest == "pyproject.toml":
+        r.write("pyproject.toml", '[project]\nname = "m"\nversion = "%s"\n' % declared)
+    else:
+        r.write("package.json", '{"name": "m", "version": "%s"}\n' % declared)
+    if workflow:
+        r.write(".github/workflows/publish.yml", workflow)
+    r.write("src/a.py", "1\n")
+    r.commit()
+    r.tag("v1.2.0")
+    return r
+
+
+@proof("D4A")
+def d4a(root):
+    doc = expect(_d4(root, "d4a"), "incomplete", 2, "--tag", "v1.2.0")
+    w = doc.get("version_written_at_publish") or {}
+    check(w.get("file") == ".github/workflows/publish.yml" and w.get("line") == 7, "evidence not named: %r" % w)
+
+
+@proof("D4B")
+def d4b(root):
+    expect(_d4(root, "d4b", workflow=None), "tag_mismatch", 1, "--tag", "v1.2.0")
+
+
+@proof("D4C")
+def d4c(root):
+    expect(_d4(root, "d4c", declared="0.0.0-development", workflow=None, manifest="package.json"),
+           "tag_mismatch", 1, "--tag", "v1.2.0")
+
+
+@proof("D4D")
+def d4d(root):
+    expect(_d4(root, "d4d", declared="1.2.0"), "tag_matches", 0, "--tag", "v1.2.0")
+
+
+@proof("D4E")
+def d4e(root):
+    expect(_d4(root, "d4e", workflow=PUBLISH_STEP.replace('"${GITHUB_REF_NAME#v}"', "1.1.0")),
+           "tag_mismatch", 1, "--tag", "v1.2.0")
+
+
 def main() -> int:
     global DETECTOR
     args = sys.argv[1:]

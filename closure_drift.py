@@ -32,7 +32,7 @@ import warnings
 from collections import OrderedDict, defaultdict
 from pathlib import Path
 
-__version__ = "1.6.0"
+__version__ = "1.7.0"
 REPORT_FORMAT = 2
 
 # Where a version can be declared. Python build files are read first; a repository that has
@@ -1904,6 +1904,34 @@ def prefixed_source(objects, labels, entries, name: str):
     return hits[0], MANIFESTS[hits[0].rsplit("/", 1)[-1]]
 
 
+_REF = re.compile(r"GITHUB_REF_NAME|GITHUB_REF\b|github\.ref_name")
+_SETS_VERSION = re.compile(r"\b(?:uv|poetry|hatch|npm|pnpm)\s+version\b(.*)")
+
+
+def version_written_at_publish(objects, entries):
+    """§32: (path, line number, line) of a workflow step at this commit that writes the package version
+    from the tag ref (`uv version "${GITHUB_REF_NAME#v}"`), or None. Evidence, never the value."""
+    for path, kind, oid in sorted(entries):
+        if kind != "blob" or not path.startswith(".github/workflows/") or not path.endswith((".yml", ".yaml")):
+            continue
+        lines = objects.text(oid).splitlines()
+        names = set()
+        for line in lines:                             # variables set from the ref in this file
+            if _REF.search(line):
+                for m in re.finditer(r"([A-Za-z_][A-Za-z0-9_]*)\s*[:=]", line):
+                    names.add(m.group(1))
+        names -= {"run", "name", "with", "env", "if", "id", "uses"}
+        for i, line in enumerate(lines, 1):
+            m = _SETS_VERSION.search(line)
+            if not m:
+                continue
+            arg = m.group(1)
+            if _REF.search(arg) or any(re.search(r"(?:\$\{?|env\.|outputs\.)" + re.escape(n) + r"\b", arg)
+                                       for n in names):
+                return path, i, line.strip()
+    return None
+
+
 def check_tag(a, objects, labels, head_sha) -> int:
     """After tagging: the versions the tag's name can name against the label its commit declares. A tag
     pushed before the version was bumped names one version and builds another (§28)."""
@@ -1940,7 +1968,12 @@ def check_tag(a, objects, labels, head_sha) -> int:
     named_keys = tag_versions(name)
     named_keys |= {prerelease_key(k) for k in named_keys}
     verdict = "tag_matches" if keys & named_keys else "tag_mismatch"
-    code = {"tag_matches": 0, "tag_mismatch": 1}[verdict]
+    written = None
+    if verdict == "tag_mismatch" and not from_tag:
+        written = version_written_at_publish(objects, entries)          # §32
+        if written:
+            verdict = "incomplete"
+    code = {"tag_matches": 0, "tag_mismatch": 1, "incomplete": 2}[verdict]
     vpath = src[0] if src else None
 
     dirty, dirty_note = working_tree_state(a.repo)
@@ -1955,7 +1988,11 @@ def check_tag(a, objects, labels, head_sha) -> int:
         emit({"report_format": REPORT_FORMAT, "stamp": stamp, "mode": "tag", "repo": a.repo,
               "version_file": vpath, "verdict": verdict, "tag": name, "tag_commit": sha[:12],
               "tag_names": named, "label_at_tag": label, "version_from_tag": from_tag,
-              **({"version_file_from_tag_prefix": True} if by_prefix else {})})
+              **({"version_file_from_tag_prefix": True} if by_prefix else {}),
+              **({"version_written_at_publish": {"file": written[0], "line": written[1]},
+                  "note": "the declared version differs from the tag, but this commit's workflow writes the "
+                          "version from the tag at publish time; the published version cannot be read here"}
+                 if written else {})})
         return code
 
     print(f"repository        {printable(a.repo)}")
@@ -1970,6 +2007,11 @@ def check_tag(a, objects, labels, head_sha) -> int:
         print("two names that give the same version on different code.")
     elif verdict == "tag_matches":
         print(f"TAG MATCHES: the tag {printable(name)} names {printable(label)}, and its commit declares {printable(label)}.")
+    elif verdict == "incomplete":
+        print(f"INCOMPLETE: {printable(vpath or '?')} declares {printable(label)}, not what {printable(name)} names, but")
+        print(f"{printable(written[0])}:{written[1]} writes the version from the tag at publish time:")
+        print(f"    {printable(written[2][:100])}")
+        print("The published version is not in this commit, so nothing is determined. This is not a pass.")
     else:
         print(f"TAG MISMATCH: the tag {printable(name)} does not name {printable(label)}, the version its commit")
         print(f"declares in {printable(vpath or '?')}.")

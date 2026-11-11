@@ -3,6 +3,16 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 1.7.0 — 2026-11-11
+
+A version written from the tag at publish time (`tests/PREREGISTRATION.md` §32).
+
+### Changed
+- `--tag`: when the declared version differs from the tag and a workflow at the tagged commit writes
+  the version from the tag ref (`uv version "${GITHUB_REF_NAME#v}"`, `poetry version`, `hatch version`,
+  `npm version`, `pnpm version`), the answer is `incomplete` (exit 2), naming the file and line. Before,
+  `tag_mismatch`. A placeholder value is not evidence: without such a step nothing changes.
+
 ## 1.6.0 — 2026-11-10
 
 Cargo workspaces (`tests/PREREGISTRATION.md` §31).

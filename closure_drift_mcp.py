@@ -138,7 +138,7 @@ def main() -> None:
         if method == "initialize":
             reply(i, {"protocolVersion": p.get("protocolVersion", "2025-06-18"),
                       "capabilities": {"tools": {}},
-                      "serverInfo": {"name": "closure_drift", "version": "1.6.0"}})
+                      "serverInfo": {"name": "closure_drift", "version": "1.7.0"}})
         elif method == "tools/list":
             reply(i, {"tools": TOOLS})
         elif method == "tools/call":

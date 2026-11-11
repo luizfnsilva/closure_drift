@@ -128,6 +128,7 @@ MUTANTS = [
     ("M77", "TP06", [('    if re.match(r"^(?:[vV]?[0-9]|[^A-Za-z@])", p):\n', '    if False:\n')]),
     ("M78", "TP06", [('        if not label and by_prefix[1] == "project" and scm_derived(', '        if False and scm_derived(')]),
     ("M79", "WS01", [('            if value is None and inherits_workspace_version(t.get("package", {})):\n', '            if False:\n')]),
+    ("M81", "D4A", [('        written = version_written_at_publish(objects, entries)          # \u00a732\n', '        written = None\n')]),
     ("M60", "EN01", [('stream.reconfigure(encoding="utf-8", errors="backslashreplace")', 'stream.reconfigure(errors="backslashreplace")')]),
 ]
 

@@ -79,6 +79,9 @@ with `--tags`, also `tag_globs` and `tags_filtered_out`. `--would-tag` looks at 
 `tag_mismatch`, exit 1), `tag`, `tag_commit`, `tag_names` (the versions the name can name, normalised),
 `label_at_tag`, `version_from_tag` (`true` when the version is derived from the tag);
 (1.5.0) `version_file_from_tag_prefix`: `true` when the tag's prefix named the package whose file was read.
+(1.7.0) `verdict` can also be `incomplete`, exit 2: the declared version differs from the tag, but a workflow at
+the tagged commit writes the version from the tag at publish time; then `version_written_at_publish`
+(`file`, `line`) and `note` are present.
 
 ## Fields of a `--compare` report
 
