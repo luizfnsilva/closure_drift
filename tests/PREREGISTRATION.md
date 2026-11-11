@@ -1597,3 +1597,32 @@ on it turned K02 and D14 red: `docs/REPORT.md` documents an operational refusal 
 JSON on standard output**, and K02 has held that since 0.9.0. What the survey called D2 is the
 documented contract, not a defect; changing it would change what an exit code means, which `SCOPE.md`
 keeps stable until 2.0. Its code, proof (P-D2, written as RJ01) and mutant are removed. 1.6.0 is item 1 only.
+
+## 32. Added 2026-11-11, before any of it was written — 1.7.0
+
+**D4: a version written from the tag at publish time.** Reproduced on 1.6.0 before this was written:
+`mosquito/aio-pika` tag `10.2.3`, whose `pyproject.toml` says `10.0.0` and whose
+`.github/workflows/publish.yml` runs `uv version "${GITHUB_REF_NAME#v}"` before publishing, gives
+`tag_mismatch` (exit 1); so does a minimal repository with the same two files. The published package
+has the tag's version: the file at the tag is stale on purpose. Three requirements, from the owner:
+
+1. **Reproduced on a real project and a minimal case** (above), each kept as a proof.
+2. **Static and derived are told apart by evidence in the tagged commit, never by the value.** The
+   version counts as derived only when a file under `.github/workflows/` at the tagged commit has a
+   step that writes the package version from the tag ref: `uv version`, `poetry version`, `hatch
+   version`, `npm version` or `pnpm version` whose argument names `GITHUB_REF_NAME`, `GITHUB_REF` or
+   `github.ref_name` (directly or through a variable set from them in the same file). A placeholder
+   value (`0.0.0-development`, `0.0.0`) is not evidence: without such a step, the answer is unchanged.
+3. **No pass without evidence.** With that evidence and a declared version that differs from the tag,
+   `--tag` answers `incomplete` (exit 2), with a note naming the file and line; never `tag_matches`.
+   If the declared version equals the tag, the answer stays `tag_matches`. Only `--tag` changes;
+   `measure` and `--would-tag` are untouched.
+
+Proofs before the code: D4a minimal repository with the publish step → `incomplete`, exit 2, note
+names the workflow file; D4b the same without the step → `tag_mismatch`, exit 1 (unchanged); D4c
+placeholder `0.0.0-development` in package.json, no step → unchanged from 1.6.0; D4d step present,
+declared version equal to the tag → `tag_matches`; D4e the step's argument is a literal version, not
+the ref → unchanged (`tag_mismatch`). Each of D4a must fail on 1.6.0; D4b–D4e must hold on 1.6.0 and
+after. One mutant: ignore the workflow evidence; it must turn D4a red. Real case: aio-pika `10.2.3`
+gives `incomplete` after the change, recorded in RECORD. Regression corpus: 99 of 99 checkable give
+the recorded answer, or each difference is named here before release.
