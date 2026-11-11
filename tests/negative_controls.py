@@ -133,6 +133,7 @@ MUTANTS = [
     ("M83", "ACT06", [("action.yml", 'elif code == 2 and not out.strip():', 'elif True:')]),
     ("M84", "ACT07", [("action.yml", 'extra+=(--closure "$g")', ':')]),
     ("M85", "EC03", [("action.yml", 'if r.get("points_with_empty_closure"):\n            print("points with', 'if False:\n            print("points with')]),
+    ("M86", "NX07", [("    if written:   # \u00a732: the version is written at publish time\n", "    if False:\n")]),
     ("M60", "EN01", [('stream.reconfigure(encoding="utf-8", errors="backslashreplace")', 'stream.reconfigure(errors="backslashreplace")')]),
 ]
 
