@@ -1663,3 +1663,26 @@ output `verdict=refused`, exit 2, and the summary holds the detector's message; 
 fail on 1.7.0, ACT06 must hold on 1.7.0 or fail with the reason named here. Mutants: unquoted `$CD_ARGS`
 (must turn ACT02 red); `refused` for every unparsed report (must turn ACT05 red). Regression corpus:
 detector unchanged, 99 of 99 checkable as recorded.
+
+**Amendment 1 (2026-11-11, before any code).** From the owner's review of this section:
+
+4. **Typed inputs.** `closure` and `tags` (one glob per line), `version-file`, `version-regex`: each
+   value reaches the detector as one argument, exactly as written. `args` stays for everything else,
+   split as in item 1.
+5. **One run.** Item 3 is taken in after all, without touching the detector: the step runs the
+   detector once, with `--json`, and the log text, the annotations and the summary are all derived from
+   that one report. The log names the verdict in capitals (`TAG MISMATCH`, `WOULD DRIFT`, …), the
+   report's note, and the next step for that verdict (the table in `docs/USAGE.md`). The full text
+   report stays the command line's.
+6. **`empty_closure`, reviewed.** In the code: a closure that matches no file at every point gives
+   `empty_closure` (exit 2), and at `HEAD` under `--would-tag` `empty_closure_at_head` (exit 2), never
+   `clean`. A closure empty at some points only can still give `clean` on the points compared, which
+   must be at least as many as those not compared. Not changed in the detector; from 1.7.1 the summary
+   shows `points with empty closure` whenever it is above zero.
+
+Proofs added before the code: ACT07 `closure: "docs dir/**"` (a path with a space) reaches the
+detector as one argument, literally; ACT08 the detector is run exactly once per step; ACT09 `closure:`
+matching no file → exit 2, never a pass. ACT07 and ACT08 must fail on 1.7.0; ACT09 must hold on 1.7.0
+and after. A third mutant, the `closure` input ignored, must turn ACT07 red. Outside the battery, a CI
+job runs the Action itself through `uses: ./` in a real workflow, on a repository it builds, with a
+quoted glob and a path with a space, and fails unless the outputs are the ones required.
