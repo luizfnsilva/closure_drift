@@ -32,8 +32,13 @@ The whole tag history, on a schedule, with a family of tags and a strict verdict
       - uses: luizfnsilva/closure_drift@v1.7.0
         with:
           mode: measure
-          args: --tags 'v*' --strict
+          args: --strict
 ```
+
+In 1.7.0 and before, `args` is split on spaces and quotes are passed on as characters: `--tags 'v*'`
+reaches the detector as `'v*'`, with the quotes, and matches no tag; `--closure 'src/**'` matches no
+file and can hide a drift. Do not put globs in `args` with these versions. 1.8.0 adds `tags` and
+`closure` inputs that pass each value as written.
 
 `measure` concludes only from two distinct labels: on a project's first release it answers
 `inconclusive`, exit 2. Gate releases with `auto` (or `tag` / `would-tag`), which answer from the first tag.
