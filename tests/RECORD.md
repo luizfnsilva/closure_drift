@@ -1,3 +1,21 @@
+# Record of the battery runs — closure_drift 1.7.0
+
+Detector 1.7.0: `closure_drift.py`, sha256 `ec0a7666928914a5d630ae5293fbed7416201c1cf32a9c82dafd59fbbcd00d08`. CI run 43017772460 (`1eae2ab`, branch `release-1.7.0`).
+
+| platform | CPython | battery | mutants | adversarial | oracle | properties |
+|---|---|---|---|---|---|---|
+| Ubuntu | 3.9 (24.04), 3.10, 3.11, 3.12, 3.13, 3.14 | 252 · 252 green · 0 red · 0 not run | 79 of 79 | 315 · 304 as required · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 controls |
+| macOS | 3.10, 3.14 | 252 · 251 green · 0 red · 1 not run | 79 of 79 | 315 · 304 · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+| Windows | 3.9, 3.14 | 252 · 246 green · 0 red · 6 not run | 78 of 78 that can run there (M69: ACT01 needs bash); parts 1/2 + 2/2 = 39 + 39 | 315 · 281 · 2 loose · 32 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+
+§32: five proofs added (D4A–D4E), one mutant (M81, caught by D4A; D4A was red on 1.6.0 before the
+change). Real case: `aio-pika` 10.2.3 was `tag_mismatch` on 1.6.0 and is `incomplete` on 1.7.0,
+naming `.github/workflows/publish.yml:18`. As before, the deposit jobs failed: the manifest is
+regenerated in the next commit. The 2 loose are ZA02 and ZA04 (O2b, O2a).
+
+Regression corpus (run 43014789124, `regression-check/v1.7.0`): 99 of 99 checkable match, as
+predicted in §32; mechanisms 79 / 7 / 1; `apache/arrow` not checkable.
+
 # Record of the battery runs — closure_drift 1.6.0
 
 Detector 1.6.0: `closure_drift.py`, sha256 `0e4e5a2633b8b98535d34a7084baf930aabddae9bd7b0ddb3cf2abbfa7f8172e`. CI run 42874351797 (`bc2b431`, branch `release-1.6.0`).
