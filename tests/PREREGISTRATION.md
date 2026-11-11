@@ -1771,3 +1771,15 @@ Proofs before the code (each through `run` and `_act`): EC01 closure empty at ev
 `--would-tag` gives `empty_closure_at_head`, exit 2; EC03 partial (folder added later) → `clean` only
 with compared ≥ not compared, and the Action's log names the empty points; EC04 control, valid closure
 → `clean`, exit 0, log names no empty points. EC03's log line must fail on the current candidate.
+
+**Amendment 2 to §34 (2026-11-11): R18-08 in the CLI, before its proofs and code.** Today every
+undetermined answer ends with the same `Next:` line. From 1.8.0 the line names the cause and the next
+step, still one line, still ending with "Exit 2 is not a pass": `incomplete` with a version written at
+publish time names the file and line and says to check the version inside the built package or its
+provenance; `incomplete` from a build file over 1 MB or a contradicted file says to pass
+`--version-file`; `empty_closure` and `empty_closure_at_head` say to pass `--closure`; `inconclusive`
+says to run `--diagnose`. Only the text changes; JSON, verdicts and exit codes do not. Proofs before
+the code: NX07 (`--tag`, version written at publish time: the line names `.github/workflows/publish.yml`
+and the built package), NX08 (`empty_closure`: names `--closure`), NX09 (`inconclusive`: names
+`--diagnose`); each must fail on the candidate as it is, and each line must still say "not a pass".
+One mutant, the publish-time line dropped back to the generic one, must turn NX07 red.
