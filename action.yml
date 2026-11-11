@@ -145,6 +145,9 @@ runs:
         print("closure_drift: %s (exit %d)" % (v.upper().replace("_", " "), 2 if v == "error" else code))
         if r.get("note"):
             print(r["note"])
+        if r.get("points_with_empty_closure"):
+            print("points with empty closure: %d of %s; nothing was measured there (R18-02)"
+                  % (r["points_with_empty_closure"], r.get("publication_points_scanned", "?")))
         if err and v in ("refused", "error"):
             print(err)
         print("Next: " + nxt + (" Exit 2 is not a pass." if code == 2 or v == "error" else ""))
