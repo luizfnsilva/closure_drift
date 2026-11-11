@@ -38,6 +38,19 @@ Before you push a tag, `--tag` says whether it names the version its commit decl
 What others measured with it, including results that are not clean: [`RESULTS.md`](../RESULTS.md).
 Every failure of the tool found so far: [`docs/FAILURES.md`](FAILURES.md).
 
+## Is it for your repository?
+
+Four questions, before installing anything.
+
+| how your project gets its version | what closure_drift gives you |
+|---|---|
+| a file in the commit you tag (`pyproject.toml`, `Cargo.toml`, `package.json`, …) | all of it: `--tag` before or after you push a tag, and the history check |
+| derived from the tag (setuptools-scm, hatch-vcs, …) | the history check (does one tag cover one state of the code?); `--tag` has little to compare |
+| written into the file by the release job | little: `--tag` answers `incomplete` on every release, since the version is not in the commit. Not worth installing for that |
+| you do not tag releases | nothing to check yet |
+
+If you are not sure: run it once, without installing (`Three ways in`), and read the answer.
+
 ## Three ways in
 
 **Try it now** (recommended first). See the three answers on tiny repositories it builds and
@@ -48,7 +61,7 @@ git clone -q https://github.com/luizfnsilva/closure_drift && python3 closure_dri
 python3 closure_drift/closure_drift.py /path/to/your/repo
 ```
 
-Or without cloning: `curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.5.1/closure_drift.py`
+Or without cloning: `curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.7.0/closure_drift.py`
 then `python3 closure_drift.py` inside any git repository. Needs Python 3.9+ and git. The last
 lines say what to do next. (`./reproduce.sh` is something else: it validates closure_drift itself,
 a long run, and does not look at your repository.)
@@ -73,7 +86,7 @@ drift came about. On a tag push the Action runs `--tag`; on any other push, `--w
 # GitHub Actions
 - uses: actions/checkout@v4
   with: { fetch-depth: 0 }
-- uses: luizfnsilva/closure_drift@v1.5.1
+- uses: luizfnsilva/closure_drift@v1.7.0
 ```
 
 Push the workflow before the first tag: a tag pushed together with the workflow that should run on
@@ -84,7 +97,7 @@ with the default mode from the first tag.
 ```yaml
 # pre-commit, on git push
 - repo: https://github.com/luizfnsilva/closure_drift
-  rev: v1.5.1
+  rev: v1.7.0
   hooks: [{ id: closure-drift-would-tag }]
 ```
 
@@ -127,6 +140,23 @@ Exit 0 means `clean` and nothing else. No input we tried produces a traceback, a
 - **closure** — SHA-256 over `(path, git object id)` of the files that determine your output
 
 The report also says how many tags it could **not** compare.
+
+### When the answer is exit 2
+
+Exit 2 is never a pass. Do not ship on it; find out why. The report names the cause:
+
+| verdict | what it usually means | what to do |
+|---|---|---|
+| `no_labels`, `no_label_at_head` | the version file was not found or not read | pass `--version-file PATH`, and `--version-regex` if the line is not `version = "…"` |
+| `incomplete` with `version_written_at_publish` | the release job writes the version from the tag (file and line named) | the repository cannot tell what was published: check the version inside the built package, or its provenance |
+| `incomplete` with `version_files_not_read` | a build file is over 1 MB | pass `--version-file` |
+| `incomplete` with `contradicted_sources` | a file declares a version no tag agrees with | pass `--version-file` with the file your releases use |
+| `empty_closure`, `empty_closure_at_head` | the closure globs match no file | pass `--closure` with the files that build your output |
+| `inconclusive` | only one label, fewer points compared than not, or the version moved between files | run with `--diagnose` to see each tag and where its label came from |
+| `no_publication_points` | no tags | tag releases, or use `--at commits` |
+
+**Can I block a release on it?** On exit 1, yes: one label covers two states of the code. Exit 0
+says that for the files in the closure only. Exit 2 should stop the release until someone reads it.
 
 ## Options
 
@@ -261,6 +291,10 @@ both on private repositories. `closure-drift --json > result.json`, then
 or write to lfnsilva.invest@gmail.com. A result showing the tool is wrong is the most useful kind.
 
 ## Version
+
+**1.7.0** answers `incomplete`, not `tag_mismatch`, when the release job writes the version from the tag, and names the file and line.
+
+**1.6.0** reads a Cargo member's `version.workspace = true` from its workspace.
 
 **1.5.1** adds two measurements by others to `RESULTS.md` and a demonstration of `--tag`.
 

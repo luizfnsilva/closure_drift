@@ -53,6 +53,17 @@ def main():
     for nome, valor in fontes.items():
         print("  %-28s %s" % (nome, valor))
 
+    # Pins in the docs a reader copies (1.7.0): every one names this release, or the run fails.
+    pin = re.compile(r"closure_drift@v(\d+\.\d+\.\d+)|closure-drift@v(\d+\.\d+\.\d+)"
+                     r"|releases/download/v(\d+\.\d+\.\d+)/|closure_drift-(\d+\.\d+\.\d+)-py3"
+                     r"|^\s*rev: v(\d+\.\d+\.\d+)|closure_drift/v(\d+\.\d+\.\d+)/closure_drift\.py"
+                     r"|ghcr\.io/luizfnsilva/closure_drift:(\d+\.\d+\.\d+)", re.M)
+    for doc in ("README.md", "docs/USAGE.md", "docs/CI.md", "integrations/README.md"):
+        texto = (RAIZ / doc).read_text(encoding="utf-8")
+        for m in pin.finditer(texto):
+            linha = texto.count("\n", 0, m.start()) + 1
+            fontes["%s:%d" % (doc, linha)] = next(g for g in m.groups() if g)
+
     distintos = set(fontes.values())
     if len(distintos) > 1:
         print("\nVERSION MISMATCH: the label names %d different states: %s"
