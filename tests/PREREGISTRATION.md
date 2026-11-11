@@ -1783,3 +1783,31 @@ the code: NX07 (`--tag`, version written at publish time: the line names `.githu
 and the built package), NX08 (`empty_closure`: names `--closure`), NX09 (`inconclusive`: names
 `--diagnose`); each must fail on the candidate as it is, and each line must still say "not a pass".
 One mutant, the publish-time line dropped back to the generic one, must turn NX07 red.
+
+**Amendment 3 to §34 (2026-11-11): R18-09 (D5) measured and decided, before its proofs and code.**
+The 44 of the 51 Nix repositories that 1.7.0 still answers `tag_mismatch` for, read at their tag's
+`.github/workflows/` with a fixed classifier (kept with the data):
+
+| class | n | what |
+|---|---|---|
+| C1 | 10 | `uv`/`poetry`/`hatch`/`npm`/`pnpm version` from a variable set from `github.event.release.tag_name` (`on: release`) |
+| C2 | 1 | the same commands with `$(git describe --tags …)` as the argument |
+| C3 | 6 | `sed -i` edits the version file, with the ref in the same file (dspy, gepa, llm-sandbox, victron-mqtt, pyfirefly, nicegui-highcharts); dspy's value also passes through job outputs |
+| C5 | 27 | no such mechanism found; this class holds every case found to be a real inconsistency (MyJWT, dataclass-csv, python-tsp, cross-web, both strawberry, pysmi) |
+
+**Decision: both outcomes, each where it holds.** (1) C1 and C2 are the §32 mechanism with two more
+sources of the tag: from 1.8.0 the evidence of §32 item 2 also counts `github.event.release.tag_name`
+and `git describe --tags` as naming the tag. Same commands, same rule, same answer (`incomplete`, file
+and line). It fires on no case of C5. (2) C3 is the documented limit: a version written by `sed`, a
+script or through job outputs is not recognised, `--tag` may answer `tag_mismatch` there, and this is
+written in `docs/FAILURES.md` and `docs/START.md`. dspy is in C3: it stays `tag_mismatch`.
+Expected on the 51, same tags: decided 45 → 34, `incomplete` 6 → 17, no decided answer changes side;
+measured after the code and recorded here, or the difference explained.
+
+Proofs before the code: D5A `on: release` and `poetry version "${version}"` with `version` set from
+`github.event.release.tag_name` → `incomplete`; D5B `uv version $(git describe --tags --abbrev=0)` →
+`incomplete`; D5C `sed -i` writing the version from `GITHUB_REF_NAME` → `tag_mismatch` (the limit,
+pinned); D5D `github.event.release.tag_name` in the file but no version command → `tag_mismatch`;
+D5E a version command with a literal version in a file that also names the release tag elsewhere →
+`tag_mismatch`. D5A and D5B must fail on the candidate; D5C–D5E must hold before and after. One
+mutant: `github.event.release.tag_name` dropped from the evidence, must turn D5A red.
