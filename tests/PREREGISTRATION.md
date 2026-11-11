@@ -1824,3 +1824,16 @@ tag's byte for byte, attests their provenance (`actions/attest-build-provenance`
 `SHA256SUMS`, and uploads the three files to the release, which the rite creates as a draft and
 publishes only after; local builds are no longer uploaded; (c) immutable releases are the owner's
 decision, a repository setting, recommended once (b) has run once.
+
+**Amendment 5 to §34 (2026-11-11): R18-11, the historical audit, result.** The Action exists from
+0.9.0 to 1.7.0, 20 tags; in every one, both the `args` description in `action.yml` (`--tags 'v*'
+--strict --closure 'src/**'`) and the example in `docs/CI.md` (`--tags 'v*'`) are the quoted form
+that does not reach the detector intact. Results: **affected** — those two instructions in all 20
+releases (a user who copied them got a narrower or empty measurement, exit 2, or a drift hidden under
+`allow-undetermined: true`); **not affected** — every run of ours (the closure_drift CI never ran the
+Action with `args` before R18-01; `closure-drift-release-examples/examples.yml` calls the CLI; the gate
+runs the candidate) and every measurement in `RESULTS.md` (none used the Action); **not
+reconstructible** — use by others: GitHub code search finds no other repository using the Action, and
+private or unindexed ones cannot be seen. Old tags are not moved. The defect is in `docs/FAILURES.md`
+(1.8.0), `docs/CI.md` on main says not to put globs in `args` before 1.8.0, and the 1.8.0 release notes
+name it.
