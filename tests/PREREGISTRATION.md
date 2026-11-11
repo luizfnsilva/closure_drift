@@ -1744,3 +1744,30 @@ argument reached the detector changed), not affected, or not reconstructible. Af
 repeated with 1.8.0 or qualified where they are cited.
 
 **Freeze.** After R18-01 to R18-09 are in, only fixes that make the criteria above pass.
+
+**Amendment 1 to §34 (2026-11-11): R18-02 measured, decided, before its proofs and code.**
+Baseline: the candidate's `closure_drift.py` is byte for byte 1.7.0's, so its corpus baseline is the
+1.7.0 run (43014789124): 99 of 99 checkable as recorded. That corpus uses the default closure only:
+no repository has an empty closure at every point; one (`python-jsonschema/jsonschema`) has 1 of 111
+points empty, `clean`. The corpus cannot answer the explicit case, so it was measured on the 51 Nix
+repositories with an explicit closure per repository (`src/**`, or the package folder at `HEAD`; 46
+had one) and a control that matches nothing, with the arguments recorded per run:
+
+| case | found | verdicts |
+|---|---|---|
+| explicit closure, no file at any point (control) | 50 of 50 run | `empty_closure`, exit 2, every one (the 51st refused, exit 2) |
+| empty at `HEAD`, present at older tags (a folder renamed) | 0 of 46 | — |
+| empty at some points (the folder came later) | 7 of 46 | 5 `drift`, 1 `incomplete`, 1 `clean` (6 of 11 points compared) |
+| never empty | 39 of 46 | as the default closure, apart from what the narrower scope changes |
+
+Transitions if `clean` became `incomplete` for an explicit closure empty at `HEAD`: **zero** in this
+sample. **Decision: the meaning of `clean` does not change**; no 2.0 on this account. R18-02 is
+delivered as: the four cases pinned by proofs through the CLI and the Action; the count of points with
+an empty closure shown in the Action's log as well as its summary whenever above zero. The renamed
+folder (0 found) is pinned as it behaves today and named in the fit page, not changed without a case.
+
+Proofs before the code (each through `run` and `_act`): EC01 closure empty at every point → exit 2,
+`empty_closure`, the Action fails; EC02 folder renamed (files only at older tags) → as today, and
+`--would-tag` gives `empty_closure_at_head`, exit 2; EC03 partial (folder added later) → `clean` only
+with compared ≥ not compared, and the Action's log names the empty points; EC04 control, valid closure
+→ `clean`, exit 0, log names no empty points. EC03's log line must fail on the current candidate.
