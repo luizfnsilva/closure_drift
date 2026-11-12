@@ -1,3 +1,29 @@
+# Record of the battery runs — closure_drift 1.8.0
+
+Detector 1.8.0: `closure_drift.py`, sha256 `187d0eaaa21ae3c2b25f1984af21fed2adb09137f7aba708249ce288dbd5e864`. CI run 43107958012 (`a0bc945`, branch `release-1.8.0`).
+
+| platform | CPython | battery | mutants | adversarial | oracle | properties |
+|---|---|---|---|---|---|---|
+| Ubuntu | 3.9 (24.04), 3.10, 3.11, 3.12, 3.13, 3.14 | 272 · 272 green · 0 red · 0 not run | 85 of 85 | 315 · 304 as required · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 controls |
+| macOS | 3.10, 3.14 | 272 · 271 green · 0 red · 1 not run | 85 of 85 | 315 · 304 · 2 loose · 9 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+| Windows | 3.9, 3.14 | 272 · 254 green · 0 red · 18 not run | 80 of 80 that can run there; parts 1/2 + 2/2 = 40 + 40, 5 whose proof needs bash | 315 · 281 · 2 loose · 32 not run | 147 of 147 | 17 of 17 · 10 of 10 |
+
+§33 and §34: twenty proofs added (ACT02–ACT09, EC01–EC04, NX07–NX09, D5A–D5E), six mutants
+(M82–M87), each caught by its proof. The 18 not run on Windows are the Action and empty-closure
+proofs, which run the Action's bash step, and five file-name cases, as before. The Action itself
+runs on all three: job `action` on Ubuntu, macOS and Windows gave `drift/1/failure`,
+`drift/1/failure` and `empty_closure/2/success`, as required. The deposit jobs failed, as before:
+the manifest is regenerated in the next commit. The 2 loose are ZA02 and ZA04 (O2b, O2a).
+
+Regression corpus (run 43107959304, `regression-check/v1.8.0`): 99 of 99 checkable match, as
+predicted in §34; mechanisms 79 / 7 / 1; `apache/arrow` not checkable.
+
+Release examples (run 43107968022 of `closure-drift-release-examples`, Action pinned at `a0bc945`):
+A published, B and C stopped before publishing, as required.
+
+51 Nix repositories, same tags (§34 amendment 3): decided 45 → 34, `incomplete` 6 → 17; the 11
+that changed are the C1 and C2 cases; no decided answer changed side.
+
 # Record of the battery runs — closure_drift 1.7.0
 
 Detector 1.7.0: `closure_drift.py`, sha256 `ec0a7666928914a5d630ae5293fbed7416201c1cf32a9c82dafd59fbbcd00d08`. CI run 43017772460 (`1eae2ab`, branch `release-1.7.0`).
