@@ -25,6 +25,7 @@ The 100 repositories of `tools/study/`, each pinned to a recorded HEAD and set o
 | `checks/v1.5.1-candidate-3fafc146.json` | the 1.5.1 script | 99 of 99 checkable match, as predicted (§30); mechanisms 79 / 7 / 1; `apache/arrow` not checkable |
 | `checks/v1.6.0-candidate-0e4e5a26.json` | the 1.6.0 script | 99 of 99 checkable match, as predicted (§31); mechanisms 79 / 7 / 1; `apache/arrow` not checkable |
 | `checks/v1.7.0-candidate-ec0a7666.json` | the 1.7.0 script | 99 of 99 checkable match, as predicted (§32); mechanisms 79 / 7 / 1; `apache/arrow` not checkable |
+| `checks/v1.8.0-candidate-187d0eaa.json` | the 1.8.0 script | 99 of 99 checkable match, as predicted (§34); mechanisms 79 / 7 / 1; `apache/arrow` not checkable |
 
 Run it: push a branch named `regression-check/<anything>` (this branch's detector) or
 `regression-check-<tag>/<anything>` (that tag's), then

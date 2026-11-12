@@ -1,0 +1,750 @@
+{
+ "detector_sha256": "187d0eaaa21ae3c2b25f1984af21fed2adb09137f7aba708249ce288dbd5e864",
+ "results": [
+  {
+   "repository": "boto/boto3",
+   "rank": 1,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "pypa/packaging",
+   "rank": 2,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "python/typing_extensions",
+   "rank": 3,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "kjd/idna",
+   "rank": 4,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "urllib3/urllib3",
+   "rank": 5,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "certifi/python-certifi",
+   "rank": 6,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "psf/requests",
+   "rank": 7,
+   "mechanisms": {
+    "0.13.2": "tag_names_another_version",
+    "1.2.3": "tag_names_another_version",
+    "2.16.0": "tag_names_another_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "jawah/charset_normalizer",
+   "rank": 8,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "pyca/cryptography",
+   "rank": 9,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "pypa/setuptools",
+   "rank": 10,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "python-cffi/cffi",
+   "rank": 11,
+   "mechanisms": {
+    "1.14.4": "tag_names_another_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "pygments/pygments",
+   "rank": 12,
+   "mechanisms": {
+    "0.9": "tag_names_another_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "yaml/pyyaml",
+   "rank": 13,
+   "mechanisms": {
+    "3.02": "tag_names_another_version",
+    "3.09": "tag_names_another_version",
+    "4.2": "no_tag_names_this_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "dateutil/dateutil",
+   "rank": 14,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "benjaminp/six",
+   "rank": 15,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "boto/botocore",
+   "rank": 17,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "pydantic/pydantic",
+   "rank": 18,
+   "mechanisms": {
+    "2.13.0b3": "tag_names_another_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "eliben/pycparser",
+   "rank": 19,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "pallets/click",
+   "rank": 20,
+   "mechanisms": {
+    "3.3": "tag_names_another_version",
+    "6.7": "tag_names_another_version",
+    "7.1.2": "tag_names_another_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "agronholm/anyio",
+   "rank": 22,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "numpy/numpy",
+   "rank": 23,
+   "mechanisms": {
+    "2.0.0.dev0": "tag_names_another_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "pytest-dev/pytest",
+   "rank": 24,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "pytest-dev/iniconfig",
+   "rank": 25,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "annotated-types/annotated-types",
+   "rank": 26,
+   "mechanisms": {
+    "0": "no_tag_names_this_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "python-hyper/h11",
+   "rank": 27,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "pydantic/typing-inspection",
+   "rank": 28,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "python-attrs/attrs",
+   "rank": 29,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "boto/s3transfer",
+   "rank": 30,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "aio-libs/aiobotocore",
+   "rank": 31,
+   "mechanisms": {
+    "0.0.1": "no_tag_names_this_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "encode/httpx",
+   "rank": 33,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "pallets/markupsafe",
+   "rank": 34,
+   "mechanisms": {
+    "1.1.1": "tag_names_another_version",
+    "2.0.1": "tag_names_another_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "encode/httpcore",
+   "rank": 35,
+   "mechanisms": {
+    "0.14.0": "tag_names_another_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "theskumar/python-dotenv",
+   "rank": 36,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "jpadilla/pyjwt",
+   "rank": 37,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "tox-dev/platformdirs",
+   "rank": 38,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "fsspec/filesystem_spec",
+   "rank": 39,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "pandas-dev/pandas",
+   "rank": 40,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "pallets/jinja",
+   "rank": 41,
+   "mechanisms": {
+    "2.10.3": "tag_names_another_version",
+    "3.0.3": "tag_names_another_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "jmespath/jmespath.py",
+   "rank": 42,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "cpburnz/python-pathspec",
+   "rank": 43,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "tox-dev/py-filelock",
+   "rank": 44,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "Kludex/starlette",
+   "rank": 45,
+   "mechanisms": {
+    "0.2.1": "tag_names_another_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "Kludex/uvicorn",
+   "rank": 46,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "aio-libs/multidict",
+   "rank": 47,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "python-jsonschema/jsonschema",
+   "rank": 48,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "crate-py/rpds",
+   "rank": 49,
+   "mechanisms": {
+    "0.10.0": "tag_names_another_version",
+    "0.15.2": "tag_names_another_version",
+    "0.16.2": "tag_names_another_version",
+    "0.7.1": "tag_names_another_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "aio-libs/yarl",
+   "rank": 50,
+   "mechanisms": {
+    "1.7.2": "tag_names_another_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "aio-libs/aiohttp",
+   "rank": 51,
+   "mechanisms": {
+    "0.21.2": "tag_names_another_version",
+    "2.0.2": "tag_names_another_version",
+    "3.4.0a0": "tag_names_another_version",
+    "3.8.1": "tag_names_another_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "Textualize/rich",
+   "rank": 52,
+   "mechanisms": {
+    "0.8.8": "tag_names_another_version",
+    "10.15.0": "tag_names_another_version",
+    "10.5.0": "tag_names_another_version",
+    "12.5.0": "tag_names_another_version",
+    "6.1.0": "tag_names_another_version",
+    "9.0.0": "tag_names_another_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "python-poetry/tomlkit",
+   "rank": 53,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "executablebooks/markdown-it-py",
+   "rank": 54,
+   "mechanisms": {
+    "0.1.1": "no_tag_names_this_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "aio-libs/propcache",
+   "rank": 55,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "python-jsonschema/referencing",
+   "rank": 56,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "python-jsonschema/jsonschema-specifications",
+   "rank": 57,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "executablebooks/mdurl",
+   "rank": 58,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "python-pillow/Pillow",
+   "rank": 59,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "open-telemetry/opentelemetry-python",
+   "rank": 60,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "aio-libs/frozenlist",
+   "rank": 61,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "tqdm/tqdm",
+   "rank": 62,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "pypa/pip",
+   "rank": 63,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "googleapis/google-cloud-python",
+   "rank": 64,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "pyasn1/pyasn1",
+   "rank": 65,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "aio-libs/aiosignal",
+   "rank": 66,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "aio-libs/aiohappyeyeballs",
+   "rank": 67,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "python-websockets/websockets",
+   "rank": 68,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "fastapi/annotated-doc",
+   "rank": 69,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "GrahamDumpleton/wrapt",
+   "rank": 70,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "stub42/pytz",
+   "rank": 71,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "python-trio/sniffio",
+   "rank": 72,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "python/tzdata",
+   "rank": 73,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "fastapi/fastapi",
+   "rank": 74,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "jaraco/zipp",
+   "rank": 76,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "python-greenlet/greenlet",
+   "rank": 77,
+   "mechanisms": {
+    "0.4.15": "tag_names_another_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "python/importlib_metadata",
+   "rank": 78,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "pydantic/pydantic-settings",
+   "rank": 79,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "pypa/wheel",
+   "rank": 80,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "jd/tenacity",
+   "rank": 81,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "pypa/trove-classifiers",
+   "rank": 82,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "Kludex/python-multipart",
+   "rank": 83,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "pyasn1/pyasn1-modules",
+   "rank": 84,
+   "mechanisms": {
+    "0.0.9": "tag_names_another_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "apache/arrow",
+   "rank": 86,
+   "state": "not checkable",
+   "cause": "1 recorded tag(s) missing or moved upstream, e.g. r-universe-release"
+  },
+  {
+   "repository": "sqlalchemy/sqlalchemy",
+   "rank": 87,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "pypa/hatch",
+   "rank": 88,
+   "mechanisms": {
+    "1.0.0rc10": "tag_names_another_version",
+    "1.0.0rc11": "tag_names_another_version",
+    "1.0.0rc12": "tag_names_another_version",
+    "1.0.0rc13": "tag_names_another_version",
+    "1.0.0rc14": "tag_names_another_version",
+    "1.0.0rc16": "tag_names_another_version",
+    "1.0.0rc17": "tag_names_another_version",
+    "1.0.0rc8": "tag_names_another_version",
+    "1.1.1": "tag_names_another_version",
+    "1.1.2": "tag_names_another_version",
+    "1.18.0": "every_tag_names_it",
+    "1.2.0": "tag_names_another_version",
+    "1.2.1": "tag_names_another_version",
+    "1.3.0": "tag_names_another_version",
+    "1.3.1": "tag_names_another_version",
+    "1.4.0": "tag_names_another_version",
+    "1.4.1": "tag_names_another_version",
+    "1.4.2": "tag_names_another_version",
+    "1.5.0": "tag_names_another_version",
+    "1.6.1": "tag_names_another_version",
+    "1.6.3": "tag_names_another_version",
+    "1.7.0": "tag_names_another_version",
+    "1rc2": "tag_names_another_version",
+    "1rc3": "tag_names_another_version",
+    "1rc5": "tag_names_another_version",
+    "1rc6": "tag_names_another_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "grpc/grpc",
+   "rank": 89,
+   "mechanisms": {
+    "0.14.2rc1": "no_tag_names_this_version",
+    "0.15.1": "no_tag_names_this_version",
+    "1.0.1": "tag_names_another_version",
+    "1.17.1": "tag_names_another_version",
+    "1.36.1": "tag_names_another_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "pyparsing/pyparsing",
+   "rank": 90,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "lxml/lxml",
+   "rank": 91,
+   "mechanisms": {
+    "4.9.3": "tag_names_another_version",
+    "5.0.1": "tag_names_another_version",
+    "7.0.0b1": "tag_names_another_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "pydantic/jiter",
+   "rank": 92,
+   "mechanisms": {
+    "0.1.0": "tag_names_another_version",
+    "0.3.0": "tag_names_another_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "mrabarnett/mrab-regex",
+   "rank": 93,
+   "mechanisms": {
+    "2024.11.6": "tag_names_another_version",
+    "2024.5.15": "tag_names_another_version",
+    "2025.9.18": "tag_names_another_version",
+    "2026.2.28": "tag_names_another_version",
+    "2026.9.10": "tag_names_another_version",
+    "2026.9.3": "tag_names_another_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "samuelcolvin/watchfiles",
+   "rank": 94,
+   "mechanisms": {
+    "0.0.dev0": "no_tag_names_this_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "fsspec/s3fs",
+   "rank": 95,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "astral-sh/ruff",
+   "rank": 96,
+   "mechanisms": {
+    "0.0.267": "tag_names_another_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "scipy/scipy",
+   "rank": 97,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "facelessuser/soupsieve",
+   "rank": 98,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "openai/openai-python",
+   "rank": 100,
+   "mechanisms": {
+    "0.26.4": "tag_names_another_version",
+    "0.27.5": "tag_names_another_version",
+    "0.27.9": "tag_names_another_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "giampaolo/psutil",
+   "rank": 103,
+   "mechanisms": {
+    "0.5.0": "tag_names_another_version"
+   },
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "coveragepy/coveragepy",
+   "rank": 104,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "hukkin/tomli",
+   "rank": 107,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "python-distro/distro",
+   "rank": 108,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "sarugaku/shellingham",
+   "rank": 110,
+   "state": "match",
+   "differs": {}
+  },
+  {
+   "repository": "python/mypy_extensions",
+   "rank": 111,
+   "state": "match",
+   "differs": {}
+  }
+ ]
+}

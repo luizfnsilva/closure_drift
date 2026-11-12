@@ -129,6 +129,12 @@ MUTANTS = [
     ("M78", "TP06", [('        if not label and by_prefix[1] == "project" and scm_derived(', '        if False and scm_derived(')]),
     ("M79", "WS01", [('            if value is None and inherits_workspace_version(t.get("package", {})):\n', '            if False:\n')]),
     ("M81", "D4A", [('        written = version_written_at_publish(objects, entries)          # \u00a732\n', '        written = None\n')]),
+    ("M82", "ACT02", [("action.yml", 'words = shlex.split(os.environ.get("CD_ARGS", ""))', 'words = os.environ.get("CD_ARGS", "").split()')]),
+    ("M83", "ACT06", [("action.yml", 'elif code == 2 and not out.strip():', 'elif True:')]),
+    ("M84", "ACT07", [("action.yml", 'extra+=(--closure "$g")', ':')]),
+    ("M85", "EC03", [("action.yml", 'if r.get("points_with_empty_closure"):\n            print("points with', 'if False:\n            print("points with')]),
+    ("M86", "NX07", [("    if written:   # \u00a732: the version is written at publish time\n", "    if False:\n")]),
+    ("M87", "D5A", [('r"|github\\.event\\.release\\.tag_name|git\\s+describe\\s+--tags")', 'r"|git\\s+describe\\s+--tags")')]),
     ("M60", "EN01", [('stream.reconfigure(encoding="utf-8", errors="backslashreplace")', 'stream.reconfigure(errors="backslashreplace")')]),
 ]
 

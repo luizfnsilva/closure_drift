@@ -23,15 +23,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: luizfnsilva/closure_drift@v1.7.0        # mode: auto (default)
+      - uses: luizfnsilva/closure_drift@v1.8.0        # mode: auto (default)
 ```
 
 The whole tag history, on a schedule, with a family of tags and a strict verdict:
 
 ```yaml
-      - uses: luizfnsilva/closure_drift@v1.7.0
+      - uses: luizfnsilva/closure_drift@v1.8.0
         with:
           mode: measure
+          tags: v*
           args: --strict
 ```
 
@@ -50,7 +51,7 @@ because an absence of measurement is not a pass.
 Without the action (the package is installed from the release; it is not on PyPI):
 
 ```yaml
-      - run: pipx run --spec https://github.com/luizfnsilva/closure_drift/releases/download/v1.7.0/closure_drift-1.7.0-py3-none-any.whl closure-drift --would-tag
+      - run: pipx run --spec https://github.com/luizfnsilva/closure_drift/releases/download/v1.8.0/closure_drift-1.8.0-py3-none-any.whl closure-drift --would-tag
 ```
 
 ## GitLab CI
@@ -62,7 +63,7 @@ version-label:
     GIT_DEPTH: "0"              # full history, so the tags are there
   script:
     - git fetch --tags --force
-    - pip install https://github.com/luizfnsilva/closure_drift/releases/download/v1.7.0/closure_drift-1.7.0-py3-none-any.whl
+    - pip install https://github.com/luizfnsilva/closure_drift/releases/download/v1.8.0/closure_drift-1.8.0-py3-none-any.whl
     - closure-drift --would-tag
 ```
 
@@ -82,7 +83,7 @@ check-version-label:
 ```yaml
 # .pre-commit-config.yaml — runs on git push
 - repo: https://github.com/luizfnsilva/closure_drift
-  rev: v1.7.0
+  rev: v1.8.0
   hooks:
     - id: closure-drift-would-tag
 ```

@@ -32,7 +32,7 @@ import warnings
 from collections import OrderedDict, defaultdict
 from pathlib import Path
 
-__version__ = "1.7.0"
+__version__ = "1.8.0"
 REPORT_FORMAT = 2
 
 # Where a version can be declared. Python build files are read first; a repository that has
@@ -1732,7 +1732,7 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
         print(f"CLEAN: each of the {len(by_label)} labels names exactly one closure at publication.")
         print(f"Your version label identifies your code, over the {compared} points compared.")
 
-    print_next(verdict)
+    print_next("incomplete_files" if verdict == "incomplete" else verdict)   # §34 R18-08
     print_coverage(coverage, a.max_commits, total)
     print_sources(labels)
     print(f"\nBetween publication points the closure changed {churn} time(s). That is development,")
@@ -1904,7 +1904,8 @@ def prefixed_source(objects, labels, entries, name: str):
     return hits[0], MANIFESTS[hits[0].rsplit("/", 1)[-1]]
 
 
-_REF = re.compile(r"GITHUB_REF_NAME|GITHUB_REF\b|github\.ref_name")
+_REF = re.compile(r"GITHUB_REF_NAME|GITHUB_REF\b|github\.ref_name"
+                  r"|github\.event\.release\.tag_name|git\s+describe\s+--tags")   # §34 R18-09: C1, C2
 _SETS_VERSION = re.compile(r"\b(?:uv|poetry|hatch|npm|pnpm)\s+version\b(.*)")
 
 
@@ -2016,7 +2017,7 @@ def check_tag(a, objects, labels, head_sha) -> int:
         print(f"TAG MISMATCH: the tag {printable(name)} does not name {printable(label)}, the version its commit")
         print(f"declares in {printable(vpath or '?')}.")
         print(f"A build from this tag is labelled {printable(label)}. The version was probably bumped after the tag.")
-    print_next(verdict)
+    print_next(verdict, written)   # §34 R18-08
     print_method(stamp, dirty, dirty_note)
     return code
 
@@ -2203,9 +2204,23 @@ TAG_NEXT = "tag_source"   # --would-tag where the version comes from the tag (§
 NEXT[TAG_NEXT] = ("give the new tag a name no existing tag uses, and never move a published tag. "
                   "Exit 2 is not a pass: the tag is not there yet to check.")
 UNDECIDED = "nothing was decided (exit 2); read the reason above, and do not treat this as a pass."
+NOT_A_PASS = " Exit 2 is not a pass."
+NEXT.update({   # §34 R18-08: the cause and the next step, for the undetermined answers
+    "incomplete_files": "nothing was decided: pass --version-file with the file your releases declare the version in." + NOT_A_PASS,
+    "empty_closure": "nothing was decided: the closure globs match no file: pass --closure with the files that build your output."
+                     + NOT_A_PASS,
+    "empty_closure_at_head": "nothing was decided: the closure globs match no file at this commit: pass --closure with the files "
+                             "that build your output." + NOT_A_PASS,
+    "inconclusive": "nothing was decided: run --diagnose to see each tag and where its label came from." + NOT_A_PASS,
+})
 
 
-def print_next(verdict: str) -> None:
+def print_next(verdict: str, written=None) -> None:
+    if written:   # §32: the version is written at publish time
+        print("\nNext: nothing was decided: %s:%s writes the version at publish time, so this repository cannot tell what was "
+              "published: check the version inside the built package, or its provenance.%s"
+              % (printable(written[0]), written[1], NOT_A_PASS))
+        return
     print("\nNext: " + NEXT.get(verdict, UNDECIDED))
 
 

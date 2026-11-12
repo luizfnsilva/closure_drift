@@ -1626,3 +1626,214 @@ the ref → unchanged (`tag_mismatch`). Each of D4a must fail on 1.6.0; D4b–D4
 after. One mutant: ignore the workflow evidence; it must turn D4a red. Real case: aio-pika `10.2.3`
 gives `incomplete` after the change, recorded in RECORD. Regression corpus: 99 of 99 checkable give
 the recorded answer, or each difference is named here before release.
+
+## 33. Added 2026-11-11, before any of it was written — 1.7.1
+
+**The Action, not the detector.** An outside review of `action.yml` (release engineering) named three
+points; each was checked against the code before this was written.
+
+1. **`args` is split by the shell without quote removal, and its globs are expanded.** Confirmed: the
+   step runs `$CD_ARGS` unquoted. The input documented in `action.yml` itself, `--closure 'src/**'`,
+   reaches the detector as `'src/**'` with the quotes; on `mosquito/caio`, `--closure 'caio/**'` gives
+   `empty_closure` (exit 2) where `--closure caio/**` on the command line gives `drift` (exit 1). With
+   `allow-undetermined: true`, that drift passes. Unquoted, a glob that matches files in the working
+   directory is expanded by bash before the detector sees it. `docs/CI.md` shows `--tags 'v*'`, which
+   then matches no tag. From 1.7.1: `args` is split by POSIX shell word rules (quotes removed, no
+   pathname expansion, no variable expansion); an unclosed quote fails the step with exit 2 and an
+   error naming the input, before the detector runs.
+2. **`refused` covers three different things.** Confirmed: the `verdict` output is `refused` whenever
+   the JSON file does not parse. From 1.7.1 the output says which: the report's verdict; `refused`
+   only for the documented refusal (exit 2, nothing on standard output), with the detector's stderr
+   shown in the job summary; `error` when the exit code is not 0, 1 or 2, or standard output is not
+   empty and does not parse. `error` fails the step with exit 2, also under `allow-undetermined`.
+3. **The detector runs twice** (once for JSON, once for text). Confirmed. Both runs read the same
+   local repository in the same step, so the two reports cannot measure different states unless the
+   repository is changed by another process during the step; the cost is real. Removing it needs one
+   run to write both forms, which is a change to the detector: **not in 1.7.1**; a candidate for later.
+
+Nothing in `closure_drift.py` changes except `__version__`. Verdicts, exit codes and the report are
+unchanged; `refused` and `error` are values of the Action's output, not verdicts of the report.
+
+Proofs before the code, each run through the step's script as ACT01 does: ACT02 `args` `--closure
+'src/**'` on a repository in drift → exit 1, `drift`, as the same arguments on the command line;
+ACT03 a glob in `args` that matches a file in the working directory is passed unexpanded; ACT04 an
+unclosed quote → exit 2, an error naming `args`, no report written; ACT05 `--tag` naming no tag →
+output `verdict=refused`, exit 2, and the summary holds the detector's message; ACT06 under
+`allow-undetermined: true`, a step whose run ends with output `error` still exits 2. ACT02–ACT05 must
+fail on 1.7.0, ACT06 must hold on 1.7.0 or fail with the reason named here. Mutants: unquoted `$CD_ARGS`
+(must turn ACT02 red); `refused` for every unparsed report (must turn ACT05 red). Regression corpus:
+detector unchanged, 99 of 99 checkable as recorded.
+
+**Amendment 1 (2026-11-11, before any code).** From the owner's review of this section:
+
+4. **Typed inputs.** `closure` and `tags` (one glob per line), `version-file`, `version-regex`: each
+   value reaches the detector as one argument, exactly as written. `args` stays for everything else,
+   split as in item 1.
+5. **One run.** Item 3 is taken in after all, without touching the detector: the step runs the
+   detector once, with `--json`, and the log text, the annotations and the summary are all derived from
+   that one report. The log names the verdict in capitals (`TAG MISMATCH`, `WOULD DRIFT`, …), the
+   report's note, and the next step for that verdict (the table in `docs/USAGE.md`). The full text
+   report stays the command line's.
+6. **`empty_closure`, reviewed.** In the code: a closure that matches no file at every point gives
+   `empty_closure` (exit 2), and at `HEAD` under `--would-tag` `empty_closure_at_head` (exit 2), never
+   `clean`. A closure empty at some points only can still give `clean` on the points compared, which
+   must be at least as many as those not compared. Not changed in the detector; from 1.7.1 the summary
+   shows `points with empty closure` whenever it is above zero.
+
+Proofs added before the code: ACT07 `closure: "docs dir/**"` (a path with a space) reaches the
+detector as one argument, literally; ACT08 the detector is run exactly once per step; ACT09 `closure:`
+matching no file → exit 2, never a pass. ACT07 and ACT08 must fail on 1.7.0; ACT09 must hold on 1.7.0
+and after. A third mutant, the `closure` input ignored, must turn ACT07 red. Outside the battery, a CI
+job runs the Action itself through `uses: ./` in a real workflow, on a repository it builds, with a
+quoted glob and a path with a space, and fails unless the outputs are the ones required.
+
+**Amendment 2 (2026-11-11, after the code of items 1–5, before any run in CI).** Two corrections.
+(a) The second mutant, `refused` for every report that does not parse, does not touch ACT05: the case
+ACT05 measures is a refusal either way. It is caught by ACT06 (a crash read as `refused`), checked on a
+copy before this was written; it is registered against ACT06. (b) **1.7.1 will not be published.** By
+the owner's decision, everything here is folded into one release, 1.8.0 (§34). Items 1–6 of this
+section are R18-01 to R18-04 there, with these proofs and mutants.
+
+## 34. Added 2026-11-11, before the code of R18-05 onward — 1.8.0, release integrity and usability
+
+One release. Nothing is published before it unless a defect already distributed needs an urgent fix.
+Central rule: **no change to usability may turn an absence of evidence into a pass.**
+
+| ID | what | accepted when |
+|---|---|---|
+| R18-01 | arguments reach the CLI intact | §33 item 1 + amendment item 4; ACT02 (the hidden drift reproduced on 1.7.0, found after), ACT03, ACT04, ACT07; M82, M84 |
+| R18-02 | an empty closure never reads as a pass | below |
+| R18-03 | one run, one canonical result | §33 item 5; ACT08; the log, annotations, summary and outputs all come from the one report |
+| R18-04 | exit codes, verdicts and errors coherent | §33 item 2; ACT05, ACT06; M83; the CLI's contract (`docs/REPORT.md`) unchanged |
+| R18-05 | real gates | a publish job with `needs:` on the check does not run on exit 1 or 2, shown in a public run |
+| R18-06 | three public scenarios | below |
+| R18-07 | the user knows when the tool does not fit | one short page answering: does it fit, which mode, what the answer means, what next; README not longer |
+| R18-08 | `incomplete` explained | reason, evidence (file:line when there is one) and next step, in the Action's log and summary (done in §33) and in the CLI's `Next:` line |
+| R18-09 | D5 | below |
+| R18-10 | the tool's own distribution | wheel, sdist, Action, container and MCP entry name one version and one commit; checksums; tags and docs pins checked (`tools/conferir_versao.py`); GitHub immutable releases evaluated, and used if they fit the rite |
+| R18-11 | historical audit of the quoting defect | below |
+| R18-12 | full regression | battery on Linux, macOS, Windows; mutants; adversarial; oracle; properties; corpus 99 of 99 checkable as recorded, or each difference named here before release |
+
+**R18-02.** Three cases, kept apart: (a) the closure globs are invalid or match nothing anywhere →
+`empty_closure` / `empty_closure_at_head` (exit 2), as today; (b) the closure matches at some points
+and not others (files added later) → `clean` stays possible only on the points compared, and the
+report and summary state how many points had no file; (c) the scope cannot be evaluated → exit 2.
+Open question, decided **before its code** by a measurement written here: when `--closure` is passed
+explicitly and matches no file at `HEAD` (measure mode), should `clean` become `incomplete`? First
+count, on the regression corpus and the 51 Nix repositories, how many answers that would change. A
+change from exit 0 to exit 2 for some inputs is a change of meaning: if it is made, `SCOPE.md` and the
+version number are reviewed (2.0 instead of 1.8.0 if the contract requires it).
+
+**R18-06.** In `closure-drift-release-examples`, three scenarios with a publish job behind the check,
+each with pinned inputs, a public run and a test that fails when the behaviour stops: A, a correct
+release (the check passes and the page says when it only confirms controls already there); B, a real
+drift introduced on purpose (the check fails and the publish job does not run); C, a version written at
+release time (`incomplete`, nothing published, the reason shown). The aggregating job tells an
+expected red apart from a broken suite. Run against the candidate as a user receives it: the Action
+from a ref, a clean checkout, no import of the development tree.
+
+**R18-09.** No interpreter of Bash, `sed` or CI pipelines. One of two outcomes, both acceptable:
+(1) a narrow rule, written here before its code, with evidence enough and proofs against false
+negatives, that recognises the dspy mechanism and answers `incomplete`; or (2) a documented limit
+(`docs/FAILURES.md` and the fit page): versions written by arbitrary commands are not verifiable by
+this instrument, and `--tag` may answer `tag_mismatch` there.
+
+**R18-11.** Every run that passed `args` with quotes or globs through the Action (1.4.0–1.7.0): the
+examples repository's runs, the docs examples, any run of ours. Each is classed as affected (the
+argument reached the detector changed), not affected, or not reconstructible. Affected results are
+repeated with 1.8.0 or qualified where they are cited.
+
+**Freeze.** After R18-01 to R18-09 are in, only fixes that make the criteria above pass.
+
+**Amendment 1 to §34 (2026-11-11): R18-02 measured, decided, before its proofs and code.**
+Baseline: the candidate's `closure_drift.py` is byte for byte 1.7.0's, so its corpus baseline is the
+1.7.0 run (43014789124): 99 of 99 checkable as recorded. That corpus uses the default closure only:
+no repository has an empty closure at every point; one (`python-jsonschema/jsonschema`) has 1 of 111
+points empty, `clean`. The corpus cannot answer the explicit case, so it was measured on the 51 Nix
+repositories with an explicit closure per repository (`src/**`, or the package folder at `HEAD`; 46
+had one) and a control that matches nothing, with the arguments recorded per run:
+
+| case | found | verdicts |
+|---|---|---|
+| explicit closure, no file at any point (control) | 50 of 50 run | `empty_closure`, exit 2, every one (the 51st refused, exit 2) |
+| empty at `HEAD`, present at older tags (a folder renamed) | 0 of 46 | — |
+| empty at some points (the folder came later) | 7 of 46 | 5 `drift`, 1 `incomplete`, 1 `clean` (6 of 11 points compared) |
+| never empty | 39 of 46 | as the default closure, apart from what the narrower scope changes |
+
+Transitions if `clean` became `incomplete` for an explicit closure empty at `HEAD`: **zero** in this
+sample. **Decision: the meaning of `clean` does not change**; no 2.0 on this account. R18-02 is
+delivered as: the four cases pinned by proofs through the CLI and the Action; the count of points with
+an empty closure shown in the Action's log as well as its summary whenever above zero. The renamed
+folder (0 found) is pinned as it behaves today and named in the fit page, not changed without a case.
+
+Proofs before the code (each through `run` and `_act`): EC01 closure empty at every point → exit 2,
+`empty_closure`, the Action fails; EC02 folder renamed (files only at older tags) → as today, and
+`--would-tag` gives `empty_closure_at_head`, exit 2; EC03 partial (folder added later) → `clean` only
+with compared ≥ not compared, and the Action's log names the empty points; EC04 control, valid closure
+→ `clean`, exit 0, log names no empty points. EC03's log line must fail on the current candidate.
+
+**Amendment 2 to §34 (2026-11-11): R18-08 in the CLI, before its proofs and code.** Today every
+undetermined answer ends with the same `Next:` line. From 1.8.0 the line names the cause and the next
+step, still one line, still ending with "Exit 2 is not a pass": `incomplete` with a version written at
+publish time names the file and line and says to check the version inside the built package or its
+provenance; `incomplete` from a build file over 1 MB or a contradicted file says to pass
+`--version-file`; `empty_closure` and `empty_closure_at_head` say to pass `--closure`; `inconclusive`
+says to run `--diagnose`. Only the text changes; JSON, verdicts and exit codes do not. Proofs before
+the code: NX07 (`--tag`, version written at publish time: the line names `.github/workflows/publish.yml`
+and the built package), NX08 (`empty_closure`: names `--closure`), NX09 (`inconclusive`: names
+`--diagnose`); each must fail on the candidate as it is, and each line must still say "not a pass".
+One mutant, the publish-time line dropped back to the generic one, must turn NX07 red.
+
+**Amendment 3 to §34 (2026-11-11): R18-09 (D5) measured and decided, before its proofs and code.**
+The 44 of the 51 Nix repositories that 1.7.0 still answers `tag_mismatch` for, read at their tag's
+`.github/workflows/` with a fixed classifier (kept with the data):
+
+| class | n | what |
+|---|---|---|
+| C1 | 10 | `uv`/`poetry`/`hatch`/`npm`/`pnpm version` from a variable set from `github.event.release.tag_name` (`on: release`) |
+| C2 | 1 | the same commands with `$(git describe --tags …)` as the argument |
+| C3 | 6 | `sed -i` edits the version file, with the ref in the same file (dspy, gepa, llm-sandbox, victron-mqtt, pyfirefly, nicegui-highcharts); dspy's value also passes through job outputs |
+| C5 | 27 | no such mechanism found; this class holds every case found to be a real inconsistency (MyJWT, dataclass-csv, python-tsp, cross-web, both strawberry, pysmi) |
+
+**Decision: both outcomes, each where it holds.** (1) C1 and C2 are the §32 mechanism with two more
+sources of the tag: from 1.8.0 the evidence of §32 item 2 also counts `github.event.release.tag_name`
+and `git describe --tags` as naming the tag. Same commands, same rule, same answer (`incomplete`, file
+and line). It fires on no case of C5. (2) C3 is the documented limit: a version written by `sed`, a
+script or through job outputs is not recognised, `--tag` may answer `tag_mismatch` there, and this is
+written in `docs/FAILURES.md` and `docs/START.md`. dspy is in C3: it stays `tag_mismatch`.
+Expected on the 51, same tags: decided 45 → 34, `incomplete` 6 → 17, no decided answer changes side;
+measured after the code and recorded here, or the difference explained.
+
+Proofs before the code: D5A `on: release` and `poetry version "${version}"` with `version` set from
+`github.event.release.tag_name` → `incomplete`; D5B `uv version $(git describe --tags --abbrev=0)` →
+`incomplete`; D5C `sed -i` writing the version from `GITHUB_REF_NAME` → `tag_mismatch` (the limit,
+pinned); D5D `github.event.release.tag_name` in the file but no version command → `tag_mismatch`;
+D5E a version command with a literal version in a file that also names the release tag elsewhere →
+`tag_mismatch`. D5A and D5B must fail on the candidate; D5C–D5E must hold before and after. One
+mutant: `github.event.release.tag_name` dropped from the evidence, must turn D5A red.
+
+**Amendment 4 to §34 (2026-11-11): R18-10, before its code.** Read from the repository: the release's
+wheel and sdist are built on the author's machine, from a clone of the tag, with no provenance
+attestation; `publish.yml` (PyPI) builds in CI but has never run; GitHub immutable releases are off;
+`tools/conferir_versao.py` does not read `integrations/mcp/server.json` nor the MCP `serverInfo`, which
+agree today only because they are updated by hand. From 1.8.0: (a) `conferir_versao` also reads the
+version and the image tag in `server.json` and `serverInfo` in both MCP files, and fails when one
+differs (checked by changing one and requiring exit 1); (b) a workflow `release-assets.yml`, run on a
+tag, builds wheel and sdist from that tag in CI, requires the wheel's `closure_drift.py` to be the
+tag's byte for byte, attests their provenance (`actions/attest-build-provenance`), writes
+`SHA256SUMS`, and uploads the three files to the release, which the rite creates as a draft and
+publishes only after; local builds are no longer uploaded; (c) immutable releases are the owner's
+decision, a repository setting, recommended once (b) has run once.
+
+**Amendment 5 to §34 (2026-11-11): R18-11, the historical audit, result.** The Action exists from
+0.9.0 to 1.7.0, 20 tags; in every one, both the `args` description in `action.yml` (`--tags 'v*'
+--strict --closure 'src/**'`) and the example in `docs/CI.md` (`--tags 'v*'`) are the quoted form
+that does not reach the detector intact. Results: **affected** — those two instructions in all 20
+releases (a user who copied them got a narrower or empty measurement, exit 2, or a drift hidden under
+`allow-undetermined: true`); **not affected** — every run of ours (the closure_drift CI never ran the
+Action with `args` before R18-01; `closure-drift-release-examples/examples.yml` calls the CLI; the gate
+runs the candidate) and every measurement in `RESULTS.md` (none used the Action); **not
+reconstructible** — use by others: GitHub code search finds no other repository using the Action, and
+private or unindexed ones cannot be seen. Old tags are not moved. The defect is in `docs/FAILURES.md`
+(1.8.0), `docs/CI.md` on main says not to put globs in `args` before 1.8.0, and the 1.8.0 release notes
+name it.

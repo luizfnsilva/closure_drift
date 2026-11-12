@@ -158,7 +158,7 @@ label                         closures
 INCOMPLETE: no label names more than one closure, but not every publication point
 scanned could be compared with confidence. See the counts below.
 
-Next: nothing was decided (exit 2); read the reason above, and do not treat this as a pass.
+Next: nothing was decided: pass --version-file with the file your releases declare the version in. Exit 2 is not a pass.
 
 Publication points: 4 scanned, 2 compared.
   2 declared no version label there and were not compared.
@@ -182,7 +182,7 @@ label                         closures
 ==============================================================
 INCONCLUSIVE: only one distinct label across the range scanned.
 
-Next: nothing was decided (exit 2); read the reason above, and do not treat this as a pass.
+Next: nothing was decided: run --diagnose to see each tag and where its label came from. Exit 2 is not a pass.
 
 Publication points: 1 scanned, 1 compared.
 (exit 2)

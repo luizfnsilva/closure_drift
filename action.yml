@@ -15,7 +15,23 @@ inputs:
     required: false
     default: "."
   args:
-    description: "Extra arguments, e.g. --tags 'v*' --strict --closure 'src/**'. A monorepo with components in .closure-drift.json passes --component NAME for --would-tag."
+    description: "Other arguments, split as a POSIX shell would (quotes removed, no glob or variable expansion), e.g. --strict or --component NAME. Prefer closure and tags for globs."
+    required: false
+    default: ""
+  closure:
+    description: "Globs of the files that determine your output, one per line. Each line reaches the detector as written: no quoting needed, spaces allowed."
+    required: false
+    default: ""
+  tags:
+    description: "Only tags matching these globs are publication points, one per line, as written."
+    required: false
+    default: ""
+  version-file:
+    description: "The file the version is read from, when it is not found by itself."
+    required: false
+    default: ""
+  version-regex:
+    description: "Regex whose first group is the version in version-file, as written."
     required: false
     default: ""
   allow-undetermined:
@@ -25,10 +41,10 @@ inputs:
 
 outputs:
   verdict:
-    description: "The verdict in the report."
+    description: "The verdict in the report; 'refused' when the detector refused (exit 2, no report); 'error' when it did not finish (any other exit, or an unreadable report)."
     value: ${{ steps.run.outputs.verdict }}
   exit-code:
-    description: "0 clean, 1 drift, 2 no determination."
+    description: "0 clean, 1 drift, 2 no determination, refusal or error."
     value: ${{ steps.run.outputs.code }}
 
 runs:
@@ -40,6 +56,10 @@ runs:
         CD_MODE: ${{ inputs.mode }}
         CD_PATH: ${{ inputs.path }}
         CD_ARGS: ${{ inputs.args }}
+        CD_CLOSURE: ${{ inputs.closure }}
+        CD_TAGS: ${{ inputs.tags }}
+        CD_VERSION_FILE: ${{ inputs.version-file }}
+        CD_VERSION_REGEX: ${{ inputs.version-regex }}
         CD_ALLOW: ${{ inputs.allow-undetermined }}
         CD_HOME: ${{ github.action_path }}
         CD_REF_TYPE: ${{ github.ref_type }}
@@ -60,22 +80,77 @@ runs:
           echo "::error::closure_drift needs the tags: use actions/checkout with fetch-depth: 0"
           exit 2
         fi
-        set +e
-        # shellcheck disable=SC2086
-        "$PY" "$CD_HOME/closure_drift.py" "$CD_PATH" "${mode[@]}" $CD_ARGS --json > "$RUNNER_TEMP/closure-drift.json"
-        code=$?
-        "$PY" "$CD_HOME/closure_drift.py" "$CD_PATH" "${mode[@]}" $CD_ARGS
-        set -e
-        verdict=$("$PY" -c "import json,sys; print(json.load(open(sys.argv[1])).get('verdict','refused'))" "$RUNNER_TEMP/closure-drift.json" 2>/dev/null || echo refused)
-        # Annotations are a presentation of the report, built from its fields; the logic is the detector's.
-        "$PY" - "$RUNNER_TEMP/closure-drift.json" <<'PY' || true
-        import json, sys
+        # One input value, one argument, as written (§33). args: POSIX word rules, no expansion.
+        extra=()
+        while IFS= read -r g; do [ -n "$g" ] && extra+=(--closure "$g"); done <<< "$CD_CLOSURE"
+        while IFS= read -r g; do [ -n "$g" ] && extra+=(--tags "$g"); done <<< "$CD_TAGS"
+        [ -n "$CD_VERSION_FILE" ] && extra+=(--version-file "$CD_VERSION_FILE")
+        [ -n "$CD_VERSION_REGEX" ] && extra+=(--version-regex "$CD_VERSION_REGEX")
+        "$PY" -c '
+        import os, shlex, sys
         try:
-            r = json.load(open(sys.argv[1]))
-        except Exception:
-            sys.exit(0)
+            words = shlex.split(os.environ.get("CD_ARGS", ""))
+        except ValueError as e:
+            sys.stdout.write("::error::closure_drift: the args input cannot be split (%s): %s\n" % (e, os.environ["CD_ARGS"]))
+            sys.exit(2)
+        open(sys.argv[1], "w", encoding="utf-8").write("".join(w + "\0" for w in words))
+        ' "$RUNNER_TEMP/closure-drift.args" || exit 2
+        while IFS= read -r -d '' w; do extra+=("$w"); done < "$RUNNER_TEMP/closure-drift.args"
+        # One run of the detector; the log, the annotations and the summary all come from its report.
+        set +e
+        "$PY" "$CD_HOME/closure_drift.py" "$CD_PATH" "${mode[@]}" "${extra[@]}" --json \
+          > "$RUNNER_TEMP/closure-drift.json" 2> "$RUNNER_TEMP/closure-drift.err"
+        code=$?
+        set -e
+        "$PY" - "$RUNNER_TEMP/closure-drift.json" "$RUNNER_TEMP/closure-drift.err" "$code" "$RUNNER_TEMP/closure-drift.verdict" <<'PY' || echo error > "$RUNNER_TEMP/closure-drift.verdict"
+        import json, os, sys
+        out = open(sys.argv[1], encoding="utf-8", errors="replace").read()
+        err = open(sys.argv[2], encoding="utf-8", errors="replace").read().strip()
+        code = int(sys.argv[3])
+        r = None
+        try:
+            r = json.loads(out)
+        except ValueError:
+            pass
+        if code in (0, 1, 2) and isinstance(r, dict) and r.get("verdict"):
+            v = r["verdict"]
+        elif code == 2 and not out.strip():
+            v = "refused"
+        else:
+            v = "error"
+        open(sys.argv[4], "w").write(v)
+        r = r if isinstance(r, dict) else {}
         clean = lambda t: str(t).replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A").replace("::", ": :")
-        v = r.get("verdict")
+        w = r.get("version_written_at_publish") or {}
+        nxt = {
+            "clean": "nothing to do.", "would_be_clean": "nothing to do.", "tag_matches": "nothing to do.",
+            "drift": "one label names more than one state of the code; give the next release a new version.",
+            "would_drift": "do not tag: this version already names other code. Change the version first.",
+            "tag_mismatch": "bump the version, commit, and tag again with a new name.",
+            "no_labels": "set version-file (and version-regex if the line is not version = \"...\").",
+            "no_label_at_head": "set version-file (and version-regex if the line is not version = \"...\").",
+            "empty_closure": "the closure globs match no file; set closure to the files that build your output.",
+            "empty_closure_at_head": "the closure globs match no file here; set closure to the files that build your output.",
+            "inconclusive": "run closure_drift --diagnose to see each tag and where its label came from.",
+            "no_publication_points": "no tag matched; check tags, or tag your releases.",
+            "refused": "the detector refused: %s" % (err.splitlines()[0] if err else "no message"),
+            "error": "the detector did not finish; this is not a result.",
+        }.get(v, "read the note above.")
+        if v == "incomplete":
+            if w:
+                nxt = ("%s:%s writes the version at release time; the repository cannot tell what was published. "
+                       "Check the version inside the built package, or its provenance." % (w.get("file"), w.get("line")))
+            elif r.get("version_files_not_read") or r.get("contradicted_sources"):
+                nxt = "set version-file to the file your releases use."
+        print("closure_drift: %s (exit %d)" % (v.upper().replace("_", " "), 2 if v == "error" else code))
+        if r.get("note"):
+            print(r["note"])
+        if r.get("points_with_empty_closure"):
+            print("points with empty closure: %d of %s; nothing was measured there (R18-02)"
+                  % (r["points_with_empty_closure"], r.get("publication_points_scanned", "?")))
+        if err and v in ("refused", "error"):
+            print(err)
+        print("Next: " + nxt + (" Exit 2 is not a pass." if code == 2 or v == "error" else ""))
         if v == "would_drift":
             print("::error title=closure_drift: this version already names other code::The label %s at this commit "
                   "is already declared, with different code, at: %s. Change the version before tagging."
@@ -88,26 +163,33 @@ runs:
             for label, states in list(r.get("drift", {}).items())[:10]:
                 print("::error title=closure_drift: one label, more than one closure::The label %s names %d "
                       "different closures: %s" % (clean(label), len(states), clean("; ".join(states.values()))))
+        elif v == "error":
+            print("::error title=closure_drift: the detector did not finish::exit %d. This is not a result." % code)
         elif v not in ("clean", "would_be_clean", "tag_matches"):
-            print("::warning title=closure_drift: nothing was determined::verdict %s" % clean(v))
-        import os
+            print("::warning title=closure_drift: nothing was determined::%s. %s" % (clean(v), clean(nxt)))
         summary = os.environ.get("GITHUB_STEP_SUMMARY")
         if summary:
             cell = lambda t: str(t).replace("|", "\\|").replace("\n", " ").replace("<", "&lt;")
-            rows = [("verdict", "**%s**" % cell(v)),
-                    ("measured at", cell(r.get("stamp", {}).get("measured_at_head", ""))),
-                    ("detector", cell(r.get("stamp", {}).get("detector_closure", "")))]
+            rows = [("verdict", "**%s**" % cell(v)), ("next", cell(nxt))]
+            if v in ("refused", "error"):
+                rows.append(("detector said", cell(err or "(nothing)")))
+            rows += [("measured at", cell(r.get("stamp", {}).get("measured_at_head", ""))),
+                     ("detector", cell(r.get("stamp", {}).get("detector_closure", "")))]
             for key in ("tag", "label_at_tag", "label_at_head", "labels", "labels_covering_multiple_closures",
                         "publication_points_scanned", "publication_points_compared", "points_without_label"):
                 if key in r:
                     rows.append((key.replace("_", " "), cell(r[key])))
+            if r.get("points_with_empty_closure"):
+                rows.append(("points with empty closure", cell(r["points_with_empty_closure"])))
             with open(summary, "a", encoding="utf-8") as fh:
                 fh.write("### closure_drift\n\n| | |\n|---|---|\n")
                 fh.write("".join("| %s | %s |\n" % row for row in rows))
         PY
+        verdict=$(cat "$RUNNER_TEMP/closure-drift.verdict")
+        if [ "$verdict" = "error" ]; then code=2; fi
         echo "verdict=$verdict" >> "$GITHUB_OUTPUT"
         echo "code=$code" >> "$GITHUB_OUTPUT"
-        if [ "$code" = "2" ] && [ "$CD_ALLOW" = "true" ]; then
+        if [ "$code" = "2" ] && [ "$CD_ALLOW" = "true" ] && [ "$verdict" != "error" ]; then
           echo "::notice::closure_drift: nothing could be determined ($verdict); allowed by allow-undetermined"
           exit 0
         fi

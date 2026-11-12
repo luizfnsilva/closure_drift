@@ -2854,6 +2854,277 @@ def act01(root):
               "%s %s: exit %d, %r; required %d and %s" % (ref_type, ref_name, p.returncode, out[-200:], want_rc, want_text))
 
 
+# ---------------------------------------------------------------- §33 — 1.7.1 (the Action)
+
+def _act_script(root):
+    action = Path(DETECTOR).parent / "action.yml"
+    if not action.is_file():
+        raise NotRun("no action.yml next to the detector")
+    bash = shutil.which("bash")
+    if bash is None or os.name == "nt":
+        raise NotRun("the Action's step is run with bash, as on a Linux or macOS runner")
+    text = action.read_text(encoding="utf-8")
+    lines = text.split("      run: |\n", 1)[1].splitlines()
+    script = "\n".join(l[8:] for l in lines if l.startswith("        ") or not l.strip())
+    path = root / "act.sh"
+    path.write_text(script, encoding="utf-8")
+    return bash, path
+
+
+def _act(root, repo, cwd=None, home=None, **inputs):
+    """Run the Action's step as a runner would; returns (exit, log, outputs, summary)."""
+    bash, script = _act_script(root)
+    for f in ("out", "summary"):
+        (root / f).write_text("", encoding="utf-8")
+    env = dict(ENV, CD_MODE=inputs.get("mode", "measure"), CD_REF_TYPE=inputs.get("ref_type", "branch"),
+               CD_REF_NAME=inputs.get("ref_name", "main"), CD_PATH=str(repo.path), CD_ARGS=inputs.get("args", ""),
+               CD_CLOSURE=inputs.get("closure", ""), CD_TAGS=inputs.get("tags", ""),
+               CD_VERSION_FILE=inputs.get("version_file", ""), CD_VERSION_REGEX=inputs.get("version_regex", ""),
+               CD_ALLOW=inputs.get("allow", "false"), CD_HOME=str(home or Path(DETECTOR).parent),
+               RUNNER_TEMP=str(root), GITHUB_OUTPUT=str(root / "out"), GITHUB_STEP_SUMMARY=str(root / "summary"))
+    p = subprocess.run([bash, str(script)], capture_output=True, env=env, stdin=subprocess.DEVNULL,
+                       cwd=str(cwd or root))
+    outputs = dict(l.split("=", 1) for l in (root / "out").read_text(encoding="utf-8").splitlines() if "=" in l)
+    log = p.stdout.decode("utf-8", "replace") + p.stderr.decode("utf-8", "replace")
+    return p.returncode, log, outputs, (root / "summary").read_text(encoding="utf-8")
+
+
+def _two_states(root, name, folder="src"):
+    r = Repo(root, name)
+    r.write("VERSION", "1.0\n")
+    r.write("%s/a.py" % folder, "1\n")
+    r.commit()
+    r.tag("v1.0")
+    r.write("%s/a.py" % folder, "2\n")
+    r.commit()
+    r.tag("v1.0-again")
+    return r
+
+
+@proof("ACT02")
+def act02(root):
+    r = _two_states(root, "act02")
+    rc, _d, _o, _e = run(r, "--closure", "src/**")
+    check(rc == 1, "command line --closure src/**: exit %d, required 1 (drift)" % rc)
+    rc, log, out, _s = _act(root, r, args="--closure 'src/**'")
+    check(rc == 1 and out.get("verdict") == "drift",
+          "args --closure 'src/**': exit %d, verdict %r; required 1 and drift: %s" % (rc, out.get("verdict"), log[-200:]))
+
+
+@proof("ACT03")
+def act03(root):
+    r = _two_states(root, "act03")
+    cwd = root / "act03-cwd"
+    (cwd / "src").mkdir(parents=True)
+    (cwd / "src" / "other.txt").write_text("x\n", encoding="utf-8")
+    rc, log, out, _s = _act(root, r, cwd=cwd, args="--closure src/*")
+    check(rc == 1 and out.get("verdict") == "drift",
+          "args --closure src/* with src/other.txt in the working directory: exit %d, verdict %r; "
+          "required 1 and drift (the glob is the detector's, not the shell's)" % (rc, out.get("verdict")))
+
+
+@proof("ACT04")
+def act04(root):
+    r = _two_states(root, "act04")
+    rc, log, out, _s = _act(root, r, args="--closure 'src/**")
+    check(rc == 2 and "args" in log and not (root / "closure-drift.json").exists(),
+          "unclosed quote: exit %d; required 2, an error naming args and no report: %s" % (rc, log[-200:]))
+
+
+@proof("ACT05")
+def act05(root):
+    r = _two_states(root, "act05")
+    rc, _d, _o, err = run(r, "--tag", "v9.9")
+    check(rc == 2 and err.strip(), "command line --tag v9.9: exit %d, required a refusal" % rc)
+    rc, log, out, summary = _act(root, r, mode="tag", ref_type="tag", ref_name="v9.9")
+    check(rc == 2 and out.get("verdict") == "refused" and err.strip().splitlines()[0] in summary,
+          "--tag v9.9 through the Action: exit %d, verdict %r; required 2, refused, and the detector's "
+          "message in the summary" % (rc, out.get("verdict")))
+
+
+@proof("ACT06")
+def act06(root):
+    r = _two_states(root, "act06")
+    home = root / "act06-home"
+    home.mkdir()
+    (home / "closure_drift.py").write_text("import sys\nprint('{not json')\nsys.exit(3)\n", encoding="utf-8")
+    rc, log, out, _s = _act(root, r, home=home, allow="true")
+    check(rc == 2 and out.get("verdict") == "error",
+          "a detector that crashes (exit 3, bad JSON) under allow-undetermined: exit %d, verdict %r; "
+          "required 2 and error" % (rc, out.get("verdict")))
+
+
+@proof("ACT07")
+def act07(root):
+    r = Repo(root, "act07")
+    r.write("VERSION", "1.0\n")
+    r.write("docs dir/a.py", "1\n")
+    r.write("other/b.py", "1\n")
+    r.commit()
+    r.tag("v1.0")
+    r.write("other/b.py", "2\n")
+    r.commit()
+    r.tag("v1.0-again")
+    r.write("VERSION", "2.0\n")
+    r.write("docs dir/a.py", "2\n")
+    r.commit()
+    r.tag("v2.0")
+    rc, _d, _o, _e = run(r, "--closure", "docs dir/**")
+    check(rc == 0, "command line --closure 'docs dir/**': exit %d, required 0 (only other/ changed)" % rc)
+    rc, log, out, _s = _act(root, r, closure="docs dir/**")
+    check(rc == 0 and out.get("verdict") == "clean",
+          "closure: docs dir/** through the Action: exit %d, verdict %r; required 0 and clean, "
+          "as on the command line" % (rc, out.get("verdict")))
+
+
+@proof("ACT08")
+def act08(root):
+    r = _two_states(root, "act08")
+    home = root / "act08-home"
+    home.mkdir()
+    calls = root / "act08-calls"
+    (home / "closure_drift.py").write_text(
+        "import runpy, sys\nopen(%r, 'a').write('x')\nsys.argv[0] = %r\nrunpy.run_path(%r, run_name='__main__')\n"
+        % (str(calls), DETECTOR, DETECTOR), encoding="utf-8")
+    rc, log, out, _s = _act(root, r, home=home)
+    n = len(calls.read_text()) if calls.exists() else 0
+    check(rc == 1 and n == 1, "one step: the detector ran %d time(s), exit %d; required once, exit 1" % (n, rc))
+
+
+@proof("ACT09")
+def act09(root):
+    r = _two_states(root, "act09")
+    rc, log, out, _s = _act(root, r, closure="nothing/**", args="--closure 'nothing/**'")
+    check(rc == 2, "a closure matching no file: exit %d, verdict %r; required 2, never a pass" % (rc, out.get("verdict")))
+
+
+# ---------------------------------------------------------------- §34 R18-02 — empty closures
+
+def _three_labels(root, name, layout):
+    """layout: per tag, {path: content}; VERSION is 1.0, 2.0, 3.0."""
+    r = Repo(root, name)
+    for i, files in enumerate(layout, 1):
+        for path in list(r.path.rglob("*")):
+            if path.is_file() and ".git" not in path.parts and path.name != "VERSION":
+                path.unlink()
+        r.write("VERSION", "%d.0\n" % i)
+        for path, content in files.items():
+            r.write(path, content)
+        r.commit()
+        r.tag("v%d.0" % i)
+    return r
+
+
+@proof("EC01")
+def ec01(root):
+    r = _three_labels(root, "ec01", [{"src/a.py": "1\n"}, {"src/a.py": "2\n"}, {"src/a.py": "3\n"}])
+    expect(r, "empty_closure", 2, "--closure", "nothing/**")
+    rc, log, out, _s = _act(root, r, closure="nothing/**")
+    check(rc == 2 and out.get("verdict") == "empty_closure", "Action: exit %d, verdict %r; required 2, empty_closure" % (rc, out.get("verdict")))
+
+
+@proof("EC02")
+def ec02(root):
+    r = _three_labels(root, "ec02", [{"lib/a.py": "1\n"}, {"lib/a.py": "2\n"}, {"pkg/a.py": "2\n"}])
+    expect(r, "clean", 0, "--closure", "lib/**")
+    expect(r, "empty_closure_at_head", 2, "--closure", "lib/**", "--would-tag")
+    rc, log, out, _s = _act(root, r, mode="would-tag", closure="lib/**")
+    check(rc == 2 and out.get("verdict") == "empty_closure_at_head",
+          "Action would-tag: exit %d, verdict %r; required 2, empty_closure_at_head" % (rc, out.get("verdict")))
+
+
+@proof("EC03")
+def ec03(root):
+    r = _three_labels(root, "ec03", [{"other.txt": "1\n"}, {"src/a.py": "1\n"}, {"src/a.py": "2\n"}])
+    doc = expect(r, "clean", 0, "--closure", "src/**")
+    check(doc.get("points_with_empty_closure") == 1, "points_with_empty_closure %r, required 1" % doc.get("points_with_empty_closure"))
+    rc, log, out, _s = _act(root, r, closure="src/**")
+    check(rc == 0 and "points with empty closure: 1" in log,
+          "Action: exit %d; required 0 and the log naming 1 point with an empty closure: %s" % (rc, log[-200:]))
+
+
+@proof("EC04")
+def ec04(root):
+    r = _three_labels(root, "ec04", [{"src/a.py": "1\n"}, {"src/a.py": "2\n"}, {"src/a.py": "3\n"}])
+    expect(r, "clean", 0, "--closure", "src/**")
+    rc, log, out, _s = _act(root, r, closure="src/**")
+    check(rc == 0 and out.get("verdict") == "clean" and "empty closure" not in log,
+          "Action: exit %d, verdict %r; required 0, clean, no empty points named" % (rc, out.get("verdict")))
+
+
+# ---------------------------------------------------------------- §34 R18-08 — Next: per cause
+
+@proof("NX07")
+def nx07(root):
+    nxt = _next(run(_d4(root, "nx07"), "--tag", "v1.2.0", text=True)[2])
+    check(".github/workflows/publish.yml" in nxt and "built package" in nxt and "not a pass" in nxt,
+          "Next does not name the workflow, the built package and not a pass: %r" % nxt)
+
+
+@proof("NX08")
+def nx08(root):
+    r = _three_labels(root, "nx08", [{"src/a.py": "1\n"}, {"src/a.py": "2\n"}, {"src/a.py": "3\n"}])
+    nxt = _next(run(r, "--closure", "nothing/**", text=True)[2])
+    check("--closure" in nxt and "not a pass" in nxt, "empty_closure: Next does not name --closure: %r" % nxt)
+
+
+@proof("NX09")
+def nx09(root):
+    r = Repo(root, "nx09")
+    r.write("VERSION", "1.0\n")
+    r.write("src/a.py", "1\n")
+    r.commit()
+    r.tag("v1.0")
+    rc, _d, out, _e = run(r, text=True)
+    check(rc == 2, "one label: exit %d, required 2" % rc)
+    nxt = _next(out)
+    check("--diagnose" in nxt and "not a pass" in nxt, "inconclusive: Next does not name --diagnose: %r" % nxt)
+
+
+# ---------------------------------------------------------------- §34 R18-09 — D5
+
+D5_RELEASE = ('on: {release: {types: [published]}}\njobs:\n  release:\n    runs-on: ubuntu-latest\n    steps:\n'
+              '      - name: Set package version\n        run: |\n'
+              '          version="${{ github.event.release.tag_name }}"\n'
+              '          version="${version#v}"\n'
+              '          poetry version --no-interaction "${version}"\n')
+D5_DESCRIBE = ('on: {release: {types: [published]}}\njobs:\n  publish:\n    runs-on: ubuntu-latest\n    steps:\n'
+               '      - run: uv version $(git describe --tags --abbrev=0)\n')
+D5_SED = ('on: {push: {tags: ["v*"]}}\njobs:\n  publish:\n    runs-on: ubuntu-latest\n    steps:\n'
+          '      - run: sed -i "s/^version = .*/version = \\"${GITHUB_REF_NAME#v}\\"/" pyproject.toml\n')
+D5_NO_CMD = ('on: {release: {types: [published]}}\njobs:\n  notes:\n    runs-on: ubuntu-latest\n    steps:\n'
+             '      - run: echo "${{ github.event.release.tag_name }}" > notes.txt\n')
+D5_LITERAL = ('on: {release: {types: [published]}}\njobs:\n  publish:\n    runs-on: ubuntu-latest\n    steps:\n'
+              '      - run: echo "${{ github.event.release.tag_name }}"\n'
+              '      - run: poetry version 1.1.0\n')
+
+
+@proof("D5A")
+def d5a(root):
+    doc = expect(_d4(root, "d5a", workflow=D5_RELEASE), "incomplete", 2, "--tag", "v1.2.0")
+    check((doc.get("version_written_at_publish") or {}).get("line") == 10, "line %r, required 10" % doc.get("version_written_at_publish"))
+
+
+@proof("D5B")
+def d5b(root):
+    expect(_d4(root, "d5b", workflow=D5_DESCRIBE), "incomplete", 2, "--tag", "v1.2.0")
+
+
+@proof("D5C")
+def d5c(root):
+    expect(_d4(root, "d5c", workflow=D5_SED), "tag_mismatch", 1, "--tag", "v1.2.0")
+
+
+@proof("D5D")
+def d5d(root):
+    expect(_d4(root, "d5d", workflow=D5_NO_CMD), "tag_mismatch", 1, "--tag", "v1.2.0")
+
+
+@proof("D5E")
+def d5e(root):
+    expect(_d4(root, "d5e", workflow=D5_LITERAL), "tag_mismatch", 1, "--tag", "v1.2.0")
+
+
 # ---------------------------------------------------------------- §29 — 1.5.0
 
 def _workspace(root, name):

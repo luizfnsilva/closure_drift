@@ -47,6 +47,11 @@ def main():
         "CHANGELOG.md (first entry)": ler("CHANGELOG.md", primeiro_cabecalho=True),
         "closure_drift.py __version__": ler("closure_drift.py", r'(?m)^__version__\s*=\s*"([^"]+)"'),
     }
+    # The MCP entry and the container it names (§34 R18-10): one version, read, not remembered.
+    fontes["server.json version"] = ler("integrations/mcp/server.json", r'(?m)^  "version":\s*"([^"]+)"')
+    fontes["server.json image"] = ler("integrations/mcp/server.json", r'closure_drift:(\d+\.\d+\.\d+)"')
+    fontes["closure_drift_mcp.py serverInfo"] = ler(
+        "closure_drift_mcp.py", r'"serverInfo":\s*\{"name":\s*"closure_drift",\s*"version":\s*"([^"]+)"')
     if a.tag:
         fontes["tag"] = a.tag[1:] if a.tag.startswith("v") else a.tag
 

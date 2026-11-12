@@ -102,6 +102,60 @@ jobs:
       - name: Controls — each broken detector must turn its property red
         run: python tests/properties.py --controls
 
+  action:
+    # §33 / R18-01: the Action itself, through uses: ./, on a runner of each kind. A quoted glob and a
+    # path with a space must reach the detector intact, and a drift must fail the step (R18-05).
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: build a repository whose label 1.0 names two states of "docs dir/"
+        shell: bash
+        run: |
+          d="$RUNNER_TEMP/fixture"; mkdir -p "$d/docs dir"; cd "$d"
+          git init -q; git config user.email ci@example.invalid; git config user.name ci
+          echo 1.0 > VERSION; echo 1 > "docs dir/a.py"; echo 1 > other.txt
+          git add -A; git commit -qm one; git tag v1.0
+          echo 2 > "docs dir/a.py"; git commit -qam two; git tag v1.0-again
+          echo 2.0 > VERSION; git commit -qam three; git tag v2.0
+          echo "FIXTURE=$d" >> "$GITHUB_ENV"
+      - id: typed
+        uses: ./
+        continue-on-error: true
+        with:
+          mode: measure
+          path: ${{ env.FIXTURE }}
+          closure: docs dir/**
+      - id: quoted
+        uses: ./
+        continue-on-error: true
+        with:
+          mode: measure
+          path: ${{ env.FIXTURE }}
+          args: --closure 'docs dir/**'
+      - id: nothing
+        uses: ./
+        continue-on-error: true
+        with:
+          mode: measure
+          path: ${{ env.FIXTURE }}
+          closure: nothing/**
+          allow-undetermined: "true"
+      - name: required outputs
+        shell: bash
+        env:
+          T: ${{ steps.typed.outputs.verdict }}/${{ steps.typed.outputs.exit-code }}/${{ steps.typed.outcome }}
+          Q: ${{ steps.quoted.outputs.verdict }}/${{ steps.quoted.outputs.exit-code }}/${{ steps.quoted.outcome }}
+          N: ${{ steps.nothing.outputs.verdict }}/${{ steps.nothing.outputs.exit-code }}/${{ steps.nothing.outcome }}
+        run: |
+          echo "typed $T · quoted $Q · nothing $N"
+          [ "$T" = "drift/1/failure" ] && [ "$Q" = "drift/1/failure" ] && [ "$N" = "empty_closure/2/success" ]
+
   mutants:
     # The negative controls run the whole battery once per mutant; on Windows that alone takes
     # hours, so they have a job, and a six-hour limit, of their own (tests/PREREGISTRATION.md §30).
