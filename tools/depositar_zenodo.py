@@ -160,6 +160,34 @@ def metadados(versao):
     return descricao, data
 
 
+REPO = "https://github.com/luizfnsilva/closure_drift"
+MANIFESTO = "DEPOSIT.sha256"
+
+
+def commit_do_deposito():
+    """O commit cujos arquivos sobem. Recusa árvore suja: o registro vai nomear este commit, e
+    os bytes depositados têm de ser os dele (N5 da verificação de 13/11/2026)."""
+    import subprocess
+    sujo = subprocess.run(["git", "-C", RAIZ, "status", "--porcelain", "--untracked-files=no"],
+                          capture_output=True, text=True, check=True).stdout.strip()
+    if sujo:
+        raise SystemExit("a árvore tem mudanças não comitadas — o registro nomearia um commit que não\n"
+                         "é o dos bytes enviados. Comite e torne a rodar.\n" + sujo)
+    return subprocess.run(["git", "-C", RAIZ, "rev-parse", "HEAD"],
+                          capture_output=True, text=True, check=True).stdout.strip()
+
+
+def relacoes(versao, commit):
+    """O registro declara o seu lado da ligação: sem isto, related_identifiers ficava vazio e o
+    DOI não nomeava nem a release nem o commit (verificação externa de 13/11/2026, N5)."""
+    return [
+        {"identifier": "%s/releases/tag/v%s" % (REPO, versao), "relation": "isSupplementTo",
+         "scheme": "url", "resource_type": "software"},
+        {"identifier": "%s/tree/%s" % (REPO, commit), "relation": "isDerivedFrom",
+         "scheme": "url", "resource_type": "software"},
+    ]
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--publicar", action="store_true", help="publica de facto (irreversível: minta o DOI)")
@@ -170,6 +198,7 @@ def main():
     versao = open(os.path.join(RAIZ, "VERSION"), encoding="utf-8").read().strip()
     descricao, data = metadados(versao)
     nove = manifesto()
+    commit = commit_do_deposito()
 
     # Duas entradas com o mesmo basename colidiriam numa chave so, e o deposito ficaria com um
     # arquivo a menos sem que nada reclamasse. Recusa nomeada, antes de qualquer chamada de rede.
@@ -197,7 +226,11 @@ def main():
         for nome in sorted(nove):
             chave = os.path.basename(nome)
             print("       %s%s" % (chave, "" if chave == nome else "   (de %s)" % nome))
+        print("     e o proprio %s (o manifesto vai junto: quem so tem o deposito confere a" % MANIFESTO)
+        print("     completude contra ele; verificacao de 13/11/2026, N4)")
         print("  3. escrever ESTES metadados (nada e herdado do rascunho):")
+        for r in relacoes(versao, commit):
+            print("       related          %s %s" % (r["relation"], r["identifier"]))
         print("       version          %s" % versao)
         print("       publication_date %s   (do cabecalho do CHANGELOG)" % data)
         print("       description      %s, de %s:" % (len(descricao), DESCRICAO))
@@ -228,11 +261,15 @@ def main():
         with open(os.path.join(RAIZ, nome), "rb") as fh:
             pedir("PUT", "%s/%s" % (balde, urllib.parse.quote(chave)), token, binario=fh.read())
         print("  subiu  %s%s" % (chave, "" if chave == nome else "   (de %s)" % nome))
+    with open(os.path.join(RAIZ, MANIFESTO), "rb") as fh:
+        pedir("PUT", "%s/%s" % (balde, MANIFESTO), token, binario=fh.read())
+    print("  subiu  %s   (o manifesto; a linha do DOI ainda diz que ele sera cunhado)" % MANIFESTO)
 
     meta = dict(dep.get("metadata", {}))
     meta["version"] = versao
     meta["description"] = descricao
     meta["publication_date"] = data
+    meta["related_identifiers"] = relacoes(versao, commit)
     meta.pop("doi", None); meta.pop("prereserve_doi", None)
     pedir("PUT", "%s/deposit/depositions/%s" % (API, dep_id), token, dados={"metadata": meta})
 

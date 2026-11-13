@@ -68,3 +68,25 @@ in `CHANGELOG.md`, recorded because it is the subject matter.
 The latest deposit is the supported one. Results from 0.7.1 and earlier on a repository whose
 closure holds a non-ASCII path or a submodule pointer should be measured again, and so should anything measured on Windows with 0.9.0 or earlier. Version 0.1 is superseded: it measured at every commit
 unconditionally and overstates drift for any repository that publishes at tags.
+
+## Verifying a release
+
+Each release from 1.8.1 on carries the wheel, the sdist, `BUILD-ENV` (the tool versions that built
+them) and `SHA256SUMS`, built in CI from the tag by `.github/workflows/release-assets.yml`.
+
+```bash
+sha256sum -c SHA256SUMS
+gh attestation verify closure_drift-<version>-py3-none-any.whl -R luizfnsilva/closure_drift
+```
+
+To rebuild: check out the tag, install the versions named in `BUILD-ENV`, set
+`SOURCE_DATE_EPOCH` to the tag commit's time, run `python -m build --no-isolation` and
+`python tools/normalize_sdist.py dist/*.tar.gz`. Both sha256 should match. The workflow does this
+twice per release and fails if the two builds differ.
+
+Two digests name the same tag. The release attestation's subject
+`pkg:github/luizfnsilva/closure_drift@v<version>` carries the sha1 of the annotated tag object;
+the build provenance carries the commit it points to (`git rev-parse v<version>^{commit}`). Both
+are correct. Compare like with like.
+
+The attestation covers how the bytes were built from the tagged tree, not who wrote the tree.

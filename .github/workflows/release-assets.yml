@@ -32,11 +32,30 @@ jobs:
         env:
           TAG: ${{ inputs.tag }}
         run: python tools/conferir_versao.py --tag "$TAG"
-      - name: Build from the tag
+      - name: Build from the tag, with pinned tools, twice
+        # The tools are pinned and the build runs without isolation, so the backend that builds
+        # is the one named here, and BUILD-ENV records it next to the artifacts. The sdist is
+        # normalized (tools/normalize_sdist.py): setuptools writes the builder's uid, name and
+        # mtimes into it. A second build in a fresh copy must give the same two sha256.
         run: |
           export SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)"
-          python -m pip install --quiet build
-          python -m build
+          python -m pip install --quiet "build==1.6.1" "setuptools==84.2.1"
+          python -m build --no-isolation
+          python tools/normalize_sdist.py dist/*.tar.gz
+          git worktree add -q ../second HEAD
+          (cd ../second && python -m build --no-isolation --outdir dist && python tools/normalize_sdist.py dist/*.tar.gz)
+          (cd dist && sha256sum *.whl *.tar.gz) > first.txt
+          (cd ../second/dist && sha256sum *.whl *.tar.gz) > second.txt
+          cat first.txt
+          diff first.txt second.txt
+          {
+            echo "python $(python -c 'import platform; print(platform.python_version())')"
+            python -m pip --version | cut -d' ' -f1,2
+            python -m pip show build setuptools wheel 2>/dev/null | grep -E '^(Name|Version):' | paste - -
+            echo "SOURCE_DATE_EPOCH $SOURCE_DATE_EPOCH"
+            echo "commit $(git rev-parse HEAD)"
+          } > dist/BUILD-ENV
+          cat dist/BUILD-ENV
       - name: The built module is the tag's module, byte for byte
         run: |
           python - <<'PY'
@@ -50,9 +69,9 @@ jobs:
         run: cd dist && sha256sum * > SHA256SUMS && cat SHA256SUMS
       - uses: actions/attest-build-provenance@v2
         with:
-          subject-path: "dist/*.whl, dist/*.tar.gz"
+          subject-path: "dist/*.whl, dist/*.tar.gz, dist/BUILD-ENV"
       - name: Upload to the draft release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.tag }}
-        run: gh release upload "$TAG" dist/*.whl dist/*.tar.gz dist/SHA256SUMS --clobber
+        run: gh release upload "$TAG" dist/*.whl dist/*.tar.gz dist/BUILD-ENV dist/SHA256SUMS --clobber

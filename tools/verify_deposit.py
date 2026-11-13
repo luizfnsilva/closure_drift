@@ -82,8 +82,24 @@ def check_zenodo(rec_id: str) -> bool:
     print(f"\nrecord    {record['doi']}  (version {record['metadata']['version']})")
     manifest = {rel.split("/")[-1]: want for want, rel in read_manifest()}
     ok = True
+    deposited_manifest = False
     for entry in record["files"]:
         key = entry["key"]
+        if key == "DEPOSIT.sha256":
+            # Deposited since 1.8.1. Its hash lines must equal ours; the comment lines differ by
+            # design (the DOI line is written after minting).
+            with urllib.request.urlopen(entry["links"]["self"], timeout=60) as response:
+                theirs = response.read().decode("utf-8")
+            lines = lambda t: sorted(l.strip() for l in t.splitlines()
+                                     if l.strip() and not l.lstrip().startswith("#"))
+            ours = MANIFEST.read_text(encoding="utf-8")
+            deposited_manifest = True
+            if lines(theirs) == lines(ours):
+                print(f"ok        {key} (hash lines equal the repository's)")
+            else:
+                print(f"MISMATCH  {key}: its hash lines differ from the repository's")
+                ok = False
+            continue
         with urllib.request.urlopen(entry["links"]["self"], timeout=60) as response:
             data = response.read()
         got = hashlib.sha256(data).hexdigest()
@@ -100,13 +116,17 @@ def check_zenodo(rec_id: str) -> bool:
     # The symmetric half, which was missing: a file listed in the manifest and absent from the
     # record is as much a divergence as one present and different, and it is the half that a
     # rename would produce.
+    if not deposited_manifest:
+        print("NOTE      the record carries no DEPOSIT.sha256 (records up to 1.8.0 did not):"
+              " its completeness rests on this repository's copy")
     faltando = set(manifest) - {entry["key"] for entry in record["files"]}
     for key in sorted(faltando):
         print(f"MISSING   {key} is in DEPOSIT.sha256 but not in the record")
         ok = False
-    if len(record["files"]) != len(manifest):
+    if len(record["files"]) != len(manifest) + deposited_manifest:
         print(f"COUNT     the record carries {len(record['files'])} files, "
-              f"the manifest lists {len(manifest)}")
+              f"the manifest lists {len(manifest)}"
+              + (" plus itself" if deposited_manifest else ""))
         ok = False
     return ok
 
