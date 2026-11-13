@@ -3,6 +3,25 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 1.8.1 — 2026-11-13
+
+Release hardening after an external check of the 1.8.0 artifacts. The detector is unchanged.
+
+### Changed
+- `release-assets.yml` pins `build` and `setuptools`, builds twice from the tag with
+  `SOURCE_DATE_EPOCH` and fails if the two differ. `BUILD-ENV` records the tools and is attested
+  with the wheel and sdist.
+- `tools/normalize_sdist.py`: the sdist's tar and gzip headers no longer carry the builder's user,
+  checkout times or build time, so it rebuilds bit for bit (1.8.0's did not).
+- The Zenodo deposit carries `DEPOSIT.sha256` and links to the release tag and the commit; the
+  script refuses a dirty tree. `tools/verify_deposit.py` checks the deposited manifest.
+
+### Added
+- `SECURITY.md`: how to verify a release (hashes, attestation, rebuild).
+
+### Fixed
+- `.claude-plugin/plugin.json` still said 1.5.1.
+
 ## 1.8.0 — 2026-11-11
 
 Release integrity and usability (`tests/PREREGISTRATION.md` §33, §34 and amendments).

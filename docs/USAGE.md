@@ -61,7 +61,7 @@ git clone -q https://github.com/luizfnsilva/closure_drift && python3 closure_dri
 python3 closure_drift/closure_drift.py /path/to/your/repo
 ```
 
-Or without cloning: `curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.8.0/closure_drift.py`
+Or without cloning: `curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.8.1/closure_drift.py`
 then `python3 closure_drift.py` inside any git repository. Needs Python 3.9+ and git. The last
 lines say what to do next. (`./reproduce.sh` is something else: it validates closure_drift itself,
 a long run, and does not look at your repository.)
@@ -86,7 +86,7 @@ drift came about. On a tag push the Action runs `--tag`; on any other push, `--w
 # GitHub Actions
 - uses: actions/checkout@v4
   with: { fetch-depth: 0 }
-- uses: luizfnsilva/closure_drift@v1.8.0
+- uses: luizfnsilva/closure_drift@v1.8.1
 ```
 
 Push the workflow before the first tag: a tag pushed together with the workflow that should run on
@@ -97,7 +97,7 @@ with the default mode from the first tag.
 ```yaml
 # pre-commit, on git push
 - repo: https://github.com/luizfnsilva/closure_drift
-  rev: v1.8.0
+  rev: v1.8.1
   hooks: [{ id: closure-drift-would-tag }]
 ```
 
@@ -291,6 +291,8 @@ both on private repositories. `closure-drift --json > result.json`, then
 or write to lfnsilva.invest@gmail.com. A result showing the tool is wrong is the most useful kind.
 
 ## Version
+
+**1.8.1** changes how a release is built and deposited, not the detector: pinned build tools, two builds compared, a normalized sdist that rebuilds bit for bit, `BUILD-ENV` under the attestation, and a Zenodo record that carries `DEPOSIT.sha256` and links to the tag and commit. `SECURITY.md` says how to check a release.
 
 **1.8.0** fixes how the Action passes `args` (quoted globs reached the detector with the quotes), runs the detector once, adds `closure`, `tags`, `version-file` and `version-regex` inputs, tells `refused` from `error`, names the cause in every exit-2 `Next:` line, and recognises the release event's tag and `git describe --tags` as the source of a version written at publish time.
 

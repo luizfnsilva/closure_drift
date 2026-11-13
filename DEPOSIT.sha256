@@ -1,5 +1,5 @@
 # The nine files of the Zenodo deposit, byte for byte.
-# Version DOI 10.5281/zenodo.24149216 (1.8.0, 2026-11-11) - concept DOI 10.5281/zenodo.21763931
+# Version DOI <to be minted on publication> (1.8.1, 2026-11-13) - concept DOI 10.5281/zenodo.21763931
 # Generated from the bytes of this release AND checked against the published record named above:
 # tools/verify_deposit.py --from-zenodo re-fetches that record and hashes what comes back.
 # tools/verify_deposit.py reads the record id from the line above, and refuses --from-zenodo while
@@ -11,12 +11,12 @@
 # Enforced on every push by .github/workflows/ci.yml.
 # Verify:  python3 tools/verify_deposit.py     (or: shasum -a 256 -c DEPOSIT.sha256)
 #
-df8fc42656be600a4abdb554ec6f6a4899dd92327e30fdd34e2bddc1f1284042  CHANGELOG.md
-947a4eb92758246d091c9000dd22c158f1619ec59f85a800daca948fbe56f98f  CITATION.cff
+d86330197bcc58b2e2cf1a8c9e4299ea474ea7077f2079b457c160e2c1d4ca51  CHANGELOG.md
+3a9563d0aac11c76a93236aebd09adce70f698405ca8ea25f2d9d621bce059f8  CITATION.cff
 cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30  LICENSE
 3f746b33bd6150bdbfea6afbb78e8860e5064403b2bcc224dca9ee7904323e8b  NOTICE
 680bc79eb17c597c1f81c0ed5c4fe0b3ee0a9affd9ffcdaeeed797915b30bc0d  README.md
 79f73d6def48d1eac85698544235512836f044e02b5a37009122d4e1e7b052dd  RESULTS.md
 e131eb60d95e6410dd56c7ae4f164056f7fb05de3654c08ec05f0131a62ee66e  SCOPE.md
-187d0eaaa21ae3c2b25f1984af21fed2adb09137f7aba708249ce288dbd5e864  closure_drift.py
+e25ad74638d592fb0774c543ee577996e958e834e949423ec0bfa15eb5f0ee88  closure_drift.py
 6f8ffb30df2ecd071651dfbd36078664e905f82d2e3e83faca433b6485a662e2  tests/fixture_label_only.py
