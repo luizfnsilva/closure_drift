@@ -1869,3 +1869,21 @@ code is unneeded.
 **Goals that can be checked.** `measure()` no longer mixes preparation, measurement and presentation;
 no decision changes (differential test); the rule behind each verdict can be found by reading one
 function, named in a table in `docs/` written at the end.
+
+**§35, amendment 1 (2026-11-14, still before any code change).**
+- *Immutable reference.* The reference is `closure_drift.py` at tag `v1.8.2`, read by the commit that
+  tag dereferences to (recorded with the file's sha256 when the tag exists), never a branch. Each
+  differential run writes a manifest: sha256 of the reference, of the candidate, of every input
+  (corpus pins, generated fixtures), and of the comparison report.
+- *Operational cost.* On a fixed set of corpus repositories the run records median wall time over
+  repeated runs and the number of `git` subprocesses per run (counted by a `git` wrapper first on
+  `PATH`). Equality is not required; a rise is investigated and explained before the next step.
+- *Move first, simplify later.* Extractions A (preparation: inputs, configuration, references; no
+  verdicts), B (measurement: every path to clean, drift, abstention or refusal kept whole) and C
+  (presentation, only if it is inside `measure()` today: same fields, order and messages) are pure
+  moves. Removing a duplicate read or any other internal change comes after, in its own commit, with
+  its own differential and cost run. The whole differential passes before the next structural commit.
+- No classes, interfaces or configuration objects introduced to shorten functions; a well-named helper
+  and a tuple are preferred.
+- Acceptance: a reviewer follows input → evidence → verdict with less effort, even if the file stays
+  near 2,275 lines.
