@@ -1837,3 +1837,35 @@ reconstructible** — use by others: GitHub code search finds no other repositor
 private or unindexed ones cannot be seen. Old tags are not moved. The defect is in `docs/FAILURES.md`
 (1.8.0), `docs/CI.md` on main says not to put globs in `args` before 1.8.0, and the 1.8.0 release notes
 name it.
+
+## 35. Added 2026-11-14, before any code is changed — 1.9.0, structural only
+
+1.9.0 changes the structure of `closure_drift.py`, not what it decides. No new heuristic, no new
+input, no new output.
+
+**Kept identical.** One distributable Python file, standard library only. Commands, arguments, report
+formats (`report_format: 2`), exit codes, verdict names, abstention and refusal reasons, resource
+limits and the handling of untrusted data.
+
+**Differential test (the gate).** A fixed input set is run with 1.8.2 and with each candidate: every
+repository the batteries build, the 100 corpus repositories at their pinned commits, and the invalid
+inputs of the adversarial suite. Compared: exit code; stdout and stderr byte for byte; JSON parsed,
+with fields and types; abstention and refusal reasons. Normalized before comparing, and only these:
+the `version` field and the detector's own sha256 in the report, and absolute paths of temporary
+directories. Any other difference stops the step until it is explained here.
+
+**Order.** (1) coverage and call map of the batteries, no change; (2) each branch of `measure()`
+classified as domain, safety, compatibility or possibly redundant; (3) `measure()` split into
+preparation, measurement and presentation, one extraction per commit, differential test green after
+each; (4) helpers simplified with no change in any decision; (5) a branch is removed only if it has no
+documented reason, protects no safety condition, and changes no observable result for any valid or
+adversarial input identified, each removal named here before it is made; (6) batteries, mutants,
+corpus and integrations.
+
+**Not a criterion.** Line count, and the length of the largest function: recorded in RECORD as
+indicators, not gates. A surviving mutant or an unexecuted line is a question, not a proof that the
+code is unneeded.
+
+**Goals that can be checked.** `measure()` no longer mixes preparation, measurement and presentation;
+no decision changes (differential test); the rule behind each verdict can be found by reading one
+function, named in a table in `docs/` written at the end.
