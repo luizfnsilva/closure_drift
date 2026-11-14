@@ -1916,3 +1916,11 @@ Gate of the harness, all five before extraction A:
 If any difference appears beyond the pre-registered normalizations (environment, cache or path of the
 reference copy), it is written here before the comparator is changed. Extraction C may be partial or
 dropped: the text report keeps its order in 1.9.0 even where that is less tidy.
+
+**§35, amendment 4 (2026-11-14, while the first null and positive controls of the new hook were running;
+no result seen).** Every `seen` interpreter start falls in exactly one category, and the manifest must
+reconcile them: seen = compared + excluded (`inner`: the reference and candidate children of a compared
+call and the detector's own `--match-on-stdin`; `module_call`: `python -c` importing it; `other`) +
+not concluded (a compared call with `start` and no `end`). Counted, never dropped. The gate also requires
+start = end + not concluded, call = end, and inner = 2 × compared + self-calls (self-calls counted from the
+inner records). Any mismatch fails the gate. `tools/structural/differential/reconcile.py` does this.
