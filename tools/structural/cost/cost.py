@@ -7,7 +7,10 @@ first on PATH counts subprocesses. Prints, per repository, median wall seconds a
 import json, os, statistics, subprocess, sys, time
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
-ref, cand, work = sys.argv[1], sys.argv[2], Path(sys.argv[3]); reps = int(sys.argv[4]) if len(sys.argv) > 4 else 5
+ref, cand, work = sys.argv[1], sys.argv[2], Path(sys.argv[3])
+for f in (ref, cand):   # an empty or missing detector is a harness failure, not a fast candidate
+    if not os.path.isfile(f) or os.path.getsize(f) < 10000:
+        sys.exit(f"refused: {f} is missing or too small to be the detector"); reps = int(sys.argv[4]) if len(sys.argv) > 4 else 5
 work.mkdir(parents=True, exist_ok=True)
 real_git = subprocess.run(["sh", "-c", "command -v git"], capture_output=True, text=True).stdout.strip()
 shim = work / "shim"; shim.mkdir(exist_ok=True)
@@ -34,3 +37,5 @@ for f in corpus:
         line[name] = {"median_s": round(statistics.median(x[0] for x in xs), 3),
                       "git_calls": sorted({x[1] for x in xs}), "exit": sorted({x[2] for x in xs})}
     rows.append(line); print(json.dumps(line), flush=True)
+    if line["ref"]["exit"] != line["cand"]["exit"]:
+        sys.exit(f"FAIL: exit codes differ on {repo}; a cost run compares like with like")
