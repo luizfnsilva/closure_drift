@@ -1391,11 +1391,7 @@ def components(a, head_sha: str, cfg: dict, comps: dict) -> int:
         print(badge(verdict, head_sha[:12]))
         return code
     if a.json:
-        dirty, dirty_note = working_tree_state(a.repo)
-        stamp = {"measured_at_head": head_sha[:12], "working_tree_dirty": dirty,
-                 "detector_closure": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:16]}
-        if dirty_note:
-            stamp["working_tree_dirty_note"] = dirty_note
+        _dirty, _note, stamp = make_stamp(a, head_sha)
         emit({"report_format": REPORT_FORMAT, "stamp": stamp, "mode": "components", "repo": a.repo,
               "measured_at_head": head_sha[:12], "verdict": verdict, "components": reports})
         return code
@@ -1509,20 +1505,24 @@ def scan(a, objects, closure, labels, pts, at, vfile, vsrc, published):
     return by_label, churn, compared, no_label, empty, contradicted, not_voting, rejected, empty_by_label
 
 
+def make_stamp(a, head_sha, closure=None):
+    """Which HEAD and which detector produced a report, and whether the tree was dirty. The closure is
+    given where the report says whether the dirty files are in it (§35 am. 7)."""
+    dirty, dirty_note = working_tree_state(a.repo)
+    stamp = {"measured_at_head": head_sha[:12], "working_tree_dirty": dirty,
+             "detector_closure": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:16]}
+    if dirty_note:
+        stamp["working_tree_dirty_note"] = dirty_note
+    if closure is not None and dirty:
+        stamp["working_tree_dirty_in_closure"] = dirty_in_closure(a.repo, closure)
+    return dirty, dirty_note, stamp
+
+
 def assemble(a, head_sha, closure, pts, compared, no_label, empty, not_commits, truncated, labels, rejected,
              contradicted, not_voting, tag_globs, filtered, published, total, left_out):
     """The stamp and coverage fields of the report, from what the scan counted (§35, extraction B3)."""
-    dirty, dirty_note = working_tree_state(a.repo)
     # the report says which HEAD and which detector produced it
-    stamp = {
-        "measured_at_head": head_sha[:12],
-        "working_tree_dirty": dirty,
-        "detector_closure": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:16],
-    }
-    if dirty_note:
-        stamp["working_tree_dirty_note"] = dirty_note
-    if dirty:
-        stamp["working_tree_dirty_in_closure"] = dirty_in_closure(a.repo, closure)
+    dirty, dirty_note, stamp = make_stamp(a, head_sha, closure)
     coverage = {
         "publication_points_scanned": len(pts),
         "publication_points_compared": compared,
@@ -2020,11 +2020,7 @@ def check_tag(a, objects, labels, head_sha) -> int:
     code = {"tag_matches": 0, "tag_mismatch": 1, "incomplete": 2}[verdict]
     vpath = src[0] if src else None
 
-    dirty, dirty_note = working_tree_state(a.repo)
-    stamp = {"measured_at_head": head_sha[:12], "working_tree_dirty": dirty,
-             "detector_closure": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:16]}
-    if dirty_note:
-        stamp["working_tree_dirty_note"] = dirty_note
+    dirty, dirty_note, stamp = make_stamp(a, head_sha)
     if a.badge:
         print(badge(verdict, stamp["measured_at_head"]))
         return code
@@ -2106,13 +2102,7 @@ def compare(a, objects, closure, labels, vpath, include, head_sha) -> int:
         verdict = "differs_under_two_labels"
     code = {"identical": 0, "differs_under_two_labels": 0, "differs_under_one_label": 1}.get(verdict, 2)
 
-    dirty, dirty_note = working_tree_state(a.repo)
-    stamp = {"measured_at_head": head_sha[:12], "working_tree_dirty": dirty,
-             "detector_closure": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:16]}
-    if dirty_note:
-        stamp["working_tree_dirty_note"] = dirty_note
-    if dirty:
-        stamp["working_tree_dirty_in_closure"] = dirty_in_closure(a.repo, closure)
+    dirty, dirty_note, stamp = make_stamp(a, head_sha, closure)
     if a.badge:
         print(badge(verdict, stamp["measured_at_head"]))
         return code

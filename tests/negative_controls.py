@@ -106,8 +106,8 @@ MUTANTS = [
     ("M57", "LG01", [('self.too_large.add(path)      # not read is not "no version": said, and never clean', 'pass')]),
     ("M33", "MM03", [('        self.held += len(out) + 1\n', '        self.held += 0\n')]),
     ("M58", "VF01", [('q.rsplit("/", 1)[1] in LABEL_FILES]', 'False]')]),
-    ("M59", "DT01", [('stamp["working_tree_dirty_in_closure"] = dirty_in_closure(a.repo, closure)\n    coverage = {',
-                      'stamp["working_tree_dirty_in_closure"] = dirty\n    coverage = {')]),
+    ("M59", "DT01", [('stamp["working_tree_dirty_in_closure"] = dirty_in_closure(a.repo, closure)\n    return dirty, dirty_note, stamp',
+                      'stamp["working_tree_dirty_in_closure"] = dirty\n    return dirty, dirty_note, stamp')]),   # §35 am. 7: anchor in make_stamp()
     ("M63", "NX03", [('    print_next(TAG_NEXT if verdict', '    print_next("x" if verdict')]),
     ("M64", "NX04", [('        print(f"never in it       {NEVER_IN_CLOSURE}; a --closure glob that names one of these folders brings it in"\n'
                      '              + (f"\\n                  brought in here: {\', \'.join(sorted(f + \'/\' for f in brought))}" if brought else ""))\n', '')]),

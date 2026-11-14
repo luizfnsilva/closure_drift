@@ -1939,3 +1939,15 @@ the hook equal those without it in the null control (275 · 274 · 0 · 1; 304 �
 `harness_error` remained in each, after a compared call (EC33): the call had stdout closed and the hook tried
 to replay into it. The comparison was made; the replay failed and handed back 97. Fix: replay only into the
 streams the call has; the exit code is always the candidate's. Gate unchanged.
+
+**§35, amendment 7 (2026-11-14) — stage 4, after measuring duplication and before changing code.**
+Measured on the code after extraction C: 10 windows of three normalized lines repeat across functions.
+Consolidated, one: the report stamp (HEAD, dirty tree, detector hash) is built the same way, same keys in the
+same order, in `components()`, `assemble()`, `check_tag()` and `compare()`; `assemble()` and `compare()` also
+add `working_tree_dirty_in_closure`. It becomes `make_stamp(a, head_sha, closure=None)`, the closure given only
+where it was used before. Mutant M59 anchors on the old line in `assemble()`; its anchor moves to the line in
+`make_stamp()` and its change stays the same (`working_tree_dirty_in_closure` = `dirty`). The mutant now
+reaches the `--compare` stamp as well; proof DT01 must still catch it. Not consolidated, with the reason: the
+`ast.parse` under `warnings` in `imported_from()` and `setup_info()` (three lines, a helper would add a jump
+for no clarity) and the `--badge` / `--json` openings in four report paths (two lines each). Gate: the full
+differential at zero differences, cost unchanged, mutants in CI with M59 caught.
