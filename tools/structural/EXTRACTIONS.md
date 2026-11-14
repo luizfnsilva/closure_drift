@@ -5,6 +5,7 @@
 | A preparação → `prepare()` | 07b1533 | 0 diferenças em 2.696 chamadas; 8.163 = 2.696 + 5.467 + 0; 0 erros; totais 275·274·0·1 / 304·2·9 / 17·17 | chamadas git iguais (132, 38, 209, 211, 185); tempo −2% a +0,4% | pendente |
 | B1 veredito → `decide()` | 54e5b82 | 0 diferenças em 2.696; 8.163 = 2.696 + 5.467 + 0; 0 erros; totais iguais | chamadas git iguais (132, 38, 209, 211, 185); tempo −5% a 0% | pendente |
 | B2 varredura → `scan()` | efadbb8 | 0 diferenças em 2.696; 8.163 = 2.696 + 5.467 + 0; 0 erros; totais iguais | chamadas git iguais; tempo −0,8% a +0,6% | pendente |
+| B3 stamp/coverage → `assemble()` | 595d2cb | 0 diferenças em 2.696; 8.163 = 2.696 + 5.467 + 0; 0 erros; totais iguais | chamadas git iguais; tempo −0,2% a +0,4% | pendente |
 
 Custo da A, referência × candidata (s; chamadas git): wrapt 1,744×1,751 (132); python-multipart 0,541×0,543 (38);
 starlette 2,689×2,700 (209); uvicorn 2,676×2,661 (211); rich 2,413×2,365 (185). Saídas 2, 0, 1, 0, 1 nos dois.

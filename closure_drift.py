@@ -1575,93 +1575,11 @@ def decide(a, drifting, contradicted, labels, empty, pts, by_label, no_label, tr
     return verdict, code
 
 
-def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vregex, cfg) -> int:
-    head_entries, published, labels, vsrc, vpath, include, closure = prepare(a, objects, head_sha, at,
-                                                                              vfile, vregex, cfg)
-
-    if a.compare:
-        return compare(a, objects, closure, labels, vpath, include, head_sha)
-    if a.tag is not None:
-        return check_tag(a, objects, labels, head_sha)
-
-    # --would-tag looks at every tag: a collision with an old tag is a collision
-    limit = a.max_commits if not a.would_tag else 10 ** 9
-    pts, total, not_commits, filtered, left_out = publication_points(a.repo, at, limit, tag_globs, published)
-    if not pts and (not a.would_tag or (tag_globs and filtered) or (published is not None and left_out)):
-        msg = ("no tags found — this repository publishes nothing addressable by tag. "
-               "If it publishes continuously, rerun with --at commits.")
-        if tag_globs and filtered:
-            msg = (f"no tag matches --tags {printable(' '.join(tag_globs))}: "
-                   f"{filtered} tag(s) were left out and none remain.")
-        if published is not None and left_out:
-            msg = (f"no tag is on the --published list: {left_out} tag(s) were left out of this "
-                   "analysis" + (f", and {filtered} by --tags" if tag_globs and filtered else "")
-                   + "; none remain.")
-        if a.json:
-            emit({"report_format": REPORT_FORMAT, "verdict": "no_publication_points", "note": msg})
-        else:
-            print(msg, file=sys.stderr)
-        return 2
-
-    if not vfile and vsrc is None and not a.would_tag and not any(root_has_source(objects, s) for s, _d, _n in pts):
-        raise no_label_refusal(a.repo)
-
-    by_label, churn, compared, no_label, empty, contradicted, not_voting, rejected, empty_by_label = scan(
-        a, objects, closure, labels, pts, at, vfile, vsrc, published)
-    if not (a.json or a.badge):
-        print(f"repository        {printable(a.repo)}")
-        print(f"version from      {printable(vpath or '(nothing at HEAD)')}")
-        print(f"closure           {printable(', '.join(include))}")
-        brought = set().union(*(named_folders(g) for g in include))
-        print(f"never in it       {NEVER_IN_CLOSURE}; a --closure glob that names one of these folders brings it in"
-              + (f"\n                  brought in here: {', '.join(sorted(f + '/' for f in brought))}" if brought else ""))
-        print(f"publication point {at} ({len(pts)} scanned"
-              + (f", the most recent of {total}" if total > len(pts) else "")
-              + (f"; --tags {printable(' '.join(tag_globs))}" if tag_globs else "") + ")"
-              + (f"\n                  {left_out} tag(s) not on --published left out of this analysis "
-                 "(not shown unpublished)" if published is not None else "") + "\n")
-
-    if labels.equality == "version" and not a.would_tag:
-        # the report names labels as the files declare them: `1.0 = 1.0.0`, never a key no file wrote
-        by_label = defaultdict(dict, {" = ".join(sorted(labels.spellings.get(k) or {k})): cs for k, cs in by_label.items()})
-        if a.explain is not None:
-            a.explain = next((k for k in by_label if version_key(a.explain) in {version_key(s) for s in k.split(" = ")}),
-                             a.explain)
-    drifting = {v: cs for v, cs in by_label.items() if len(cs) > 1}
-    worst = max((len(cs) for cs in by_label.values()), default=0)
-    truncated = total > len(pts)
-    mechanisms = drift_mechanisms(drifting) if at == "tags" else {}
-
-    # tag families: colliding tags with different prefixes (`py-1.2.0`, `rs-1.2.0`) are pointed out
-    families: dict[str, int] = {}
-    if at == "tags":
-        for cs in drifting.values():
-            for s in cs.values():
-                m = re.match(r"^(.*?)[vV]?\d", s["name"])
-                prefix = m.group(1) if m else s["name"]
-                families[prefix] = families.get(prefix, 0) + 1
-    if len(families) < 2:
-        families = {}
-
-    dirty, dirty_note, stamp, coverage = assemble(
-        a, head_sha, closure, pts, compared, no_label, empty, not_commits, truncated, labels, rejected,
-        contradicted, not_voting, tag_globs, filtered, published, total, left_out)
-
-    if a.would_tag:
-        return would_tag(a, closure, head_entries, labels, vpath, by_label,
-                         drifting, stamp, coverage, at, include, dirty, dirty_note, empty_by_label, contradicted)
-
-    verdict, code = decide(a, drifting, contradicted, labels, empty, pts, by_label, no_label, truncated, compared)
-
-    explained = None
-    if a.explain is not None:
-        if a.explain not in drifting:
-            raise Refusal(f"--explain {a.explain!r}: that label does not cover more than one closure "
-                          "over the range scanned" + (f"; labels in drift: "
-                          f"{printable(', '.join(sorted(drifting)[:10]))}" if drifting else "."))
-        explained = explain(objects, closure, drifting[a.explain])
-        explained["label"] = a.explain
-
+def report(*, a, at, by_label, churn, code, compared, contradicted, coverage, dirty, dirty_note, drifting,
+            empty, explained, families, include, labels, mechanisms, no_label, stamp, total, verdict, vfile,
+            vpath, vregex, worst):
+    """--badge, --json or the text report of a tags or commits scan, in the order 1.8.2 prints them
+    (§35, extraction C; the header stays in measure(), before --explain can refuse)."""
     if a.badge:
         print(badge(verdict, stamp["measured_at_head"], at))
         return code
@@ -1771,6 +1689,100 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
     print_method(stamp, dirty, dirty_note)
     return code
 
+
+def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vregex, cfg) -> int:
+    head_entries, published, labels, vsrc, vpath, include, closure = prepare(a, objects, head_sha, at,
+                                                                              vfile, vregex, cfg)
+
+    if a.compare:
+        return compare(a, objects, closure, labels, vpath, include, head_sha)
+    if a.tag is not None:
+        return check_tag(a, objects, labels, head_sha)
+
+    # --would-tag looks at every tag: a collision with an old tag is a collision
+    limit = a.max_commits if not a.would_tag else 10 ** 9
+    pts, total, not_commits, filtered, left_out = publication_points(a.repo, at, limit, tag_globs, published)
+    if not pts and (not a.would_tag or (tag_globs and filtered) or (published is not None and left_out)):
+        msg = ("no tags found — this repository publishes nothing addressable by tag. "
+               "If it publishes continuously, rerun with --at commits.")
+        if tag_globs and filtered:
+            msg = (f"no tag matches --tags {printable(' '.join(tag_globs))}: "
+                   f"{filtered} tag(s) were left out and none remain.")
+        if published is not None and left_out:
+            msg = (f"no tag is on the --published list: {left_out} tag(s) were left out of this "
+                   "analysis" + (f", and {filtered} by --tags" if tag_globs and filtered else "")
+                   + "; none remain.")
+        if a.json:
+            emit({"report_format": REPORT_FORMAT, "verdict": "no_publication_points", "note": msg})
+        else:
+            print(msg, file=sys.stderr)
+        return 2
+
+    if not vfile and vsrc is None and not a.would_tag and not any(root_has_source(objects, s) for s, _d, _n in pts):
+        raise no_label_refusal(a.repo)
+
+    by_label, churn, compared, no_label, empty, contradicted, not_voting, rejected, empty_by_label = scan(
+        a, objects, closure, labels, pts, at, vfile, vsrc, published)
+    if not (a.json or a.badge):
+        print(f"repository        {printable(a.repo)}")
+        print(f"version from      {printable(vpath or '(nothing at HEAD)')}")
+        print(f"closure           {printable(', '.join(include))}")
+        brought = set().union(*(named_folders(g) for g in include))
+        print(f"never in it       {NEVER_IN_CLOSURE}; a --closure glob that names one of these folders brings it in"
+              + (f"\n                  brought in here: {', '.join(sorted(f + '/' for f in brought))}" if brought else ""))
+        print(f"publication point {at} ({len(pts)} scanned"
+              + (f", the most recent of {total}" if total > len(pts) else "")
+              + (f"; --tags {printable(' '.join(tag_globs))}" if tag_globs else "") + ")"
+              + (f"\n                  {left_out} tag(s) not on --published left out of this analysis "
+                 "(not shown unpublished)" if published is not None else "") + "\n")
+
+    if labels.equality == "version" and not a.would_tag:
+        # the report names labels as the files declare them: `1.0 = 1.0.0`, never a key no file wrote
+        by_label = defaultdict(dict, {" = ".join(sorted(labels.spellings.get(k) or {k})): cs for k, cs in by_label.items()})
+        if a.explain is not None:
+            a.explain = next((k for k in by_label if version_key(a.explain) in {version_key(s) for s in k.split(" = ")}),
+                             a.explain)
+    drifting = {v: cs for v, cs in by_label.items() if len(cs) > 1}
+    worst = max((len(cs) for cs in by_label.values()), default=0)
+    truncated = total > len(pts)
+    mechanisms = drift_mechanisms(drifting) if at == "tags" else {}
+
+    # tag families: colliding tags with different prefixes (`py-1.2.0`, `rs-1.2.0`) are pointed out
+    families: dict[str, int] = {}
+    if at == "tags":
+        for cs in drifting.values():
+            for s in cs.values():
+                m = re.match(r"^(.*?)[vV]?\d", s["name"])
+                prefix = m.group(1) if m else s["name"]
+                families[prefix] = families.get(prefix, 0) + 1
+    if len(families) < 2:
+        families = {}
+
+    dirty, dirty_note, stamp, coverage = assemble(
+        a, head_sha, closure, pts, compared, no_label, empty, not_commits, truncated, labels, rejected,
+        contradicted, not_voting, tag_globs, filtered, published, total, left_out)
+
+    if a.would_tag:
+        return would_tag(a, closure, head_entries, labels, vpath, by_label,
+                         drifting, stamp, coverage, at, include, dirty, dirty_note, empty_by_label, contradicted)
+
+    verdict, code = decide(a, drifting, contradicted, labels, empty, pts, by_label, no_label, truncated, compared)
+
+    explained = None
+    if a.explain is not None:
+        if a.explain not in drifting:
+            raise Refusal(f"--explain {a.explain!r}: that label does not cover more than one closure "
+                          "over the range scanned" + (f"; labels in drift: "
+                          f"{printable(', '.join(sorted(drifting)[:10]))}" if drifting else "."))
+        explained = explain(objects, closure, drifting[a.explain])
+        explained["label"] = a.explain
+
+    return report(
+        a=a, at=at, by_label=by_label, churn=churn, code=code, compared=compared, contradicted=contradicted,
+        coverage=coverage, dirty=dirty, dirty_note=dirty_note, drifting=drifting, empty=empty,
+        explained=explained, families=families, include=include, labels=labels, mechanisms=mechanisms,
+        no_label=no_label, stamp=stamp, total=total, verdict=verdict, vfile=vfile, vpath=vpath,
+        vregex=vregex, worst=worst)
 
 def would_tag(a, closure, head_entries, labels, vpath, by_label, drifting,
               stamp, coverage, at, include, dirty, dirty_note, empty_labelled, contradicted) -> int:
