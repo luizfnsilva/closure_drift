@@ -1445,6 +1445,28 @@ def prepare(a, objects: Objects, head_sha: str, at: str, vfile, vregex, cfg):
     return head_entries, published, labels, vsrc, vpath, include, closure
 
 
+def decide(a, drifting, contradicted, labels, empty, pts, by_label, no_label, truncated, compared):
+    """The verdict of a tags or commits scan, and its exit code (§35, extraction B). Every rule is here."""
+    if drifting:
+        verdict = "drift"
+    elif contradicted or labels.sources.too_large:
+        verdict = "incomplete"
+    elif empty == len(pts):
+        verdict = "empty_closure"
+    elif not by_label:
+        verdict = "no_labels"
+    elif len(by_label) == 1:
+        verdict = "inconclusive"
+    elif labels.conflicts or (a.strict and (no_label or empty or truncated)) or compared < no_label + empty:
+        # `clean` rests on at least as many compared points as uncompared ones
+        verdict = "incomplete"
+    else:
+        verdict = "clean"
+    # 0 is `clean` and nothing else: an absence of measurement is not a pass
+    code = {"clean": 0, "drift": 1}.get(verdict, 2)
+    return verdict, code
+
+
 def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vregex, cfg) -> int:
     head_entries, published, labels, vsrc, vpath, include, closure = prepare(a, objects, head_sha, at,
                                                                               vfile, vregex, cfg)
@@ -1612,23 +1634,7 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
         return would_tag(a, closure, head_entries, labels, vpath, by_label,
                          drifting, stamp, coverage, at, include, dirty, dirty_note, empty_by_label, contradicted)
 
-    if drifting:
-        verdict = "drift"
-    elif contradicted or labels.sources.too_large:
-        verdict = "incomplete"
-    elif empty == len(pts):
-        verdict = "empty_closure"
-    elif not by_label:
-        verdict = "no_labels"
-    elif len(by_label) == 1:
-        verdict = "inconclusive"
-    elif labels.conflicts or (a.strict and (no_label or empty or truncated)) or compared < no_label + empty:
-        # `clean` rests on at least as many compared points as uncompared ones
-        verdict = "incomplete"
-    else:
-        verdict = "clean"
-    # 0 is `clean` and nothing else: an absence of measurement is not a pass
-    code = {"clean": 0, "drift": 1}.get(verdict, 2)
+    verdict, code = decide(a, drifting, contradicted, labels, empty, pts, by_label, no_label, truncated, compared)
 
     explained = None
     if a.explain is not None:
