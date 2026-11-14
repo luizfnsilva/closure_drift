@@ -3509,6 +3509,61 @@ def d4e(root):
            "tag_mismatch", 1, "--tag", "v1.2.0")
 
 
+# ---------------------------------------------------------------- ST — text contracts kept by 1.9.0 (§35 am. 3)
+
+def _table_rows(out):
+    lines = out.splitlines()
+    i = next(k for k, l in enumerate(lines) if l.startswith("label") and "closures" in l)
+    rows = []
+    for l in lines[i + 2:]:
+        if not l.strip():
+            break
+        rows.append(l)
+    return rows
+
+
+@proof("ST01")
+def st01(root):
+    r = cargo_history(root, "st01", ["v2.1.0", "v2.2.0"])
+    rc, _d, out, err = run(r, text=True)
+    check(rc == 2, "exit %d, required 2" % rc)
+    want = ["INCOMPLETE: no tag named for a version agrees with Cargo.toml,",
+            "so it is probably not your version. Nothing is decided from it.",
+            "Pass --version-file with the file that declares your version."]
+    lines = out.splitlines()
+    check(want[0] in lines, "the incomplete message is not on stdout: %r" % out[-400:])
+    i = lines.index(want[0])
+    check(lines[i:i + 3] == want, "the message is not whole, in order: %r" % lines[i:i + 3])
+    check(lines[i - 1] == "=" * 62, "the message does not open the verdict block")
+    check("INCOMPLETE" not in err, "the verdict went to stderr")
+
+
+def _many_labels(root, name, n):
+    r = Repo(root, name)
+    for k in range(n):
+        r.day = min(r.day, 27)    # the date helper counts days in January; past the 28th, dates repeat
+        r.release("v1.%d.0" % k, "1.%d.0" % k, {"src/a.py": "%d\n" % k})
+    return r
+
+
+@proof("ST02")
+def st02(root):
+    rc, _d, out, _e = run(_many_labels(root, "st02", 26), text=True)
+    check(rc == 0, "exit %d, required 0" % rc)
+    rows = _table_rows(out)
+    check(len(rows) == 26 and rows[-1] == "... and 1 more labels", "rows %d, last %r" % (len(rows), rows[-1:]))
+    names = [x.split()[0] for x in rows[:25]]
+    check(names == sorted(names), "the 25 shown are not in label order: %r" % names[:5])
+
+
+@proof("ST03")
+def st03(root):
+    rc, _d, out, _e = run(_many_labels(root, "st03", 25), text=True)
+    check(rc == 0, "exit %d, required 0" % rc)
+    rows = _table_rows(out)
+    check(len(rows) == 25 and not any("more labels" in x for x in rows), "rows %d: %r" % (len(rows), rows[-1:]))
+
+
 def main() -> int:
     global DETECTOR
     args = sys.argv[1:]

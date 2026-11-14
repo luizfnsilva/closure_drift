@@ -4,16 +4,32 @@ the candidate with the same argv, env, cwd and stdin, writes one JSON line per c
 replays the candidate's result. Standard library only."""
 import hashlib, json, os, re, subprocess, sys
 
+def _log(rec):
+    with open(os.environ["CD_DIFF_LOG"], "a") as fh:
+        fh.write(json.dumps(rec) + "\n")
+
 def _main():
-    if os.environ.get("CD_DIFF_INNER") or not os.environ.get("CD_DIFF_LOG"):
+    if not os.environ.get("CD_DIFF_LOG"):
         return
     argv = getattr(sys, "orig_argv", None) or []
-    script = next((a for a in argv[1:] if not a.startswith("-")), None)
-    if argv[1:2] == ["-c"] or script is None or os.path.basename(script) != "closure_drift.py":
-        if "-c" in argv[1:3]:
-            with open(os.environ["CD_DIFF_LOG"], "a") as fh:
-                fh.write(json.dumps({"kind": "module_call_not_compared"}) + "\n")
+    named = any(os.path.basename(x) == "closure_drift.py" for x in argv[1:])
+    if os.environ.get("CD_DIFF_INNER"):
+        if named:
+            _log({"kind": "seen", "how": "inner"})
         return
+    if not named:
+        return
+    if "-c" in argv[1:]:
+        _log({"kind": "seen", "how": "module_call"})
+        return
+    script = next((a for a in argv[1:] if not a.startswith("-")), None)
+    if script is None or os.path.basename(script) != "closure_drift.py":
+        _log({"kind": "seen", "how": "other", "argv": argv[1:4]})
+        return
+    _log({"kind": "seen", "how": "compared"})
+    import uuid
+    cid = uuid.uuid4().hex[:12]
+    _log({"kind": "start", "id": cid})
     cand = os.path.abspath(script)
     ref = os.environ["CD_DIFF_REF"]
     i = argv.index(script)
@@ -35,16 +51,24 @@ def _main():
         return s
     same = (r_ref.returncode == r_cand.returncode and norm(r_ref.stdout, 1) == norm(r_cand.stdout, 0)
             and norm(r_ref.stderr, 1) == norm(r_cand.stderr, 0))
-    rec = {"kind": "call", "same": same, "args": args, "cwd": os.getcwd(),
+    rec = {"kind": "call", "id": cid, "same": same, "args": args, "cwd": os.getcwd(),
            "stdin_sha": hashlib.sha256(stdin).hexdigest()[:16],
            "exit": [r_ref.returncode, r_cand.returncode]}
     if not same:
         rec.update(ref_out=norm(r_ref.stdout, 1)[-1500:], cand_out=norm(r_cand.stdout, 0)[-1500:],
                    ref_err=norm(r_ref.stderr, 1)[-800:], cand_err=norm(r_cand.stderr, 0)[-800:])
-    with open(os.environ["CD_DIFF_LOG"], "a") as fh:
-        fh.write(json.dumps(rec) + "\n")
+    _log(rec)
+    _log({"kind": "end", "id": cid})
     sys.stdout.buffer.write(r_cand.stdout); sys.stdout.flush()
     sys.stderr.buffer.write(r_cand.stderr); sys.stderr.flush()
     os._exit(r_cand.returncode)
 
-_main()
+try:
+    _main()
+except SystemExit:
+    raise
+except BaseException as e:   # a harness failure is a failure, never an equivalence (§35 am. 3)
+    try:
+        _log({"kind": "harness_error", "error": repr(e)[:300]})
+    finally:
+        os._exit(97)

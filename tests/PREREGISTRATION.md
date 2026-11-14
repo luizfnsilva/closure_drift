@@ -1896,3 +1896,23 @@ with the same arguments, environment, working directory and stdin; logs any diff
 candidate's exit code, stdout and stderr back to the battery. One normalization is added to the list:
 the reference copy's absolute path is replaced by the candidate's before comparing. Calls that import
 the detector as a module (`python -c`) are not compared and are counted.
+
+**§35, amendment 3 (2026-11-14; the first null run was stopped at 379 calls, 0 differences, because the hook
+changes here and a control counts only for the hook it ran with).**
+Gate of the harness, all five before extraction A:
+1. Null control: candidate = reference, zero differences.
+2. Positive control in three dimensions, planted in one candidate and reported per dimension: an exit code,
+   a line of the text report on stdout, and the text of a refusal on stderr. Each must be reported.
+3. Every run has a manifest: hashes of reference, candidate, hook and log, and the counts below.
+4. A harness failure is a failure, never an equivalence. The hook writes a `start` record before running
+   either side and an `end` record after; a `start` without an `end` (exception, timeout, kill) is counted
+   and fails the gate unless the battery itself kills that call by design and the count matches.
+   Every interpreter start whose arguments name a file called `closure_drift.py`, or that runs `-c` with
+   one in its arguments, is recorded as `seen`, with how it was handled (compared, module call, inner
+   self-call). The gate reports compared ÷ seen.
+5. Three new proofs before extraction A, protecting contracts, not lines: the text `incomplete` for a
+   contradicted source (whole message, on stdout, its place in the report); the label table truncated
+   after 25 (order, the "... and N more" line); and the boundary, exactly 25 against 26 labels.
+If any difference appears beyond the pre-registered normalizations (environment, cache or path of the
+reference copy), it is written here before the comparator is changed. Extraction C may be partial or
+dropped: the text report keeps its order in 1.9.0 even where that is less tidy.

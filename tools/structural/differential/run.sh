@@ -21,7 +21,7 @@ done
   echo "reference $REFTAG $(git -C "$ROOT" rev-parse "$REFTAG^{commit}") $(shasum -a 256 "$OUT/ref/closure_drift.py" | cut -c1-64)"
   echo "candidate $(git -C "$ROOT" rev-parse HEAD) $(shasum -a 256 "$ROOT/closure_drift.py" | cut -c1-64)"
   echo "hook $(shasum -a 256 "$ROOT/tools/structural/differential/cd_diffhook.py" | cut -c1-64)"
-  echo "calls $(grep -c '"kind": "call"' "$CD_DIFF_LOG") differ $(grep -c '"same": false' "$CD_DIFF_LOG") module_calls $(grep -c module_call "$CD_DIFF_LOG")"
+  for k in seen start end call harness_error; do printf "%s %s  " $k "$(grep -c "\"kind\": \"$k\"" "$CD_DIFF_LOG")"; done; echo; echo "differ $(grep -c '"same": false' "$CD_DIFF_LOG")  compared_of_seen $(grep -c '"how": "compared"' "$CD_DIFF_LOG")/$(grep -c '"kind": "seen"' "$CD_DIFF_LOG")"
   echo "calls.jsonl $(shasum -a 256 "$CD_DIFF_LOG" | cut -c1-64)"
 } > "$OUT/MANIFEST"
 cat "$OUT/MANIFEST"
