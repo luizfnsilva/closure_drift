@@ -1924,3 +1924,12 @@ call and the detector's own `--match-on-stdin`; `module_call`: `python -c` impor
 not concluded (a compared call with `start` and no `end`). Counted, never dropped. The gate also requires
 start = end + not concluded, call = end, and inner = 2 × compared + self-calls (self-calls counted from the
 inner records). Any mismatch fails the gate. `tools/structural/differential/reconcile.py` does this.
+
+**§35, amendment 5 (2026-11-14, after the first controls of the hook of am. 3/4).** Both controls failed the
+gate, as they should: 1 `harness_error` (the hook read `sys.stdin.buffer` when the call had stdin closed) and
+unconcluded calls (3 null, 1 positive). The adversarial attack EC18 (ReDoS, run under a time limit) went
+`loose` under the hook: the hook ran the reference and the candidate one after the other, doubling the time,
+and the battery killed the call. The harness changed what it measured. Fixes, before any new run: the two
+sides run concurrently (wall time near the slower one, not the sum); a closed stdin is passed on closed; the
+`start` record carries the arguments. Gate unchanged: zero `harness_error`, zero unconcluded, and the battery
+totals under the hook equal to the totals without it.

@@ -29,17 +29,28 @@ def _main():
     _log({"kind": "seen", "how": "compared"})
     import uuid
     cid = uuid.uuid4().hex[:12]
-    _log({"kind": "start", "id": cid})
+    _log({"kind": "start", "id": cid, "args": argv[argv.index(script) + 1:]})
     cand = os.path.abspath(script)
     ref = os.environ["CD_DIFF_REF"]
     i = argv.index(script)
     args = argv[i + 1:]
-    stdin = b"" if sys.stdin is None or sys.stdin.isatty() else sys.stdin.buffer.read()
+    closed = sys.stdin is None
+    stdin = None if closed or sys.stdin.isatty() else sys.stdin.buffer.read()
     env = dict(os.environ, CD_DIFF_INNER="1")
-    def run(path):
-        return subprocess.run([sys.executable, *argv[1:i], path, *args], input=stdin,
-                              capture_output=True, env=env, cwd=os.getcwd())
-    r_ref, r_cand = run(ref), run(cand)
+    import threading
+    def start(path):
+        return subprocess.Popen([sys.executable, *argv[1:i], path, *args],
+                                stdin=(None if stdin is None else subprocess.PIPE),
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env, cwd=os.getcwd())
+    procs = [start(ref), start(cand)]               # concurrently: the battery's time limits see one run
+    outs = [None, None]
+    def finish(k):
+        o, e = procs[k].communicate(stdin)
+        outs[k] = subprocess.CompletedProcess(procs[k].args, procs[k].returncode, o, e)
+    th = [threading.Thread(target=finish, args=(k,)) for k in (0, 1)]
+    for x in th: x.start()
+    for x in th: x.join()
+    r_ref, r_cand = outs
     refdir, canddir = os.path.dirname(ref), os.path.dirname(cand)
     def norm(b, is_ref):
         s = b.decode("utf-8", "surrogateescape")
@@ -52,7 +63,7 @@ def _main():
     same = (r_ref.returncode == r_cand.returncode and norm(r_ref.stdout, 1) == norm(r_cand.stdout, 0)
             and norm(r_ref.stderr, 1) == norm(r_cand.stderr, 0))
     rec = {"kind": "call", "id": cid, "same": same, "args": args, "cwd": os.getcwd(),
-           "stdin_sha": hashlib.sha256(stdin).hexdigest()[:16],
+           "stdin_sha": "closed" if closed else hashlib.sha256(stdin or b"").hexdigest()[:16],
            "exit": [r_ref.returncode, r_cand.returncode]}
     if not same:
         rec.update(ref_out=norm(r_ref.stdout, 1)[-1500:], cand_out=norm(r_cand.stdout, 0)[-1500:],
