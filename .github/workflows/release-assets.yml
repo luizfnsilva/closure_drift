@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "the release tag, e.g. v1.8.0 (its release must exist as a draft)"
+        description: "the release tag, e.g. v1.8.2 (its release must exist as a draft; dispatch with --ref set to the same tag)"
         required: true
 
 permissions:
@@ -28,6 +28,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+      - name: The workflow runs from the tag, so the provenance names it
+        # 1.8.1 was dispatched from main: its provenance named refs/heads/main, not the tag.
+        # Dispatch with: gh workflow run release-assets.yml --ref vX -f tag=vX
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          if [ "$GITHUB_REF" != "refs/tags/$TAG" ]; then
+            echo "refusing: running from $GITHUB_REF; dispatch with --ref $TAG"; exit 1
+          fi
       - name: The version label names one state, and the tag agrees with it
         env:
           TAG: ${{ inputs.tag }}
@@ -66,12 +75,14 @@ jobs:
           sys.exit(0 if want == got else 1)
           PY
       - name: Checksums
-        run: cd dist && sha256sum * > SHA256SUMS && cat SHA256SUMS
+        # DEPOSIT.sha256 (the Zenodo manifest, as in the tag) goes with the release, so its nine
+        # hash lines have an attested digest. The deposited copy differs only in the DOI line.
+        run: cp DEPOSIT.sha256 dist/ && cd dist && sha256sum * > SHA256SUMS && cat SHA256SUMS
       - uses: actions/attest-build-provenance@v2
         with:
-          subject-path: "dist/*.whl, dist/*.tar.gz, dist/BUILD-ENV"
+          subject-path: "dist/*.whl, dist/*.tar.gz, dist/BUILD-ENV, dist/DEPOSIT.sha256"
       - name: Upload to the draft release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.tag }}
-        run: gh release upload "$TAG" dist/*.whl dist/*.tar.gz dist/BUILD-ENV dist/SHA256SUMS --clobber
+        run: gh release upload "$TAG" dist/*.whl dist/*.tar.gz dist/BUILD-ENV dist/DEPOSIT.sha256 dist/SHA256SUMS --clobber

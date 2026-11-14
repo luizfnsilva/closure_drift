@@ -3,6 +3,20 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 1.8.2 — 2026-11-14
+
+From a second external check, of 1.8.1. The detector is unchanged.
+
+### Fixed
+- 1.8.1's build provenance named `refs/heads/main`, not the tag: the workflow was dispatched from
+  main. `release-assets.yml` now refuses unless it runs from the tag it builds.
+
+### Changed
+- The release carries `DEPOSIT.sha256` under the attestation and in `SHA256SUMS`, so the deposit's
+  manifest has an attested digest.
+- `DEPOSIT.sha256` and `SECURITY.md` say the deposited copy differs only in the DOI line: compare the
+  nine hash lines.
+
 ## 1.8.1 — 2026-11-13
 
 Release hardening after an external check of the 1.8.0 artifacts. The detector is unchanged.

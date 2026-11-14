@@ -89,4 +89,12 @@ Two digests name the same tag. The release attestation's subject
 the build provenance carries the commit it points to (`git rev-parse v<version>^{commit}`). Both
 are correct. Compare like with like.
 
+The build provenance's certificate identity is
+`.../.github/workflows/release-assets.yml@refs/tags/v<version>` from 1.8.2 on. 1.8.1 was built from
+`refs/heads/main` (same commit as its tag): verify it with that identity.
+
+From 1.8.2 the release also carries `DEPOSIT.sha256`, the Zenodo manifest, under the attestation.
+The copy in the deposit differs only in the `# Version DOI` line, written after the DOI was minted:
+compare the nine hash lines, not the files.
+
 The attestation covers how the bytes were built from the tagged tree, not who wrote the tree.
