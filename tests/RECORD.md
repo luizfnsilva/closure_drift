@@ -1,3 +1,11 @@
+# Record of the battery runs — closure_drift 1.8.2
+
+Detector 1.8.2: `closure_drift.py`, sha256 `c50974fcb4a5eb6cb51302dbc767a11a427343d9c88e397caab5d3156743edb4`; it differs from 1.8.0 only in `__version__`. CI run 43584280295 (branch `release-1.8.2`): all 28 battery, mutant, adversarial, oracle, property and Action jobs green on Ubuntu, macOS and Windows. The deposit job failed, as before: the manifest names no record until this one is published.
+
+Regression corpus (run 43584279880, `regression-check/v1.8.2`): 99 of 99 checkable match; mechanisms 79 / 7 / 1; `apache/arrow` not checkable.
+
+What changed is the release path (CHANGELOG 1.8.2), after a second external check, of 1.8.1.
+
 # Record of the battery runs — closure_drift 1.8.1
 
 Detector 1.8.1: `closure_drift.py`, sha256 `e25ad74638d592fb0774c543ee577996e958e834e949423ec0bfa15eb5f0ee88`; it differs from 1.8.0 only in `__version__`. CI run 43495699284 (branch `release-1.8.1`): all 28 battery, mutant, adversarial, oracle, property and Action jobs green on Ubuntu, macOS and Windows. The deposit job failed, as before: the manifest names no record until this one is published.
