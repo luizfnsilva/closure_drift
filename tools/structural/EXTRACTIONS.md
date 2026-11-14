@@ -7,6 +7,7 @@
 | B2 varredura → `scan()` | efadbb8 | 0 diferenças em 2.696; 8.163 = 2.696 + 5.467 + 0; 0 erros; totais iguais | chamadas git iguais; tempo −0,8% a +0,6% | pendente |
 | B3 stamp/coverage → `assemble()` | 595d2cb | 0 diferenças em 2.696; 8.163 = 2.696 + 5.467 + 0; 0 erros; totais iguais | chamadas git iguais; tempo −0,2% a +0,4% | pendente |
 | C apresentação → `report()` | 7a39278 | 0 diferenças em 2.696; 8.163 = 2.696 + 5.467 + 0; 0 erros; totais iguais | chamadas git iguais; tempo −0,6% a +0,4% | run 43620475018 |
+| Etapa 4: `make_stamp()` (am. 7) | a4f0f57 | 0 diferenças em 2.696; 8.163 = 2.696 + 5.467 + 0; 0 erros; totais iguais | chamadas git iguais; tempo −1,1% a +0,8% | run 43647221278 |
 
 Custo da A, referência × candidata (s; chamadas git): wrapt 1,744×1,751 (132); python-multipart 0,541×0,543 (38);
 starlette 2,689×2,700 (209); uvicorn 2,676×2,661 (211); rich 2,413×2,365 (185). Saídas 2, 0, 1, 0, 1 nos dois.
