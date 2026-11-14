@@ -70,8 +70,12 @@ def _main():
                    ref_err=norm(r_ref.stderr, 1)[-800:], cand_err=norm(r_cand.stderr, 0)[-800:])
     _log(rec)
     _log({"kind": "end", "id": cid})
-    sys.stdout.buffer.write(r_cand.stdout); sys.stdout.flush()
-    sys.stderr.buffer.write(r_cand.stderr); sys.stderr.flush()
+    for stream, data in ((sys.stdout, r_cand.stdout), (sys.stderr, r_cand.stderr)):
+        if stream is not None:                     # a closed stream stays closed, as for the detector itself
+            try:
+                stream.buffer.write(data); stream.flush()
+            except (OSError, ValueError):
+                pass
     os._exit(r_cand.returncode)
 
 try:

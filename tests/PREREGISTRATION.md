@@ -1933,3 +1933,9 @@ and the battery killed the call. The harness changed what it measured. Fixes, be
 sides run concurrently (wall time near the slower one, not the sum); a closed stdin is passed on closed; the
 `start` record carries the arguments. Gate unchanged: zero `harness_error`, zero unconcluded, and the battery
 totals under the hook equal to the totals without it.
+
+**§35, amendment 6 (2026-11-14, after the second controls).** Unconcluded 0 in both; the battery totals under
+the hook equal those without it in the null control (275 · 274 · 0 · 1; 304 · 2 · 9; 17 · 17). One
+`harness_error` remained in each, after a compared call (EC33): the call had stdout closed and the hook tried
+to replay into it. The comparison was made; the replay failed and handed back 97. Fix: replay only into the
+streams the call has; the exit code is always the candidate's. Gate unchanged.
