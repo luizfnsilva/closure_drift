@@ -1887,3 +1887,12 @@ function, named in a table in `docs/` written at the end.
   and a tuple are preferred.
 - Acceptance: a reviewer follows input → evidence → verdict with less effort, even if the file stays
   near 2,275 lines.
+
+**§35, amendment 2 (2026-11-14, before the first differential run).** The batteries call the detector
+by path. The harness (`tools/structural/differential/`) hooks every interpreter start whose script is
+`closure_drift.py`: it runs the reference (a copy of `v1.8.2:closure_drift.py` in its own directory, so
+that its self-invocation `--match-on-stdin` reaches the reference, not the candidate) and the candidate
+with the same arguments, environment, working directory and stdin; logs any difference; and hands the
+candidate's exit code, stdout and stderr back to the battery. One normalization is added to the list:
+the reference copy's absolute path is replaced by the candidate's before comparing. Calls that import
+the detector as a module (`python -c`) are not compared and are counted.
