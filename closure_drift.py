@@ -1420,7 +1420,9 @@ def components(a, head_sha: str, cfg: dict, comps: dict) -> int:
     return code
 
 
-def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vregex, cfg) -> int:
+def prepare(a, objects: Objects, head_sha: str, at: str, vfile, vregex, cfg):
+    """Inputs before any publication point is read: where the version is, whether the pattern is
+    usable, and the closure. Refuses here, and decides nothing (§35, extraction A)."""
     head_entries = objects.entries(head_sha)
     published = getattr(a, "published_set", None)
     labels = Labels(objects, (vfile, vregex or DEFAULT_VERSION_REGEX) if vfile else None,
@@ -1440,6 +1442,12 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
                       "the pattern must capture the version label, e.g. 'version = \"([^\"]+)\"'.")
     include = a.closure or cfg.get("closure") or CLOSURE_DEFAULTS
     closure = Closure(include, a.repo if getattr(a, "modes", False) else None)
+    return head_entries, published, labels, vsrc, vpath, include, closure
+
+
+def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vregex, cfg) -> int:
+    head_entries, published, labels, vsrc, vpath, include, closure = prepare(a, objects, head_sha, at,
+                                                                              vfile, vregex, cfg)
 
     if a.compare:
         return compare(a, objects, closure, labels, vpath, include, head_sha)
