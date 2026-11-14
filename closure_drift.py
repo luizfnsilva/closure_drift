@@ -1445,59 +1445,9 @@ def prepare(a, objects: Objects, head_sha: str, at: str, vfile, vregex, cfg):
     return head_entries, published, labels, vsrc, vpath, include, closure
 
 
-def decide(a, drifting, contradicted, labels, empty, pts, by_label, no_label, truncated, compared):
-    """The verdict of a tags or commits scan, and its exit code (§35, extraction B). Every rule is here."""
-    if drifting:
-        verdict = "drift"
-    elif contradicted or labels.sources.too_large:
-        verdict = "incomplete"
-    elif empty == len(pts):
-        verdict = "empty_closure"
-    elif not by_label:
-        verdict = "no_labels"
-    elif len(by_label) == 1:
-        verdict = "inconclusive"
-    elif labels.conflicts or (a.strict and (no_label or empty or truncated)) or compared < no_label + empty:
-        # `clean` rests on at least as many compared points as uncompared ones
-        verdict = "incomplete"
-    else:
-        verdict = "clean"
-    # 0 is `clean` and nothing else: an absence of measurement is not a pass
-    code = {"clean": 0, "drift": 1}.get(verdict, 2)
-    return verdict, code
-
-
-def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vregex, cfg) -> int:
-    head_entries, published, labels, vsrc, vpath, include, closure = prepare(a, objects, head_sha, at,
-                                                                              vfile, vregex, cfg)
-
-    if a.compare:
-        return compare(a, objects, closure, labels, vpath, include, head_sha)
-    if a.tag is not None:
-        return check_tag(a, objects, labels, head_sha)
-
-    # --would-tag looks at every tag: a collision with an old tag is a collision
-    limit = a.max_commits if not a.would_tag else 10 ** 9
-    pts, total, not_commits, filtered, left_out = publication_points(a.repo, at, limit, tag_globs, published)
-    if not pts and (not a.would_tag or (tag_globs and filtered) or (published is not None and left_out)):
-        msg = ("no tags found — this repository publishes nothing addressable by tag. "
-               "If it publishes continuously, rerun with --at commits.")
-        if tag_globs and filtered:
-            msg = (f"no tag matches --tags {printable(' '.join(tag_globs))}: "
-                   f"{filtered} tag(s) were left out and none remain.")
-        if published is not None and left_out:
-            msg = (f"no tag is on the --published list: {left_out} tag(s) were left out of this "
-                   "analysis" + (f", and {filtered} by --tags" if tag_globs and filtered else "")
-                   + "; none remain.")
-        if a.json:
-            emit({"report_format": REPORT_FORMAT, "verdict": "no_publication_points", "note": msg})
-        else:
-            print(msg, file=sys.stderr)
-        return 2
-
-    if not vfile and vsrc is None and not a.would_tag and not any(root_has_source(objects, s) for s, _d, _n in pts):
-        raise no_label_refusal(a.repo)
-
+def scan(a, objects, closure, labels, pts, at, vfile, vsrc, published):
+    """Read every publication point: its closure, its label, and which version sources the tags contradict.
+    Refuses when no label is found anywhere; decides nothing (§35, extraction B2)."""
     # label -> full closure id -> {key (the 16-hex id), where it was first seen, commit}
     by_label: dict[str, dict[str, dict]] = defaultdict(dict)
     churn, compared, no_label, empty = 0, 0, 0, 0
@@ -1556,6 +1506,64 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
 
     if not labels.counts and vsrc is None and not a.would_tag:
         raise no_label_refusal(a.repo)
+    return by_label, churn, compared, no_label, empty, contradicted, not_voting, rejected, empty_by_label
+
+
+def decide(a, drifting, contradicted, labels, empty, pts, by_label, no_label, truncated, compared):
+    """The verdict of a tags or commits scan, and its exit code (§35, extraction B). Every rule is here."""
+    if drifting:
+        verdict = "drift"
+    elif contradicted or labels.sources.too_large:
+        verdict = "incomplete"
+    elif empty == len(pts):
+        verdict = "empty_closure"
+    elif not by_label:
+        verdict = "no_labels"
+    elif len(by_label) == 1:
+        verdict = "inconclusive"
+    elif labels.conflicts or (a.strict and (no_label or empty or truncated)) or compared < no_label + empty:
+        # `clean` rests on at least as many compared points as uncompared ones
+        verdict = "incomplete"
+    else:
+        verdict = "clean"
+    # 0 is `clean` and nothing else: an absence of measurement is not a pass
+    code = {"clean": 0, "drift": 1}.get(verdict, 2)
+    return verdict, code
+
+
+def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vregex, cfg) -> int:
+    head_entries, published, labels, vsrc, vpath, include, closure = prepare(a, objects, head_sha, at,
+                                                                              vfile, vregex, cfg)
+
+    if a.compare:
+        return compare(a, objects, closure, labels, vpath, include, head_sha)
+    if a.tag is not None:
+        return check_tag(a, objects, labels, head_sha)
+
+    # --would-tag looks at every tag: a collision with an old tag is a collision
+    limit = a.max_commits if not a.would_tag else 10 ** 9
+    pts, total, not_commits, filtered, left_out = publication_points(a.repo, at, limit, tag_globs, published)
+    if not pts and (not a.would_tag or (tag_globs and filtered) or (published is not None and left_out)):
+        msg = ("no tags found — this repository publishes nothing addressable by tag. "
+               "If it publishes continuously, rerun with --at commits.")
+        if tag_globs and filtered:
+            msg = (f"no tag matches --tags {printable(' '.join(tag_globs))}: "
+                   f"{filtered} tag(s) were left out and none remain.")
+        if published is not None and left_out:
+            msg = (f"no tag is on the --published list: {left_out} tag(s) were left out of this "
+                   "analysis" + (f", and {filtered} by --tags" if tag_globs and filtered else "")
+                   + "; none remain.")
+        if a.json:
+            emit({"report_format": REPORT_FORMAT, "verdict": "no_publication_points", "note": msg})
+        else:
+            print(msg, file=sys.stderr)
+        return 2
+
+    if not vfile and vsrc is None and not a.would_tag and not any(root_has_source(objects, s) for s, _d, _n in pts):
+        raise no_label_refusal(a.repo)
+
+    by_label, churn, compared, no_label, empty, contradicted, not_voting, rejected, empty_by_label = scan(
+        a, objects, closure, labels, pts, at, vfile, vsrc, published)
     if not (a.json or a.badge):
         print(f"repository        {printable(a.repo)}")
         print(f"version from      {printable(vpath or '(nothing at HEAD)')}")
