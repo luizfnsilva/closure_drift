@@ -1509,6 +1509,50 @@ def scan(a, objects, closure, labels, pts, at, vfile, vsrc, published):
     return by_label, churn, compared, no_label, empty, contradicted, not_voting, rejected, empty_by_label
 
 
+def assemble(a, head_sha, closure, pts, compared, no_label, empty, not_commits, truncated, labels, rejected,
+             contradicted, not_voting, tag_globs, filtered, published, total, left_out):
+    """The stamp and coverage fields of the report, from what the scan counted (§35, extraction B3)."""
+    dirty, dirty_note = working_tree_state(a.repo)
+    # the report says which HEAD and which detector produced it
+    stamp = {
+        "measured_at_head": head_sha[:12],
+        "working_tree_dirty": dirty,
+        "detector_closure": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:16],
+    }
+    if dirty_note:
+        stamp["working_tree_dirty_note"] = dirty_note
+    if dirty:
+        stamp["working_tree_dirty_in_closure"] = dirty_in_closure(a.repo, closure)
+    coverage = {
+        "publication_points_scanned": len(pts),
+        "publication_points_compared": compared,
+        "points_without_label": no_label,
+        "points_with_empty_closure": empty,
+        "points_not_commits": not_commits,
+        "range_truncated": truncated,
+        "points_with_conflicting_sources": labels.conflicts,
+        "points_label_contradicted": rejected,
+    }
+    if contradicted:
+        coverage["contradicted_sources"] = contradicted
+    if labels.sources.too_large:
+        coverage["version_files_not_read"] = sorted(labels.sources.too_large)
+    if not_voting:
+        coverage["tags_not_voting"] = not_voting
+    if tag_globs:
+        coverage["tag_globs"] = tag_globs
+        coverage["tags_filtered_out"] = filtered
+    if published is not None:
+        coverage["published"] = {"sha256": a.published_sha, "versions": len(published),
+                                 "tags_included": total, "tags_left_out": left_out}
+        stamp["published_sha256"] = a.published_sha
+    if getattr(a, "label_equality", "text") != "text":
+        coverage["label_equality"] = a.label_equality
+    if getattr(a, "modes", False):
+        coverage["closure_modes"] = True
+    return dirty, dirty_note, stamp, coverage
+
+
 def decide(a, drifting, contradicted, labels, empty, pts, by_label, no_label, truncated, compared):
     """The verdict of a tags or commits scan, and its exit code (§35, extraction B). Every rule is here."""
     if drifting:
@@ -1599,44 +1643,9 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
     if len(families) < 2:
         families = {}
 
-    dirty, dirty_note = working_tree_state(a.repo)
-    # the report says which HEAD and which detector produced it
-    stamp = {
-        "measured_at_head": head_sha[:12],
-        "working_tree_dirty": dirty,
-        "detector_closure": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:16],
-    }
-    if dirty_note:
-        stamp["working_tree_dirty_note"] = dirty_note
-    if dirty:
-        stamp["working_tree_dirty_in_closure"] = dirty_in_closure(a.repo, closure)
-    coverage = {
-        "publication_points_scanned": len(pts),
-        "publication_points_compared": compared,
-        "points_without_label": no_label,
-        "points_with_empty_closure": empty,
-        "points_not_commits": not_commits,
-        "range_truncated": truncated,
-        "points_with_conflicting_sources": labels.conflicts,
-        "points_label_contradicted": rejected,
-    }
-    if contradicted:
-        coverage["contradicted_sources"] = contradicted
-    if labels.sources.too_large:
-        coverage["version_files_not_read"] = sorted(labels.sources.too_large)
-    if not_voting:
-        coverage["tags_not_voting"] = not_voting
-    if tag_globs:
-        coverage["tag_globs"] = tag_globs
-        coverage["tags_filtered_out"] = filtered
-    if published is not None:
-        coverage["published"] = {"sha256": a.published_sha, "versions": len(published),
-                                 "tags_included": total, "tags_left_out": left_out}
-        stamp["published_sha256"] = a.published_sha
-    if getattr(a, "label_equality", "text") != "text":
-        coverage["label_equality"] = a.label_equality
-    if getattr(a, "modes", False):
-        coverage["closure_modes"] = True
+    dirty, dirty_note, stamp, coverage = assemble(
+        a, head_sha, closure, pts, compared, no_label, empty, not_commits, truncated, labels, rejected,
+        contradicted, not_voting, tag_globs, filtered, published, total, left_out)
 
     if a.would_tag:
         return would_tag(a, closure, head_entries, labels, vpath, by_label,
