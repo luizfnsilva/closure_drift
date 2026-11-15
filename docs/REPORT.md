@@ -32,6 +32,7 @@ before a refusal — that is what it is for.)
 | `closure_globs` | list of strings | the globs used |
 | `published_at` | `"tags"` / `"commits"` | |
 | `verdict` | string | one of the verdicts above |
+| `reason_code` | string | (1.10) only when the verdict decides nothing (exit 2): why, one of the codes in `docs/VERDICTS.md`. Also in `--would-tag`, `--tag`, `--compare` and per-component reports, and as the last stderr line `reason: CODE` |
 | `labels` | integer | distinct labels compared |
 | `labels_covering_multiple_closures` | integer | labels in drift |
 | `max_closures_per_label` | integer | |

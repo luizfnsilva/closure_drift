@@ -7,12 +7,13 @@ import collections, json, re, sys
 
 REFUSAL_CODES = {"version_written_at_publish", "version_outside_component", "no_version_source"}
 def drop_reason_json(s):
-    return re.sub(r',\n "reason_code": "[a-z_]+"', "", s)
+    return re.sub(r',\n *"reason_code": "[a-z_]+"', "", s)
 def split_reason(err):
     lines = err.rstrip("\n").split("\n")
     m = re.fullmatch(r"reason: ([a-z_]+)", lines[-1]) if lines else None
     return ("\n".join(lines[:-1]) + ("\n" if err.endswith("\n") else ""), m.group(1)) if m else (err, None)
 def suffix_of(short, long):
+    short, long = short.rstrip("\n"), long.rstrip("\n")
     return long.endswith(short) or short == long
 kinds = collections.Counter(); bad = []
 for line in open(sys.argv[1]):
@@ -21,7 +22,7 @@ for line in open(sys.argv[1]):
         continue
     if r["exit"][0] != r["exit"][1]:
         bad.append(("exit", r)); continue
-    if r["exit"][1] in (0, 1) and ('"reason_code"' in r["cand_out"] or "\nreason: " in "\n" + r["cand_err"]):
+    if r["exit"][1] in (0, 1) and (re.search(r'\n "reason_code"', r["cand_out"]) or "\nreason: " in "\n" + r["cand_err"]):
         bad.append(("reason on a decided verdict", r)); continue
     out_ok = suffix_of(drop_reason_json(r["cand_out"]), r["ref_out"]) or suffix_of(r["cand_out"], r["ref_out"])
     err_c, code = split_reason(r["cand_err"])
