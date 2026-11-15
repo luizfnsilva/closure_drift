@@ -1,3 +1,11 @@
+# Record of the battery runs — closure_drift 1.9.0
+
+Detector 1.9.0: `closure_drift.py`, sha256 `87b88db21e09c5b904bc361a0ead437c3d8b8693af8c364a1df0ef2a39364829`. Structural only (§35). CI run 43676679209 (branch `structural-1.9.0`): all 28 battery, mutant, adversarial, oracle, property and Action jobs green on Ubuntu, macOS and Windows; 275 proofs (ST01–ST03 added), 85 mutants. The deposit job failed, as before.
+
+Differential against 1.8.2 (`tools/structural/EXTRACTIONS.md`): each of six steps, 2,696 detector calls compared, zero differences; 8,163 calls seen = 2,696 compared + 5,467 excluded + 0 not concluded; battery totals equal with and without the hook. Cost on five corpus repositories: same git calls, time within ±1%. A first CI run (43661099116) failed: mutant M15 raised NameError after extraction C instead of simulating its defect (am. 8); fixed and checked by `tools/structural/mutant_scope.py`.
+
+Regression corpus (run 43661098048, `regression-check/v1.9.0`): 99 of 99 checkable match; mechanisms 79 / 7 / 1; `apache/arrow` not checkable.
+
 # Record of the battery runs — closure_drift 1.8.2
 
 Detector 1.8.2: `closure_drift.py`, sha256 `c50974fcb4a5eb6cb51302dbc767a11a427343d9c88e397caab5d3156743edb4`; it differs from 1.8.0 only in `__version__`. CI run 43584280295 (branch `release-1.8.2`): all 28 battery, mutant, adversarial, oracle, property and Action jobs green on Ubuntu, macOS and Windows. The deposit job failed, as before: the manifest names no record until this one is published.
