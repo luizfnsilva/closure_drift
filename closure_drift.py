@@ -88,7 +88,12 @@ def tree_cache_bound() -> int:
 
 
 class Refusal(Exception):
-    """A named reason why no measurement was produced. Always exit 2, never a traceback."""
+    """A named reason why no measurement was produced. Always exit 2, never a traceback. `code` is one of
+    the stable reason codes of §36, printed as the last stderr line `reason: CODE`."""
+
+    def __init__(self, message, code):
+        super().__init__(message)
+        self.code = code
 
 
 # Every git call uses these. They stop git from running commands named in the measured
@@ -116,12 +121,12 @@ def git_bytes(args: list[str], repo: str, may_fail: bool = False) -> bytes | Non
     try:
         r = subprocess.run([*GIT, "-C", repo, *args], capture_output=True, env=git_env())
     except OSError as e:
-        raise Refusal(f"cannot run git: {e.strerror or e}")
+        raise Refusal(f"cannot run git: {e.strerror or e}", code="git_unreadable")
     if r.returncode != 0:
         if may_fail:
             return None
         first = (r.stderr.decode("utf-8", "replace").strip().splitlines() or ["no message"])[0]
-        raise Refusal(f"git {args[0]} failed (exit {r.returncode}): {printable(first[:200])}")
+        raise Refusal(f"git {args[0]} failed (exit {r.returncode}): {printable(first[:200])}", code="git_unreadable")
     return r.stdout
 
 
@@ -130,7 +135,12 @@ def git(args: list[str], repo: str, may_fail: bool = False) -> str:
     return "" if out is None else out.decode("utf-8", "replace")
 
 
+REASON = [None]   # §36: the stable code of an undetermined verdict, set where the verdict is decided
+
+
 def emit(report: dict) -> None:
+    if REASON[0] and "verdict" in report:
+        report["reason_code"] = REASON[0]
     report.update(COMPONENT)
     if DIAGNOSTICS:
         DIAGNOSTICS["objects_read"] = OBJECTS_READ[0]
@@ -189,19 +199,19 @@ def check_globs(globs: list[str], what: str) -> None:
         for body in re.findall(r"\[!?(\]?[^\]]*)\]", g):
             for lo, hi in re.findall(r"(.)-([^\]])", body):
                 if lo > hi:
-                    raise Refusal(f"invalid {what} glob {g!r}: the range {lo}-{hi} is written backwards")
+                    raise Refusal(f"invalid {what} glob {g!r}: the range {lo}-{hi} is written backwards", code="usage")
         for form in (g, g.replace("**/", "*/")):
             try:
                 re.compile(fnmatch.translate(form))
             except (re.error, RecursionError, OverflowError) as e:
-                raise Refusal(f"invalid {what} glob {g!r}: {e}")
+                raise Refusal(f"invalid {what} glob {g!r}: {e}", code="usage")
 
 
 def git_version() -> tuple[int, int]:
     try:
         r = subprocess.run([*GIT, "--version"], capture_output=True, env=git_env())
     except OSError as e:
-        raise Refusal(f"cannot run git: {e.strerror or e}")
+        raise Refusal(f"cannot run git: {e.strerror or e}", code="git_unreadable")
     m = re.search(r"(\d+)\.(\d+)", r.stdout.decode("utf-8", "replace"))
     return (int(m.group(1)), int(m.group(2))) if m else (0, 0)
 
@@ -230,7 +240,7 @@ class Objects:
                                          stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                          stderr=subprocess.DEVNULL)
         except OSError as e:
-            raise Refusal(f"cannot run git: {e.strerror or e}")
+            raise Refusal(f"cannot run git: {e.strerror or e}", code="git_unreadable")
         self.trees: OrderedDict[str, list[tuple[bytes, str, str]]] = OrderedDict()
         self.held, self.bound = 0, tree_cache_bound()
         self.texts: OrderedDict[str, str] = OrderedDict()
@@ -253,19 +263,19 @@ class Objects:
             header = self.proc.stdout.readline().split()
             if len(header) != 3 or header[1].decode() != want:
                 said = b" ".join(header[1:]).decode("utf-8", "replace") or "no answer"
-                raise Refusal(f"git cat-file could not read {want} {printable(name[:60])}: {printable(said)}")
+                raise Refusal(f"git cat-file could not read {want} {printable(name[:60])}: {printable(said)}", code="git_unreadable")
             size = int(header[2])
             data = self.proc.stdout.read(size + 1)[:-1]
         except (OSError, ValueError) as e:
-            raise Refusal(f"git cat-file failed while reading {printable(name[:60])}: {type(e).__name__}")
+            raise Refusal(f"git cat-file failed while reading {printable(name[:60])}: {type(e).__name__}", code="git_unreadable")
         if len(data) != size:
-            raise Refusal(f"git cat-file returned a truncated {want} {printable(name[:60])}")
+            raise Refusal(f"git cat-file returned a truncated {want} {printable(name[:60])}", code="git_unreadable")
         return data
 
     def root_tree(self, commit: str) -> str:
         head = self.read(commit, "commit").split(b"\n", 1)[0]
         if not head.startswith(b"tree "):
-            raise Refusal(f"commit {commit[:12]} names no tree")
+            raise Refusal(f"commit {commit[:12]} names no tree", code="git_unreadable")
         return head[5:].decode()
 
     def children(self, tree_oid: str) -> list[tuple[bytes, str, str]]:
@@ -288,7 +298,7 @@ class Objects:
                 kind = "tree" if mode in (b"40000", b"040000") else "commit" if mode == b"160000" else "blob"
                 out.append((name, kind, oid))
         except ValueError:
-            raise Refusal(f"git returned a malformed tree object {tree_oid[:12]}: no measurement was produced")
+            raise Refusal(f"git returned a malformed tree object {tree_oid[:12]}: no measurement was produced", code="git_unreadable")
         self.trees[tree_oid] = out
         self.held += len(out) + 1
         while self.held > self.bound and len(self.trees) > 1:
@@ -403,9 +413,9 @@ def bounded_search(pattern: str, text: str) -> str | None:
         return json.loads(r.stdout.decode("utf-8"))["label"]
     except subprocess.TimeoutExpired:
         raise Refusal(f"the version pattern {pattern!r} did not finish within {REGEX_BUDGET} seconds "
-                      "on a version file. No measurement was produced.")
+                      "on a version file. No measurement was produced.", code="bad_pattern")
     except (OSError, ValueError, KeyError):
-        raise Refusal(f"the version pattern {pattern!r} could not be evaluated")
+        raise Refusal(f"the version pattern {pattern!r} could not be evaluated", code="bad_pattern")
 
 
 def match_on_stdin() -> int:
@@ -954,16 +964,18 @@ LABEL_FILES = ("pyproject.toml", "setup.cfg", "setup.py", "Cargo.toml", "package
                "build.gradle", "VERSION", "version.txt", "Chart.yaml", "pubspec.yaml")
 
 
-def no_label_refusal(repo: str) -> Refusal:
+def no_label_refusal(repo: str, rev: str = "HEAD", objects=None) -> Refusal:
     """The refusal for no label, naming the files the rules read one directory below the root.
-    They are named, never read: a label is declared, not guessed (§20)."""
-    dirs = git(["ls-tree", "-d", "--name-only", "HEAD"], repo, may_fail=True).splitlines()[:200]
-    inside = git(["ls-tree", "--name-only", "HEAD", "--"] + [d + "/" for d in dirs],
+    They are named, never read: a label is declared, not guessed (§20). With `objects`, a workflow at
+    `rev` that writes the version from the tag at publish time is named first (§36 am. 2)."""
+    written = version_written_at_publish(objects, objects.entries(rev)) if objects is not None else None
+    dirs = git(["ls-tree", "-d", "--name-only", rev], repo, may_fail=True).splitlines()[:200]
+    inside = git(["ls-tree", "--name-only", rev, "--"] + [d + "/" for d in dirs],
                  repo, may_fail=True).splitlines() if dirs else []
     below = [q for q in inside if q.count("/") == 1 and q.rsplit("/", 1)[1] in LABEL_FILES]
     extra = ""
     try:
-        doc = json.loads(git(["show", "HEAD:package.json"], repo, may_fail=True) or "null", strict=False)
+        doc = json.loads(git(["show", f"{rev}:package.json"], repo, may_fail=True) or "null", strict=False)
     except (ValueError, RecursionError):
         doc = None
     if isinstance(doc, dict) and doc.get("private") is True and isinstance(doc.get("version"), str):
@@ -974,7 +986,11 @@ def no_label_refusal(repo: str) -> Refusal:
         named = ", ".join(printable(p) for p in sorted(below)[:5])
         extra += (f"\nfound one level down: {named}. If one of them declares your "
                   f"version, pass --version-file {printable(sorted(below)[0])}.")
-    return Refusal(NO_LABEL + extra)
+    if written:
+        first = (f"could not find a version label: {printable(written[0])}:{written[1]} writes it "
+                 "from the tag at publish time.")
+        return Refusal(first + NO_LABEL[NO_LABEL.index("\n"):] + extra, code="version_written_at_publish")
+    return Refusal(NO_LABEL + extra, code="version_outside_component" if below else "no_version_source")
 
 
 def root_has_source(objects, commit: str) -> bool:
@@ -992,7 +1008,7 @@ def read_published(path: str) -> tuple[set, str]:
         raw = Path(path).read_bytes()
         text = raw.decode("utf-8")
     except (OSError, UnicodeDecodeError) as e:
-        raise Refusal(f"--published {printable(path)}: cannot be read ({type(e).__name__})")
+        raise Refusal(f"--published {printable(path)}: cannot be read ({type(e).__name__})", code="broken_config")
     versions = set()
     for n, line in enumerate(text.lstrip("\ufeff").splitlines(), 1):
         v = line.strip()
@@ -1001,10 +1017,10 @@ def read_published(path: str) -> tuple[set, str]:
         # one version per line, nothing else: a line no tag can match would leave tags out in silence
         if len(v.split()) != 1 or not any(c.isdigit() for c in v):
             raise Refusal(f"--published {printable(path)}, line {n}: {printable(v[:60])!s} is not one version "
-                          "(one per line; # starts a comment line)")
+                          "(one per line; # starts a comment line)", code="broken_config")
         versions.add(v)
     if not versions:
-        raise Refusal(f"--published {printable(path)}: lists no version (one per line; # starts a comment)")
+        raise Refusal(f"--published {printable(path)}: lists no version (one per line; # starts a comment)", code="broken_config")
     return versions, hashlib.sha256(raw).hexdigest()
 
 
@@ -1111,39 +1127,39 @@ def read_config(repo: str) -> dict:
     try:
         cfg = json.loads(cfg_path.read_bytes().decode("utf-8"), object_pairs_hook=unique_keys)
     except (ValueError, OSError, RecursionError) as e:
-        raise Refusal(f"broken {printable(cfg_path)}: {printable(e)}")
+        raise Refusal(f"broken {printable(cfg_path)}: {printable(e)}", code="broken_config")
     if not isinstance(cfg, dict):
-        raise Refusal(f"broken {printable(cfg_path)}: it must hold a JSON object, not {type(cfg).__name__}")
+        raise Refusal(f"broken {printable(cfg_path)}: it must hold a JSON object, not {type(cfg).__name__}", code="broken_config")
     for key, value in cfg.items():
         if key not in CONFIG_KEYS:
             raise Refusal(f"broken {printable(cfg_path)}: unknown key {printable(repr(key))}; "
-                          f"known keys are {', '.join(sorted(CONFIG_KEYS))}")
+                          f"known keys are {', '.join(sorted(CONFIG_KEYS))}", code="broken_config")
         if not isinstance(value, CONFIG_KEYS[key]) or not value:
             raise Refusal(f"broken {printable(cfg_path)}: {key!r} must be a non-empty "
-                          + {list: "list of globs", dict: "JSON object"}.get(CONFIG_KEYS[key], "string"))
+                          + {list: "list of globs", dict: "JSON object"}.get(CONFIG_KEYS[key], "string"), code="broken_config")
         if isinstance(value, list) and any(not isinstance(g, str) or not g for g in value):
-            raise Refusal(f"broken {printable(cfg_path)}: every entry of {key!r} must be a non-empty string")
+            raise Refusal(f"broken {printable(cfg_path)}: every entry of {key!r} must be a non-empty string", code="broken_config")
     comps = cfg.get("components")
     if comps is not None:
         clash = sorted(k for k in COMPONENT_KEYS if k in cfg)
         if clash:
             raise Refusal(f"broken {printable(cfg_path)}: 'components' cannot be combined with top-level "
-                          f"{', '.join(repr(k) for k in clash)}; put them inside each component")
+                          f"{', '.join(repr(k) for k in clash)}; put them inside each component", code="broken_config")
         for name, comp in comps.items():
             where = f"component {printable(repr(name))}"
             if not name or not isinstance(comp, dict):
-                raise Refusal(f"broken {printable(cfg_path)}: {where} must be a JSON object with a name")
+                raise Refusal(f"broken {printable(cfg_path)}: {where} must be a JSON object with a name", code="broken_config")
             for key, value in comp.items():
                 if key not in COMPONENT_KEYS:
                     raise Refusal(f"broken {printable(cfg_path)}: {where} has unknown key {printable(repr(key))}; "
-                                  f"known keys are {', '.join(sorted(COMPONENT_KEYS))}")
+                                  f"known keys are {', '.join(sorted(COMPONENT_KEYS))}", code="broken_config")
                 if not isinstance(value, COMPONENT_KEYS[key]) or not value or (
                         isinstance(value, list) and any(not isinstance(g, str) or not g for g in value)):
                     raise Refusal(f"broken {printable(cfg_path)}: {where}: {key!r} must be a non-empty "
-                                  f"{'list of globs' if COMPONENT_KEYS[key] is list else 'string'}")
+                                  f"{'list of globs' if COMPONENT_KEYS[key] is list else 'string'}", code="broken_config")
             if "tags" not in comp:
                 raise Refusal(f"broken {printable(cfg_path)}: {where} has no 'tags': a component is the "
-                              "set of tags it releases")
+                              "set of tags it releases", code="broken_config")
     return cfg
 
 
@@ -1252,19 +1268,19 @@ def run() -> int:
         print(f"closure_drift {__version__}")
         return 0
     if a.diagnose and a.badge:
-        raise Refusal("--diagnose and --badge are two outputs; pass one")
+        raise Refusal("--diagnose and --badge are two outputs; pass one", code="usage")
     if a.diagnose:
         diagnose_start(a)
 
     if a.max_commits < 1:
-        raise Refusal(f"--max-commits must be 1 or more, got {a.max_commits}")
+        raise Refusal(f"--max-commits must be 1 or more, got {a.max_commits}", code="usage")
     if a.json and a.badge:
-        raise Refusal("--json and --badge are two outputs; pass one")
+        raise Refusal("--json and --badge are two outputs; pass one", code="usage")
     if git_bytes(["rev-parse", "--git-dir"], a.repo, may_fail=True) is None:
-        raise Refusal(f"not a git repository: {printable(a.repo)}")
+        raise Refusal(f"not a git repository: {printable(a.repo)}", code="not_a_repository")
     head_sha = git(["rev-parse", "--verify", "--quiet", "HEAD^{commit}"], a.repo, may_fail=True).strip()
     if not head_sha:
-        raise Refusal(f"this repository has no commits: {printable(a.repo)}")
+        raise Refusal(f"this repository has no commits: {printable(a.repo)}", code="not_a_repository")
 
     if a.diagnose:
         diagnose_repository(a)
@@ -1274,22 +1290,22 @@ def run() -> int:
     if partial and git_version() < (2, 45):
         raise Refusal("this is a partial clone, and this git is older than 2.45: reading an object "
                       "that is not here would fetch it, running the remote's configured commands. "
-                      "Use git 2.45 or newer, or a full clone.")
+                      "Use git 2.45 or newer, or a full clone.", code="git_unreadable")
     # settings committed in the repository; command-line flags override them
     cfg = read_config(a.repo)
     comps = cfg.get("components")
     if a.published is not None and comps:
         raise Refusal("--published lists the versions of one release line; it cannot be combined with "
-                      "components declared in .closure-drift.json")
+                      "components declared in .closure-drift.json", code="usage")
     if comps and (a.at or cfg.get("at") or "tags") != "tags":
         raise Refusal("components are sets of tags; they cannot be combined with --at "
-                      f"{printable(a.at or cfg.get('at'))}")
+                      f"{printable(a.at or cfg.get('at'))}", code="usage")
     if a.component is not None and not comps:
-        raise Refusal("--component needs 'components' in .closure-drift.json; none is declared")
+        raise Refusal("--component needs 'components' in .closure-drift.json; none is declared", code="usage")
     if comps and a.component is not None:
         if a.component not in comps:
             raise Refusal(f"--component {printable(repr(a.component))}: no such component; declared: "
-                          + ", ".join(printable(n) for n in comps))
+                          + ", ".join(printable(n) for n in comps), code="usage")
         COMPONENT["component"] = a.component
         cfg = {**{k: v for k, v in cfg.items() if k != "components"}, **comps[a.component]}
         if not (a.json or a.badge):
@@ -1297,30 +1313,30 @@ def run() -> int:
     elif comps:
         if a.would_tag or a.compare or a.explain is not None or a.tag is not None:
             raise Refusal("--would-tag, --tag, --compare and --explain answer about one component; pass --component "
-                          "NAME (declared: " + ", ".join(printable(n) for n in comps) + ")")
+                          "NAME (declared: " + ", ".join(printable(n) for n in comps) + ")", code="usage")
         if a.tags or a.closure or a.version_file or a.version_regex:
             raise Refusal("--tags, --closure, --version-file and --version-regex would apply to every component "
-                          "at once; pass --component NAME, or change .closure-drift.json")
+                          "at once; pass --component NAME, or change .closure-drift.json", code="usage")
         return components(a, head_sha, cfg, comps)
 
     at = a.at or cfg.get("at") or "tags"
     if at not in ("tags", "commits"):
-        raise Refusal(f"invalid 'at' in .closure-drift.json: {printable(repr(at))}")
+        raise Refusal(f"invalid 'at' in .closure-drift.json: {printable(repr(at))}", code="usage")
     if at == "commits" and a.would_tag:
-        raise Refusal("--would-tag asks about a tag; it cannot be combined with --at commits")
+        raise Refusal("--would-tag asks about a tag; it cannot be combined with --at commits", code="usage")
     if at == "commits" and a.tags:
-        raise Refusal("--tags selects tags; it cannot be combined with --at commits")
+        raise Refusal("--tags selects tags; it cannot be combined with --at commits", code="usage")
     if at == "commits" and a.published is not None:
-        raise Refusal("--published selects tags; it cannot be combined with --at commits")
+        raise Refusal("--published selects tags; it cannot be combined with --at commits", code="usage")
     if a.tag is not None and (a.would_tag or a.compare or a.explain is not None or at == "commits"):
         raise Refusal("--tag answers about one tag; --would-tag, --compare, --explain and --at commits "
-                      "do not apply to it")
+                      "do not apply to it", code="usage")
     if a.would_tag and (a.strict or a.explain):
-        raise Refusal("--would-tag answers about one commit; --strict and --explain do not apply to it")
+        raise Refusal("--would-tag answers about one commit; --strict and --explain do not apply to it", code="usage")
     if a.compare and (a.would_tag or a.explain or a.strict or a.tags or a.at == "commits"
                       or a.published is not None):
         raise Refusal("--compare looks at exactly two references; --would-tag, --explain, --strict, "
-                      "--tags, --published and --at commits do not apply to it")
+                      "--tags, --published and --at commits do not apply to it", code="usage")
     tag_globs = (a.tags or cfg.get("tags")) if at == "tags" else None
     check_globs(tag_globs or [], "--tags")
     check_globs(a.closure or cfg.get("closure") or [], "--closure")
@@ -1329,7 +1345,7 @@ def run() -> int:
     vregex = a.version_regex or cfg.get("version_regex")
     if vregex and not vfile:
         raise Refusal("--version-regex needs --version-file (or version_file in "
-                      ".closure-drift.json): on its own it would be discarded, unchecked.")
+                      ".closure-drift.json): on its own it would be discarded, unchecked.", code="usage")
 
     a.published_set, a.published_sha = read_published(a.published) if a.published is not None else (None, None)
 
@@ -1364,11 +1380,12 @@ def components(a, head_sha: str, cfg: dict, comps: dict) -> int:
         sub_cfg = {**{k: v for k, v in cfg.items() if k != "components"}, **comp}
         buf, stdout = _Captured(), sys.stdout
         objects = Objects(a.repo)
+        REASON[0] = None                                   # each component carries its own reason
         try:
             check_globs(sub_cfg["tags"], "tags")
             check_globs(sub_cfg.get("closure") or [], "closure")
             if sub_cfg.get("version_regex") and not sub_cfg.get("version_file"):
-                raise Refusal("version_regex needs version_file")
+                raise Refusal("version_regex needs version_file", code="usage")
             sys.stdout = buf
             try:
                 code = measure(sub, objects, head_sha, "tags", sub_cfg["tags"], sub_cfg.get("version_file"),
@@ -1378,11 +1395,12 @@ def components(a, head_sha: str, cfg: dict, comps: dict) -> int:
             report = json.loads("".join(buf.parts))
             report["exit"] = code
         except Refusal as e:
-            report = {"verdict": "refused", "exit": 2, "note": str(e)}
+            report = {"verdict": "refused", "exit": 2, "note": str(e), "reason_code": e.code}
         finally:
             objects.close()
         report.pop("diagnostics", None)
         reports[name] = report
+    REASON[0] = None                                       # the summary verdict has none of its own
     verdicts = [r["verdict"] for r in reports.values()]
     verdict = ("drift" if "drift" in verdicts else "clean" if all(v == "clean" for v in verdicts)
                else "incomplete")
@@ -1427,15 +1445,15 @@ def prepare(a, objects: Objects, head_sha: str, at: str, vfile, vregex, cfg):
     vpath, vpat = (vsrc[0], vsrc[1] if vfile else None) if vsrc else (None, None)
     if vpath == TAG_SOURCE and at == "commits":
         raise Refusal("the version of this project is derived from the tag at build time, and "
-                      "--at commits has no tag to read it from. Pass --version-file if a file declares it.")
+                      "--at commits has no tag to read it from. Pass --version-file if a file declares it.", code="version_from_tag")
     # a malformed pattern, or one without a capture group, is refused before anything is read
     try:
         _probe = re.compile(vpat or "()")
     except (re.error, RecursionError, OverflowError) as e:
-        raise Refusal(f"invalid --version-regex {vpat!r}: {e}")
+        raise Refusal(f"invalid --version-regex {vpat!r}: {e}", code="bad_pattern")
     if _probe.groups < 1:
         raise Refusal(f"--version-regex {vpat!r} has no capture group: "
-                      "the pattern must capture the version label, e.g. 'version = \"([^\"]+)\"'.")
+                      "the pattern must capture the version label, e.g. 'version = \"([^\"]+)\"'.", code="bad_pattern")
     include = a.closure or cfg.get("closure") or CLOSURE_DEFAULTS
     closure = Closure(include, a.repo if getattr(a, "modes", False) else None)
     return head_entries, published, labels, vsrc, vpath, include, closure
@@ -1572,6 +1590,12 @@ def decide(a, drifting, contradicted, labels, empty, pts, by_label, no_label, tr
         verdict = "clean"
     # 0 is `clean` and nothing else: an absence of measurement is not a pass
     code = {"clean": 0, "drift": 1}.get(verdict, 2)
+    if verdict == "incomplete":
+        REASON[0] = ("source_contradicted" if contradicted else "source_too_large" if labels.sources.too_large
+                     else "sources_conflict" if labels.conflicts
+                     else "strict_uncovered" if a.strict and (no_label or empty or truncated) else "too_few_compared")
+    elif code == 2:
+        REASON[0] = {"empty_closure": "empty_closure", "no_labels": "no_version_source"}.get(verdict, "one_label")
     return verdict, code
 
 
@@ -1712,6 +1736,7 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
             msg = (f"no tag is on the --published list: {left_out} tag(s) were left out of this "
                    "analysis" + (f", and {filtered} by --tags" if tag_globs and filtered else "")
                    + "; none remain.")
+        REASON[0] = "no_publication_points"
         if a.json:
             emit({"report_format": REPORT_FORMAT, "verdict": "no_publication_points", "note": msg})
         else:
@@ -1773,7 +1798,7 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
         if a.explain not in drifting:
             raise Refusal(f"--explain {a.explain!r}: that label does not cover more than one closure "
                           "over the range scanned" + (f"; labels in drift: "
-                          f"{printable(', '.join(sorted(drifting)[:10]))}" if drifting else "."))
+                          f"{printable(', '.join(sorted(drifting)[:10]))}" if drifting else "."), code="usage")
         explained = explain(objects, closure, drifting[a.explain])
         explained["label"] = a.explain
 
@@ -1807,6 +1832,8 @@ def would_tag(a, closure, head_entries, labels, vpath, by_label, drifting,
         if verdict in ("would_be_clean", "no_label_at_head"):
             verdict = "incomplete"            # unread is not "no version", and not clean
     code = {"would_be_clean": 0, "would_drift": 1}.get(verdict, 2)
+    REASON[0] = {"empty_closure_at_head": "empty_closure", "no_label_at_head": "no_version_source",
+                 "incomplete": "source_too_large"}.get(verdict)
 
     if a.badge:
         print(badge(verdict, stamp["measured_at_head"]))
@@ -1943,7 +1970,7 @@ def prefixed_source(objects, labels, entries, name: str):
         what = "no package" if not hits else "more than one package (" + ", ".join(printable(h) for h in sorted(hits)[:5]) + ")"
         raise Refusal(f"--tag: the prefix {printable(repr(p))} of {printable(repr(name))} names {what} in this "
                       f"repository, and not the root's ({printable(', '.join(roots))}). Pass --version-file "
-                      "with the file that declares that package's version.")
+                      "with the file that declares that package's version.", code="prefix_names_no_package")
     return hits[0], MANIFESTS[hits[0].rsplit("/", 1)[-1]]
 
 
@@ -1983,11 +2010,11 @@ def check_tag(a, objects, labels, head_sha) -> int:
     sha = git(["rev-parse", "--verify", "--quiet", "--end-of-options", "refs/tags/" + name + "^{commit}"],
               a.repo, may_fail=True).strip()
     if not sha:
-        raise Refusal(f"--tag: no tag {printable(repr(name))} in this repository. Before tagging, run --would-tag.")
+        raise Refusal(f"--tag: no tag {printable(repr(name))} in this repository. Before tagging, run --would-tag.", code="unknown_ref")
     named = sorted(v for v in tag_versions(name) if v[:1].isdigit())
     if not named:
         raise Refusal(f"--tag: the name {printable(repr(name))} names no version (a date, a build number or a "
-                      "word), so there is nothing to compare it with.")
+                      "word), so there is nothing to compare it with.", code="tag_names_no_version")
     entries = objects.entries(sha)
     by_prefix = None if labels.fixed else prefixed_source(objects, labels, entries, name)
     prefix_from_tag = False
@@ -1999,12 +2026,12 @@ def check_tag(a, objects, labels, head_sha) -> int:
             label, prefix_from_tag = tag_label(name), True    # that package's version is the tag (amendment 4)
         if not label:
             raise Refusal(f"--tag: the prefix of {printable(repr(name))} names {printable(by_prefix[0])}, which "
-                          "declares no version there. Pass --version-file / --version-regex.")
+                          "declares no version there. Pass --version-file / --version-regex.", code="prefix_names_no_package")
     else:
         src = labels.source(entries)
         label = labels.at(entries, name, count=False)
     if not label:
-        raise Refusal(NO_LABEL)
+        raise no_label_refusal(a.repo, sha, objects)
     from_tag = bool(src and src[0] == TAG_SOURCE) or prefix_from_tag
     # build metadata takes no part in precedence (SemVer 2.0.0 §10): 1.2.3+45 is what v1.2.3 names (§29)
     keys = {version_key(label), version_key(label.split("+", 1)[0])}
@@ -2018,6 +2045,8 @@ def check_tag(a, objects, labels, head_sha) -> int:
         if written:
             verdict = "incomplete"
     code = {"tag_matches": 0, "tag_mismatch": 1, "incomplete": 2}[verdict]
+    if written:
+        REASON[0] = "version_written_at_publish"
     vpath = src[0] if src else None
 
     dirty, dirty_note, stamp = make_stamp(a, head_sha)
@@ -2072,7 +2101,7 @@ def compare(a, objects, closure, labels, vpath, include, head_sha) -> int:
         sha = tag or git(["rev-parse", "--verify", "--quiet", "--end-of-options", ref + "^{commit}"],
                          a.repo, may_fail=True).strip()
         if not sha:
-            raise Refusal(f"--compare: {printable(repr(ref))} does not name a commit in this repository")
+            raise Refusal(f"--compare: {printable(repr(ref))} does not name a commit in this repository", code="unknown_ref")
         entries = objects.entries(sha)
         short, full, n = closure.ids(entries, sha)
         src = labels.source(entries)
@@ -2101,6 +2130,9 @@ def compare(a, objects, closure, labels, vpath, include, head_sha) -> int:
     else:
         verdict = "differs_under_two_labels"
     code = {"identical": 0, "differs_under_two_labels": 0, "differs_under_one_label": 1}.get(verdict, 2)
+    if verdict == "not_comparable":
+        REASON[0] = ("empty_closure" if not (one["files"] and two["files"]) else "no_version_source"
+                     if not (one["label"] and two["label"]) else "source_contradicted")
 
     dirty, dirty_note, stamp = make_stamp(a, head_sha, closure)
     if a.badge:
@@ -2287,9 +2319,13 @@ def main() -> int:
     try:
         if sys.argv[1:] == ["--match-on-stdin"]:
             return match_on_stdin()
-        return run()
+        rc = run()
+        if rc == 2 and REASON[0]:
+            print(f"reason: {REASON[0]}", file=sys.stderr)
+        return rc
     except Refusal as e:
         print(str(e), file=sys.stderr)
+        print(f"reason: {e.code}", file=sys.stderr)
         return 2
     except BrokenPipeError:
         # The reader went away (`| head -1`). Nothing was determined for it; say so by the code.

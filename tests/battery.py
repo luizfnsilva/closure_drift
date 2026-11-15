@@ -3564,6 +3564,71 @@ def st03(root):
     check(len(rows) == 25 and not any("more labels" in x for x in rows), "rows %d: %r" % (len(rows), rows[-1:]))
 
 
+# ---------------------------------------------------------------- RC — reason codes (§36)
+
+def _last(err):
+    return (err.strip().splitlines() or [""])[-1]
+
+
+@proof("RC01")
+def rc01(root):
+    tree = ast.parse(Path(DETECTOR).read_text(encoding="utf-8"))
+    bare = [n.lineno for n in ast.walk(tree) if isinstance(n, ast.Call) and getattr(n.func, "id", "") == "Refusal"
+            and not any(k.arg == "code" for k in n.keywords)]
+    check(not bare, "Refusal without a reason code at lines %s" % bare[:10])
+
+
+@proof("RC02")
+def rc02(root):
+    r = Repo(root, "rc02")
+    r.release("v1", "1", {"src/a.py": "1\n"})
+    rc, _d, out, err = run(r, "--json", "--badge", text=True)
+    check(rc == 2 and out == "", "exit %d, stdout %r: a refusal prints no report (K02)" % (rc, out[:80]))
+    check(_last(err) == "reason: usage", "last stderr line %r" % _last(err))
+
+
+@proof("RC03")
+def rc03(root):
+    r = Repo(root, "rc03")
+    r.write(".github/workflows/publish.yml", PUBLISH_STEP)
+    r.write("src/a.py", "1\n")
+    r.commit()
+    r.tag("v1.2.0")
+    rc, _d, out, err = run(r, "--tag", "v1.2.0", text=True)
+    check(rc == 2, "exit %d" % rc)
+    first = err.strip().splitlines()[0]
+    check(first.startswith("could not find a version label: .github/workflows/publish.yml:7 writes it"),
+          "first line %r" % first)
+    check(_last(err) == "reason: version_written_at_publish", "last stderr line %r" % _last(err))
+
+
+@proof("RC04")
+def rc04(root):
+    r = Repo(root, "rc04")
+    r.write("pkg/package.json", '{"name": "p", "version": "1.0.0"}\n')
+    r.write("pkg/a.js", "1\n")
+    r.commit()
+    r.tag("v1.0.0")
+    rc, _d, _o, err = run(r, "--tag", "v1.0.0", text=True)
+    check(rc == 2 and "found one level down: pkg/package.json" in err, "no hint at the tagged commit: %r" % err[-200:])
+    check(_last(err) == "reason: version_outside_component", "last stderr line %r" % _last(err))
+
+
+@proof("RC05")
+def rc05(root):
+    r = Repo(root, "rc05")
+    r.release("v1", "1", {"src/a.py": "1\n"})
+    r.release("v1b", "1", {"src/a.py": "1\n"})
+    doc = expect(r, "inconclusive", 2)
+    check(doc.get("reason_code") == "one_label", "reason_code %r" % doc.get("reason_code"))
+    _rc, _d, _o, err = run(r, text=True)
+    check(_last(err) == "reason: one_label", "last stderr line %r" % _last(err))
+    good = Repo(root, "rc05b")
+    good.release("v1", "1", {"src/a.py": "1\n"})
+    good.release("v2", "2", {"src/a.py": "2\n"})
+    check("reason_code" not in expect(good, "clean", 0), "a decided verdict carries a reason code")
+
+
 def main() -> int:
     global DETECTOR
     args = sys.argv[1:]

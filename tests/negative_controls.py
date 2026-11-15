@@ -32,7 +32,7 @@ MUTANTS = [
     ("M01", "A03", [('code = {"clean": 0, "drift": 1}.get(verdict, 2)',
                      'code = {"clean": 0, "drift": 1, "inconclusive": 0}.get(verdict, 2)')]),
     ("M02", "C01", [('if e[1] in ("blob", "commit") and self.holds(e[0], e[1] == "blob")]', 'if e[1] in ("blob", "commit") and self.holds(e[0], e[1] == "blob") and e[0].isascii()]')]),
-    ("M03", "D14", [('                raise Refusal(f"git cat-file could not read {want} {printable(name[:60])}: {printable(said)}")',
+    ("M03", "D14", [('                raise Refusal(f"git cat-file could not read {want} {printable(name[:60])}: {printable(said)}", code="git_unreadable")',   # §36: the code is part of the line
                      '                return b""')]),
     ("M04", "E01", [('    out = []\n    for ch in str(text):',
                      '    return str(text)\n    out = []\n    for ch in str(text):')]),
