@@ -21,6 +21,8 @@ for line in open(sys.argv[1]):
         continue
     if r["exit"][0] != r["exit"][1]:
         bad.append(("exit", r)); continue
+    if r["exit"][1] in (0, 1) and ('"reason_code"' in r["cand_out"] or "\nreason: " in "\n" + r["cand_err"]):
+        bad.append(("reason on a decided verdict", r)); continue
     out_ok = suffix_of(drop_reason_json(r["cand_out"]), r["ref_out"]) or suffix_of(r["cand_out"], r["ref_out"])
     err_c, code = split_reason(r["cand_err"])
     if out_ok and suffix_of(err_c, r["ref_err"]):
