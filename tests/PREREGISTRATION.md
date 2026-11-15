@@ -2103,3 +2103,12 @@ short id not compared) escaped the seven cases: none renamed a key while keeping
 added — the key renamed consistently in `drift`, `closure_ids` and `closure_commits` → `closure_mismatch` — and
 with it all eight mutants are caught. The seventh case is done by a well-formed commit id this repository does not
 hold, not by a fresh clone without the commit; the code expected is the same, `object_missing`.
+
+**§37, amendment 2 (2026-11-15, after the first differential against 1.10.0, before any change in response).**
+With `closure_commits` in every `--json` report, property PR05 failed (26 of 60 seeds: files outside the closure
+changed the report): a commit id changes when any file changes, so the report no longer depends on the closure
+alone, a 1.x contract. The field is therefore emitted only with a new flag, `--evidence` (with `--json`); without
+it the output of 1.11 is that of 1.10.0, and the differential gate becomes: zero differences, every call
+accounted for. The verifier refuses a report without `closure_commits` (`unsupported_report`, "measure with
+--json --evidence"). `allowed37.py` is withdrawn; the first log (1,360 differences, 335 outside its rule) is
+kept as the record of why.

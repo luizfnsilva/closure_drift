@@ -173,6 +173,7 @@ says that for the files in the closure only. Exit 2 should stop the release unti
 | `--published FILE` | only tags of versions you published: a local list, one per line. `--tags` picks by name; use this when a tag that matches was never released |
 | `--label-equality version` | `1.0`, `1.0.0` and `v1` are one label |
 | `--modes` | a file's mode (executable bit, symlink) is part of the closure |
+| `--evidence` | with `--json`: adds `closure_commits` (the commit of each closure in drift), for `closure-verify` |
 | `--component NAME` | one component of a monorepo (below) |
 | `--json`, `--badge`, `--diagnose` | report ([contract](REPORT.md)), README badge, bug-report block |
 
@@ -331,3 +332,16 @@ reviewer who did not write it found 13 problems before the tag ([`docs/REVIEW-1.
 
 Apache-2.0. Cite the version DOI, under concept DOI `10.5281/zenodo.21763931`
 ([`CITATION.cff`](../CITATION.cff)). Planned next: [`ROADMAP.md`](../ROADMAP.md).
+
+## Checking a report independently (1.11)
+
+```
+closure-drift . --json --evidence > report.json
+closure-verify report.json --repo .
+```
+
+`closure-verify` (`closure_verify.py`) does not use the detector's code. It checks the report's structure, then
+recomputes every closure in drift from the Git objects, checking that each object hashes to its name and that the
+history has no replace refs, grafts or shallow cut. Exit 0 verified · 1 the report is contradicted · 2 cannot
+verify; the last stderr line is `reason: CODE`. It does not claim the repository is the one that was published.
+A `clean` report carries no closure ids, so nothing is recomputed.

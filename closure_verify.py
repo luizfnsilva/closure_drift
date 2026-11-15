@@ -95,6 +95,8 @@ def structural(r):
         raise Stop(2, "unsupported_report", f"a {r['mode']!r} report is not verified; only tags and commits scans")
     if r.get("report_format") != 2:
         raise Stop(2, "unsupported_report", f"report_format {r.get('report_format')!r} is not known here")
+    if r.get("drift") and "closure_commits" not in r:
+        raise Stop(2, "unsupported_report", "the report has no closure_commits: measure with --json --evidence")
     for f in ("drift", "closure_ids", "closure_commits", "closure_globs", "verdict",
               "labels_covering_multiple_closures", "max_closures_per_label"):
         if f not in r:

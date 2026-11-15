@@ -1262,6 +1262,8 @@ def run() -> int:
                          "publication points (a tag left out is not shown unpublished)")
     ap.add_argument("--label-equality", choices=["text", "version"], default="text",
                     help="'version' compares labels as versions: 1.0 = 1.0.0 = v1 (default: text)")
+    ap.add_argument("--evidence", action="store_true",
+                    help="with --json: add closure_commits, the commit of each closure in drift, for closure-verify")
     ap.add_argument("--modes", action="store_true",
                     help="file modes are part of the closure: an executable bit or symlink change counts")
     ap.add_argument("--version", action="store_true", help="print the version and exit")
@@ -1621,10 +1623,12 @@ def report(*, a, at, by_label, churn, code, compared, contradicted, coverage, di
             "max_closures_per_label": worst, "verdict": verdict,
             "drift": {v: {s["key"]: s["where"] for s in cs.values()} for v, cs in drifting.items()},
             "closure_ids": {s["key"]: full for cs in drifting.values() for full, s in cs.items()},
-            "closure_commits": {s["key"]: s["commit"] for cs in drifting.values() for s in cs.values()},
             "closure_changes_between_points": churn,
             "label_sources": dict(sorted(labels.counts.items())),
         }
+        if a.evidence:
+            # where each closure in drift was first seen: changes with any file, so only on request (§37 am. 2)
+            report["closure_commits"] = {s["key"]: s["commit"] for cs in drifting.values() for s in cs.values()}
         report.update(coverage)
         if families:
             report["tag_families"] = dict(sorted(families.items()))

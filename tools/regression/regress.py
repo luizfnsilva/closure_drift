@@ -80,8 +80,14 @@ def measure(detector, clone):
 VERIFIER = Path(__file__).resolve().parents[2] / "closure_verify.py"
 
 
-def verify(report, clone):
-    """→ "verified N" or the verifier's reason code, at the Git level."""
+def verify(detector, clone):
+    """→ "verified N" or the verifier's reason code, at the Git level, on a --json --evidence report."""
+    r = subprocess.run([sys.executable, str(detector), str(clone), "--json", "--evidence"], capture_output=True,
+                       env=ENV, timeout=TIMEOUT)
+    try:
+        report = json.loads(r.stdout.decode("utf-8"))
+    except ValueError:
+        return "no --evidence report"
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as f:
         json.dump(report, f)
     try:
@@ -181,7 +187,7 @@ def check(work, shard, of, detector, out_file):
                         res["mechanisms"] = {label: m["mechanism"] for label, m in mech.items()}
                     # §37 P37-1: a drift report's closures recomputed by the independent verifier; recorded
                     if (measured[1] or {}).get("verdict") == "drift" and VERIFIER.exists():
-                        res["verify"] = verify(measured[1], clone)
+                        res["verify"] = verify(detector, clone)
                     want = row["expected"]
                     # a field the older report does not carry is not compared
                     keys = sorted(set(want) & set(got))

@@ -35,7 +35,7 @@ def fixture(where):
             f.write(body)
         git(repo, "add", "-A")
         git(repo, "commit", "-qm", str(n + 1))
-    out = subprocess.run([sys.executable, DETECTOR, repo, "--at", "commits", "--json"], capture_output=True)
+    out = subprocess.run([sys.executable, DETECTOR, repo, "--at", "commits", "--json", "--evidence"], capture_output=True)
     report = json.loads(out.stdout)
     assert report["verdict"] == "drift", report["verdict"]
     return repo, report

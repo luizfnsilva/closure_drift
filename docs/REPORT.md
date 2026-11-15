@@ -38,7 +38,7 @@ before a refusal — that is what it is for.)
 | `max_closures_per_label` | integer | |
 | `drift` | object | label → { 16-hex closure → "tag (date)" where first seen } — only labels in drift |
 | `closure_ids` | object | 16-hex closure → 64-hex identifier, for every closure in `drift` |
-| `closure_commits` | object | 16-hex closure → 40-hex commit where that closure was first seen, for every closure in `drift` (1.11) |
+| `closure_commits` | object | only with `--evidence`: 16-hex closure → 40-hex commit where that closure was first seen, for every closure in `drift` (1.11) |
 | `closure_changes_between_points` | integer | development churn; not drift |
 | `label_sources` | object | where labels were read from → number of points; `"(the tag)"` when the version is derived from the tag |
 | `points_with_conflicting_sources` | integer | points where the source changed and the earlier file still declares another version; never `clean` when above zero |
