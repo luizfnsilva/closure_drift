@@ -2014,3 +2014,12 @@ any code).** Two corrections to the plan above, and the full table.
   `not_comparable` — `no_version_source`, `empty_closure` or `source_contradicted`, whichever made it so;
   `no_publication_points` — `no_publication_points`; a refused component — the code of its refusal.
 - Every `raise Refusal` names its code; a proof checks statically that none is left without one (no default).
+
+**§36, amendment 2 (2026-11-15, before code).** The P1 refusals came from `--tag` (`check_tag()`), which raises
+the bare `NO_LABEL`; the scan path already appends "found one level down: …, pass --version-file …" and the
+private-`package.json` note (`no_label_refusal()`). In 1.10 `check_tag()` uses the same `no_label_refusal()`,
+reading the tagged commit, not HEAD, so the `--tag` refusal may also gain those lines. And when a workflow at
+the tagged commit writes the version from the tag (`version_written_at_publish()`, §32), the first line names
+it (`could not find a version label: <file>:<line> writes it from the tag at publish time`), code
+`version_written_at_publish`. These are the only text changes allowed besides the `reason:` line; the
+differential lists every changed call and each must be one of them.
