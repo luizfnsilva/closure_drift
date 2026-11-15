@@ -3,6 +3,22 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 1.9.0 — 2026-11-14
+
+Structural only (`tests/PREREGISTRATION.md` §35 and amendments 1–7). Same commands, reports, exit codes,
+verdicts and refusals as 1.8.2.
+
+### Changed
+- `measure()` (319 lines) is split into `prepare()`, `scan()`, `assemble()`, `decide()` and `report()`;
+  it is now 93 lines. The report stamp is built once, in `make_stamp()`.
+- Each step was checked against 1.8.2 by a differential harness (`tools/structural/differential/`):
+  every detector call of the batteries run by both, 2,696 calls, zero differences, every call accounted
+  for. Git calls and run time unchanged on five corpus repositories.
+
+### Added
+- `docs/VERDICTS.md`: which function decides each verdict.
+- Proofs ST01–ST03: the text `incomplete` for a contradicted source, and the label table cut after 25.
+
 ## 1.8.2 — 2026-11-14
 
 From a second external check, of 1.8.1. The detector is unchanged.
