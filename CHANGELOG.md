@@ -3,6 +3,23 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 1.11.0 — 2026-11-15
+
+An independent verifier of the closure ids (`tests/PREREGISTRATION.md` §37 and amendments 1–3). Decisions, reports
+and exit codes of the detector unchanged.
+
+### Added
+- `closure-verify` (`closure_verify.py`): checks a `--json --evidence` report on its own. Structural level: the
+  fields agree with each other. Git level (`--repo`): every closure in drift recomputed from the Git objects, each
+  object checked against its name, replace refs, grafts and shallow history refused. Exit 0 verified, 1 the report
+  is contradicted, 2 cannot verify; `reason: CODE` on the last stderr line. It does not use the detector's code
+  and does not claim the repository is the one published. On the regression corpus: 29 drift reports, 225
+  closures, all verified.
+- `--evidence` (with `--json`): adds `closure_commits`, the commit where each closure in drift was first seen.
+  Off by default: a commit id changes with any file, and the report depends on the closure alone.
+- `docs/VERDICTS.md`: the closure definition a verifier must reproduce.
+- Proofs: eight edits of a report or of its Git objects, each with its own code; eight mutants of the verifier.
+
 ## 1.10.0 — 2026-11-15
 
 Reason codes (`tests/PREREGISTRATION.md` §36 and amendments 1–4). Decisions and exit codes unchanged.

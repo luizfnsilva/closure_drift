@@ -49,6 +49,7 @@ package was built from. It attests and signs nothing. More: [`SCOPE.md`](SCOPE.m
 - [`docs/START.md`](docs/START.md): does it fit, which mode, what the answer means, what next
 - [`docs/USAGE.md`](docs/USAGE.md): every option, the GitHub Action, pre-commit, agents, tests
 - [`RESULTS.md`](RESULTS.md): measurements by others, including results that are not clean
+- `closure-verify report.json --repo .`: checks a `--json --evidence` report without the detector's code ([`docs/USAGE.md`](docs/USAGE.md#checking-a-report-independently-111))
 - [`docs/FAILURES.md`](docs/FAILURES.md): every failure of the tool found so far
 - [`SCOPE.md`](SCOPE.md) · [`THREAT_MODEL.md`](THREAT_MODEL.md) · [`CHANGELOG.md`](CHANGELOG.md)
 - The measurement record behind it: [10.5281/zenodo.21765404](https://doi.org/10.5281/zenodo.21765404)
