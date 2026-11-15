@@ -15,6 +15,7 @@ import os
 import shutil
 import stat
 import subprocess
+import tempfile
 import sys
 from pathlib import Path
 
@@ -74,6 +75,24 @@ def measure(detector, clone):
         report = None
     err = (r.stderr.decode("utf-8", "replace").strip().splitlines() or [""])[0][:200]
     return r.returncode, report, err
+
+
+VERIFIER = Path(__file__).resolve().parents[2] / "closure_verify.py"
+
+
+def verify(report, clone):
+    """→ "verified N" or the verifier's reason code, at the Git level."""
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as f:
+        json.dump(report, f)
+    try:
+        r = subprocess.run([sys.executable, str(VERIFIER), f.name, "--repo", str(clone), "--json"],
+                           capture_output=True, env=ENV, timeout=TIMEOUT)
+        out = json.loads(r.stdout.decode("utf-8"))
+        return "verified %d" % out["closures_verified"] if r.returncode == 0 else out.get("reason_code", "?")
+    except (ValueError, subprocess.TimeoutExpired) as e:
+        return "verifier failed: %s" % str(e)[:100]
+    finally:
+        os.unlink(f.name)
 
 
 def essence(code, report, err):
@@ -160,6 +179,9 @@ def check(work, shard, of, detector, out_file):
                     mech = (measured[1] or {}).get("drift_mechanism")
                     if mech:
                         res["mechanisms"] = {label: m["mechanism"] for label, m in mech.items()}
+                    # §37 P37-1: a drift report's closures recomputed by the independent verifier; recorded
+                    if (measured[1] or {}).get("verdict") == "drift" and VERIFIER.exists():
+                        res["verify"] = verify(measured[1], clone)
                     want = row["expected"]
                     # a field the older report does not carry is not compared
                     keys = sorted(set(want) & set(got))
@@ -193,6 +215,12 @@ def summary(files):
                                        r.get("cause") or json.dumps(r.get("differs"), ensure_ascii=True)[:300]))
     print("\n%d repositories · %d match · %d differ · %d not checkable"
           % (len(rows), n["match"], n["DIFFERS"], n["not checkable"]))
+    ver = [r["verify"] for r in rows if "verify" in r]
+    if ver:
+        ok = [v for v in ver if v.startswith("verified ")]
+        print("independent verifier (§37): %d drift reports, %d verified (%d closures), others: %s"
+              % (len(ver), len(ok), sum(int(v.split()[1]) for v in ok),
+                 ", ".join(sorted(v for v in ver if v not in ok)) or "none"))
     kinds = {}
     for r in rows:
         for kind in (r.get("mechanisms") or {}).values():
