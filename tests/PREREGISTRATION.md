@@ -2112,3 +2112,8 @@ it the output of 1.11 is that of 1.10.0, and the differential gate becomes: zero
 accounted for. The verifier refuses a report without `closure_commits` (`unsupported_report`, "measure with
 --json --evidence"). `allowed37.py` is withdrawn; the first log (1,360 differences, 335 outside its rule) is
 kept as the record of why.
+
+**§37, amendment 3 (2026-11-15) — the gate, as run.** Differential against 1.10.0 after am. 2: 8,181 calls seen
+= 2,702 compared + 5,479 excluded + 0 not concluded; harness errors 0. Two differences, both the new flag in the
+usage text (`--help`; the usage line of a refusal, exit 2 in both); exit codes equal everywhere; no report,
+verdict or refusal differs. Am. 2 should have named the usage text; it is the only difference admitted.
