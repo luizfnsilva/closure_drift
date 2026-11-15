@@ -50,8 +50,8 @@ MUTANTS = [
     # 1.1.0: ids() takes the commit (for --modes, §16.4); the mutation is the same
     ("M14", "U02", [('        short, full, nfiles = closure.ids(entries, sha)\n        if nfiles == 0:\n            empty += 1',
                      '        short, full, nfiles = closure.ids(entries, sha)\n        full = short\n        if nfiles == 0:\n            empty += 1')]),
-    ("M15", "X04", [('"label_sources": dict(sorted(labels.counts.items())),\n        }',
-                     '"label_sources": dict(sorted(labels.counts.items())),\n            "paths": [e[0] for e in closure.members(head_entries)],\n        }')]),
+    ("M15", "X04", [('    return report(\n        a=a, at=at,',                  # §35 am. 8: where closure and head_entries exist
+                     '    coverage["paths"] = [e[0] for e in closure.members(head_entries)]\n    return report(\n        a=a, at=at,')]),
     ("M16", "CMP01", [('    changed = sorted(p for p in ma if p in mb and ma[p] != mb[p])',
                        '    changed = sorted(p for p in ma if False)')]),
     ("M17", "DG01", [('        print("  repository      " + ", ".join(f"{k}={v}" for k, v in DIAGNOSTICS["repository"].items()) + "\\n")',

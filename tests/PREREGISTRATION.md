@@ -1951,3 +1951,13 @@ reaches the `--compare` stamp as well; proof DT01 must still catch it. Not conso
 `ast.parse` under `warnings` in `imported_from()` and `setup_info()` (three lines, a helper would add a jump
 for no clarity) and the `--badge` / `--json` openings in four report paths (two lines each). Gate: the full
 differential at zero differences, cost unchanged, mutants in CI with M59 caught.
+
+**§35, amendment 8 (2026-11-15, after CI run 43661099116).** The mutants of 1.9.0 failed on every platform:
+M15 was `missed`. M15 injects the closure's paths into the JSON report using `closure` and `head_entries`;
+after extraction C the JSON is built in `report()`, which has neither, so the mutant raised `NameError`,
+everything went red except X04, and X04 (no path in the report) stayed green. Its anchor still matched once:
+counting anchors does not show that a mutant still produces the defect it stands for. The detector is not
+changed to suit the mutant. M15 moves to where both names exist: `measure()`, just before `report()` is
+called, adding the same paths to `coverage`, which `report()` puts in the JSON. X04 must catch it. Every
+mutant is also checked for this: applied to the candidate, its target proof must turn red and the detector
+must not crash on the proof's inputs where 1.8.2 did not (`tools/structural/mutant_scope.py`).
