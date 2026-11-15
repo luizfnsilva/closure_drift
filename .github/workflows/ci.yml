@@ -95,6 +95,10 @@ jobs:
         run: python tests/battery.py
       - name: Adversarial campaign — hostile repositories and hostile input
         run: python tests/adversarial.py
+      - name: Independent verifier — eight edits, eight codes (§37)
+        run: python tests/verify_adversarial.py
+      - name: Independent verifier — its mutants caught (§37)
+        run: python tests/verify_mutants.py
       - name: Independent oracle — its own check
         run: python tests/oracle.py --self-test
       - name: Properties — generated repositories, against the oracle

@@ -37,9 +37,10 @@ DOI = "https://doi.org/10.5281/zenodo.21763931"
 [project.scripts]
 closure-drift = "closure_drift:main"
 closure-drift-mcp = "closure_drift_mcp:main"
+closure-verify = "closure_verify:main"
 
 [tool.setuptools]
-py-modules = ["closure_drift", "closure_drift_mcp"]
+py-modules = ["closure_drift", "closure_drift_mcp", "closure_verify"]
 
 [tool.setuptools.dynamic]
 version = {file = "VERSION"}
