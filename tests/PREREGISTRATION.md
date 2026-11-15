@@ -2036,3 +2036,12 @@ decisions in this sample, so 1.10 does not add them there; the `--tag` refusal k
 the publish-time first line (§32 evidence) and the `reason:` line, and its code still says
 `version_outside_component` when a manifest sits below the root. The scan path keeps its 1.x lines unchanged.
 Experiment 2 (253 pairs with a signal) is moot: nothing is recovered.
+
+**§36, amendment 4 (2026-11-15) — how the front 2 result is to be read.** Absence of recognised evidence that a
+version is set at publish time is not evidence that it is not. No regex for more release tools is added: it
+could fix angular-cli and still miss mechanisms nobody has seen; the refusal stays until a source declared for
+the point examined is reliable. The 155 false alarms are within the 168 candidates selected by P1; they are not
+a false-positive rate of any released closure_drift, because the recipe failed and was not shipped. Any public
+mention carries this. 1.10 ends with front 1 only; no other coverage front is opened. 1.11 keeps its scope: an
+independent verifier of the closure identifiers, working from the configuration and objects declared, filling
+no gap by inference.
