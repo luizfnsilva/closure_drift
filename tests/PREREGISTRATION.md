@@ -1961,3 +1961,39 @@ changed to suit the mutant. M15 moves to where both names exist: `measure()`, ju
 called, adding the same paths to `coverage`, which `report()` puts in the JSON. X04 must catch it. Every
 mutant is also checked for this: applied to the candidate, its target proof must turn red and the detector
 must not crash on the proof's inputs where 1.8.2 did not (`tools/structural/mutant_scope.py`).
+
+## 36. Added 2026-11-15, before any code — 1.10.0, reasons and diagnosis (additive)
+
+Plan of the remaining releases, written once: 1.10 (this section), 1.11 (an independent verifier of a
+report), 2.0 only if a study of real JSON consumers shows ambiguities that the 2.x contract cannot fix.
+If no such ambiguity is shown, 1.11 is the last functional release. After the last one: no new problem
+classes, heuristics or integrations; security fixes, proven bugs and Python/Git compatibility continue.
+Adoption by others is not a condition for stopping.
+
+Two fronts, measured apart, so that better wording is never read as more decisions.
+
+**Front 1 — reason codes (decisions unchanged).** Every refusal and every undetermined verdict carries a
+stable code from one table in the detector (`REASONS`), in the JSON as `reason_code` and on stderr as a last
+line `reason: CODE`. Codes are written here before the code: `no_version_source` (nothing found in the area
+read), `version_outside_component` (a known manifest exists below the root but none at it, with no
+`--component`/`--version-file`), `version_written_at_publish` (a workflow at the point writes the version from
+the tag), `version_from_tag` (the version is derived from the tag at build time), `source_contradicted`,
+`source_too_large`, `bad_pattern`, `empty_closure`, `too_few_compared`, `no_publication_points`,
+`tag_names_no_version`, `prefix_names_no_package`. Gate: the differential against 1.9.0, where the only allowed
+differences are the added `reason_code` key and the added last stderr line, and a refusal's first line may
+change only where the P1 study found it wrong (`could not find a version label` given while a known manifest
+exists below the root, 201 pairs, or a publish workflow writes the version). Exit codes and verdicts: identical,
+call by call. The text of every other message: identical.
+
+**Front 2 — coverage by explicit configuration (no new reader, no new heuristic).** P1 found 168 of 570
+refused pairs decidable with `--version-file`, in 10 repositories, 143 pairs in one (angular-cli): the universe
+of opportunity, not recoveries. 1.10 adds only a documented recipe (`docs/MONOREPO.md`) and the
+`version_outside_component` code that names the file to pass. Experiment 1, on those 10 repositories with the
+recipe: recovered = decided where it refused, counted by repository and by pair; each decided pair checked
+against the independent reference already recorded for it (`g2` in the study: version raised after the tag,
+set at release, or none); a decision that disagrees with the reference is a false decision and fails the gate.
+Experiment 2 (adversarial): the 253 pairs with a publish-time or placeholder signal must not reach `clean` or
+`tag_matches` under the recipe; the gate reports any that do. Regressions: the 99 corpus repositories and the
+batteries must give what 1.9.0 gives.
+
+**Cost** (experiment 4) on the five corpus repositories and on angular-cli, as in §35.
