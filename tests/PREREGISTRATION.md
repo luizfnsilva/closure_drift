@@ -2045,3 +2045,55 @@ a false-positive rate of any released closure_drift, because the recipe failed a
 mention carries this. 1.10 ends with front 1 only; no other coverage front is opened. 1.11 keeps its scope: an
 independent verifier of the closure identifiers, working from the configuration and objects declared, filling
 no gap by inference.
+
+## 37. Added 2026-11-15, before any code — 1.11.0, an independent verifier of the closure ids
+
+**What it is.** A second program, `closure_verify.py`, standard library only, that does not import
+`closure_drift.py` and does not read its source. Given a `--json` report (and, at the Git level, the repository),
+it says whether the evidence the report gives for drift holds. It verifies drift evidence only: a `clean` report
+carries no closure ids and the verifier says so (`closures_verified: 0`), it does not call that verified.
+
+**Levels.** Each run states the level it reached; nothing above it is claimed.
+1. *Structural* (report only): `report_format` is 2; every key of `drift` is in `closure_ids` and in
+   `closure_commits`; each label in `drift` has two or more keys and distinct full ids; keys are 16 hex with an
+   optional `~n`, full ids 64 hex, commits 40 hex; `labels_covering_multiple_closures` equals the number of labels
+   in `drift`, `max_closures_per_label` the largest count; `verdict` is `drift` exactly when `drift` is not empty.
+2. *Git* (`--repo`): each commit exists and is a commit; no replace refs, no grafts, the repository is not
+   shallow; every tree and blob read hashes to its name; the full id is recomputed from `git ls-tree -r -z
+   --full-tree` with the report's `closure_globs` and, when `closure_modes` is true, the modes, and the short id
+   from the same entries, and both equal the report's.
+3. *Trusted history* is out of scope: that the repository and its tags are the ones that were published needs an
+   external reference. The verifier names the level it did not reach.
+
+**The definition it reproduces.** Membership: a path is in when it matches an include glob and is not excluded,
+or every excluded folder it lies in is named by a glob that matches it (§29); the exclusions and nameable folders
+of 1.10 (`docs/VERDICTS.md` will list them); submodule pointers are in; ids over the tree order of Git. The
+verifier is written from this text and `docs/`, not from the detector's code. It refuses a report whose
+`report_format` it does not know, and component (`--components`) and `--compare` reports (`unsupported_report`).
+
+**Detector change (additive only).** The JSON gains `closure_commits`: key → the 40-hex commit where that closure
+was first seen. Nothing else in the detector changes. Gate: the differential against 1.10.0, every call accounted
+for; the only difference allowed is that field in `--json` output.
+
+**Refusals, each with its own code (last stderr line `reason: CODE`), and exit codes.**
+- exit 0 `verified`: the level reached holds.
+- exit 1, the report is contradicted: `report_inconsistent` (structural check fails), `closure_mismatch` (objects
+  intact, recomputed id differs from the report's).
+- exit 2, cannot verify: `report_unreadable` (not JSON), `unsupported_report`, `object_missing` (a commit not
+  here), `git_object_corrupt` (an object does not hash to its name), `git_history_rewritten` (replace refs, grafts
+  or shallow), `git_unreadable`.
+A report edited and Git objects edited must end in different codes: that is the adversarial proof.
+
+**Predictions, written before code.**
+- P37-1: on every repository of the regression corpus whose 1.11 report is `drift`, the verifier at the Git level
+  says `verified` for every closure; zero `closure_mismatch`. Any mismatch is a disagreement of definition and is
+  recorded, not tuned away before it is written down.
+- P37-2 adversarial, each on a copy: change one full id → `closure_mismatch`; change a key's commit to another
+  real commit → `closure_mismatch`; remove a key from `closure_ids` → `report_inconsistent`; change a count →
+  `report_inconsistent`; overwrite a loose blob in the closure with other bytes → `git_object_corrupt`; `git
+  replace` a commit → `git_history_rewritten`; delete the report's commit (fresh clone without it) →
+  `object_missing`. Seven cases, seven expected codes, each also run against an unedited control that must pass.
+- P37-3: mutants of the verifier (each check removed once) are caught by these proofs.
+- Cost: no claim; measured and recorded.
+
+**Not in 1.11.** No new verdict, no new heuristic, no change to what the detector decides.
