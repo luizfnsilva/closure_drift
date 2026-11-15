@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """§36 gate: every difference between 1.9.0 and the candidate must be one the pre-registration allows.
 Allowed: (1) a JSON report gains `"reason_code": ...`; (2) stderr gains a last line `reason: CODE`; (3) a
-no-label refusal of --tag changes its first line to name a publish-time writer, or gains the
-"found one level down"/private package.json lines (am. 2). Exit codes must be equal in every call.
+no-label refusal of --tag changes its first line to name a publish-time writer (am. 2, am. 3). Exit codes must be equal in every call.
     python3 allowed36.py calls.jsonl"""
 import collections, json, re, sys
 

@@ -3610,7 +3610,7 @@ def rc04(root):
     r.commit()
     r.tag("v1.0.0")
     rc, _d, _o, err = run(r, "--tag", "v1.0.0", text=True)
-    check(rc == 2 and "found one level down: pkg/package.json" in err, "no hint at the tagged commit: %r" % err[-200:])
+    check(rc == 2 and "found one level down" not in err, "--tag gives advice §36 am. 3 removed: %r" % err[-200:])
     check(_last(err) == "reason: version_outside_component", "last stderr line %r" % _last(err))
 
 

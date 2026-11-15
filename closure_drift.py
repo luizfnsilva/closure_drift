@@ -964,7 +964,7 @@ LABEL_FILES = ("pyproject.toml", "setup.cfg", "setup.py", "Cargo.toml", "package
                "build.gradle", "VERSION", "version.txt", "Chart.yaml", "pubspec.yaml")
 
 
-def no_label_refusal(repo: str, rev: str = "HEAD", objects=None) -> Refusal:
+def no_label_refusal(repo: str, rev: str = "HEAD", objects=None, hints: bool = True) -> Refusal:
     """The refusal for no label, naming the files the rules read one directory below the root.
     They are named, never read: a label is declared, not guessed (§20). With `objects`, a workflow at
     `rev` that writes the version from the tag at publish time is named first (§36 am. 2)."""
@@ -989,7 +989,10 @@ def no_label_refusal(repo: str, rev: str = "HEAD", objects=None) -> Refusal:
     if written:
         first = (f"could not find a version label: {printable(written[0])}:{written[1]} writes it "
                  "from the tag at publish time.")
-        return Refusal(first + NO_LABEL[NO_LABEL.index("\n"):] + extra, code="version_written_at_publish")
+        return Refusal(first + NO_LABEL[NO_LABEL.index("\n"):] + (extra if hints else ""),
+                       code="version_written_at_publish")
+    if not hints:                    # §36 am. 3: on --tag, the file below is a code, not advice
+        extra = ""
     return Refusal(NO_LABEL + extra, code="version_outside_component" if below else "no_version_source")
 
 
@@ -2031,7 +2034,7 @@ def check_tag(a, objects, labels, head_sha) -> int:
         src = labels.source(entries)
         label = labels.at(entries, name, count=False)
     if not label:
-        raise no_label_refusal(a.repo, sha, objects)
+        raise no_label_refusal(a.repo, sha, objects, hints=False)
     from_tag = bool(src and src[0] == TAG_SOURCE) or prefix_from_tag
     # build metadata takes no part in precedence (SemVer 2.0.0 §10): 1.2.3+45 is what v1.2.3 names (§29)
     keys = {version_key(label), version_key(label.split("+", 1)[0])}

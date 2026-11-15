@@ -2023,3 +2023,16 @@ the tagged commit writes the version from the tag (`version_written_at_publish()
 it (`could not find a version label: <file>:<line> writes it from the tag at publish time`), code
 `version_written_at_publish`. These are the only text changes allowed besides the `reason:` line; the
 differential lists every changed call and each must be one of them.
+
+**§36, amendment 3 (2026-11-15) — front 2 result, and what it removes from front 1.** Experiment 1 on the P1
+data (the 1.10 decisions equal 1.8.2's there, by front 1's gate), joined with the independent reference `g2`:
+of the 168 pairs decidable with `--version-file` and no publish-time or placeholder signal, 155 are
+`SET_AT_RELEASE` (the version is set at release; the stale file at the tag is the project's convention) and 13
+`BUMPED_AFTER_TAG`. By repository: decisions agree with the reference in 3 of 10 (4 pairs: causalontology,
+ShadingLanguageX, cos-design); angular-cli (143) disagrees in every pair. A false decision fails the gate:
+**front 2 fails, no monorepo recipe ships, `docs/MONOREPO.md` is not written.** The "found one level down …
+pass --version-file …" lines that am. 2 allowed on the `--tag` refusal would mostly lead to such false
+decisions in this sample, so 1.10 does not add them there; the `--tag` refusal keeps its 1.9.0 text, gains only
+the publish-time first line (§32 evidence) and the `reason:` line, and its code still says
+`version_outside_component` when a manifest sits below the root. The scan path keeps its 1.x lines unchanged.
+Experiment 2 (253 pairs with a signal) is moot: nothing is recovered.
