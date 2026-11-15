@@ -1,3 +1,11 @@
+# Record of the battery runs — closure_drift 1.10.0
+
+Detector 1.10.0: `closure_drift.py`, sha256 `9e317a1f442d801fb64b57e33f75952761aa01af19580a197e5fa114d27fb4c4`. Reason codes only (§36); no verdict changed. CI run 43714143837 (branch `release-1.10.0`): all 28 battery, mutant, adversarial, oracle, property and Action jobs green on Ubuntu, macOS and Windows; 280 proofs (RC01–RC05 added), 85 mutants. The deposit job failed, as before.
+
+Differential against 1.9.0 (`tools/structural/GATE-1.10.md`): 8,181 calls seen = 2,702 compared + 5,479 excluded + 0 not concluded; 1,126 differences, all of the kinds §36 allows (`tools/structural/differential/allowed36.py`, which rejects the 198 planted differences); exit codes identical. Cost on five corpus repositories: −1.6% to +0.5%.
+
+Regression corpus (run 43713206918, `regression-check/v1.10.0`): 99 of 99 checkable match; mechanisms 79 / 7 / 1; `apache/arrow` not checkable.
+
 # Record of the battery runs — closure_drift 1.9.0
 
 Detector 1.9.0: `closure_drift.py`, sha256 `87b88db21e09c5b904bc361a0ead437c3d8b8693af8c364a1df0ef2a39364829`. Structural only (§35). CI run 43676679209 (branch `structural-1.9.0`): all 28 battery, mutant, adversarial, oracle, property and Action jobs green on Ubuntu, macOS and Windows; 275 proofs (ST01–ST03 added), 85 mutants. The deposit job failed, as before.
