@@ -3,6 +3,23 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 1.10.0 — 2026-11-15
+
+Reason codes (`tests/PREREGISTRATION.md` §36 and amendments 1–4). Decisions and exit codes unchanged.
+
+### Added
+- Every refusal and every undetermined verdict carries a stable code: `reason_code` in the JSON of an
+  undetermined verdict, and a last stderr line `reason: CODE` (a refusal with `--json` still prints no JSON).
+  The table is in `docs/VERDICTS.md`.
+- `--tag`: when no label is found and a workflow at the tagged commit writes the version from the tag, the
+  first line names the file and line.
+- Proofs RC01–RC05.
+
+### Not added
+- A recipe for monorepos (§36 front 2). Measured on 168 candidate pairs against an independent reference, it
+  gave the right answer in 3 of 10 repositories; most of the rest set the version at release. Those 168 were
+  candidates, never shipped; this is not a false-positive rate of any release.
+
 ## 1.9.0 — 2026-11-14
 
 Structural only (`tests/PREREGISTRATION.md` §35 and amendments 1–7). Same commands, reports, exit codes,
