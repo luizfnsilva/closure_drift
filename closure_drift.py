@@ -1621,6 +1621,7 @@ def report(*, a, at, by_label, churn, code, compared, contradicted, coverage, di
             "max_closures_per_label": worst, "verdict": verdict,
             "drift": {v: {s["key"]: s["where"] for s in cs.values()} for v, cs in drifting.items()},
             "closure_ids": {s["key"]: full for cs in drifting.values() for full, s in cs.items()},
+            "closure_commits": {s["key"]: s["commit"] for cs in drifting.values() for s in cs.values()},
             "closure_changes_between_points": churn,
             "label_sources": dict(sorted(labels.counts.items())),
         }

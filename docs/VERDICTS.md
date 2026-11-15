@@ -34,3 +34,26 @@ stderr with `reason: CODE`. A decided verdict (exit 0 or 1) carries none.
 | `bad_pattern`, `usage`, `broken_config`, `not_a_repository`, `git_unreadable` | about the input |
 
 A code says why nothing was decided. It is not advice, and it does not decide anything.
+
+## The closure, as a verifier must reproduce it (1.11, §37)
+
+`closure_verify.py` is written from this section, not from the detector's code.
+
+- **Entries.** `git ls-tree -r -z --full-tree <commit>`, in that order: files (`blob`) and submodule pointers
+  (`commit`). Paths are bytes, decoded UTF-8 with `surrogateescape`.
+- **Glob match** (`fnmatch.fnmatchcase`, where `*` crosses `/`): a path matches a glob `g` when it matches `g`;
+  or `g` with every `**/` written `*/`; or, when `g` starts with `**/`, the rest of `g`; or, when `g` ends with
+  `/**`, the path starts with `g` minus `**`.
+- **Never in it:** `**/test/**`, `**/tests/**`, `**/*_test.*`, `**/*.test.*`, `**/spec/**`, `**/docs/**`,
+  `**/*.md`, `**/node_modules/**`, `**/vendor/**`, `**/.git/**`. A pattern `**/X` with no `/` in `X` is a file
+  pattern: it excludes a file whose own name matches `X`, and never a submodule pointer. Every other pattern
+  excludes a path that glob-matches it.
+- **Brought back in** (§29): an excluded path is in when no file pattern excludes it, `.git` is not one of its
+  folders, it lies in at least one of `test`, `tests`, `spec`, `docs`, `vendor`, `node_modules`, and some
+  include glob both matches it and names every one of those folders it lies in. A file's folders are its path
+  segments but the last; a submodule pointer's are all of them.
+- **Member:** matches an include glob of `closure_globs` and is not excluded, or is brought back in.
+- **Ids.** Over the members in entry order: the short id is the first 16 hex of SHA-256 over `path id` with
+  nothing between; the full id is SHA-256 over `path NUL kind SP id LF`, with ` mode` (the six digits from
+  `ls-tree`) before `LF` when `closure_modes` is true. A key is the short id, or `short~n` when another closure
+  of the same label had that short id first.

@@ -2097,3 +2097,9 @@ A report edited and Git objects edited must end in different codes: that is the 
 - Cost: no claim; measured and recorded.
 
 **Not in 1.11.** No new verdict, no new heuristic, no change to what the detector decides.
+
+**§37, amendment 1 (2026-11-15, after the first verifier mutant run, before any corpus run).** Mutant V02 (the
+short id not compared) escaped the seven cases: none renamed a key while keeping its full id. An eighth case is
+added — the key renamed consistently in `drift`, `closure_ids` and `closure_commits` → `closure_mismatch` — and
+with it all eight mutants are caught. The seventh case is done by a well-formed commit id this repository does not
+hold, not by a fresh clone without the commit; the code expected is the same, `object_missing`.
