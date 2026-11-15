@@ -1997,3 +1997,20 @@ Experiment 2 (adversarial): the 253 pairs with a publish-time or placeholder sig
 batteries must give what 1.9.0 gives.
 
 **Cost** (experiment 4) on the five corpus repositories and on angular-cli, as in §35.
+
+**§36, amendment 1 (2026-11-15, after listing the 61 refusal sites and every undetermined verdict, before
+any code).** Two corrections to the plan above, and the full table.
+- A refusal with `--json` prints no JSON (K02, a 1.x contract). So `reason_code` goes into the JSON only of
+  undetermined verdicts (exit 2 with a report); a refusal carries its code only on the last stderr line.
+- Codes for refusals the first list did not cover: `usage` (flags that do not combine, a bad value, `--explain`
+  of a label not in drift), `broken_config` (`.closure-drift.json`, a `--published` list), `not_a_repository`
+  (not a git repository, no commits), `unknown_ref` (`--tag` or `--compare` names nothing here),
+  `git_unreadable` (git cannot run, an object cannot be read or is malformed, partial clone on old git).
+- Undetermined verdicts and their codes: `incomplete` from `decide()` — `source_contradicted`,
+  `source_too_large`, `sources_conflict` (two sources disagree at a point), `strict_uncovered` (`--strict` and a
+  point not compared), `too_few_compared`; `empty_closure` and `empty_closure_at_head` — `empty_closure`;
+  `no_labels` and `no_label_at_head` — `no_version_source`; `inconclusive` — `one_label`; `incomplete` from
+  `check_tag()` — `version_written_at_publish`; `incomplete` from `would_tag()` — `source_too_large`;
+  `not_comparable` — `no_version_source`, `empty_closure` or `source_contradicted`, whichever made it so;
+  `no_publication_points` — `no_publication_points`; a refused component — the code of its refusal.
+- Every `raise Refusal` names its code; a proof checks statically that none is left without one (no default).
