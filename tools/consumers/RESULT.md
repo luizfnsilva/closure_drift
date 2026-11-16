@@ -54,5 +54,5 @@ Every top-level and `stamp.` field of the eight `docs/report-examples/` and of t
 - **A3 — the components report carries `stamp`**, which its field list omitted (reproduced). Fixed by wording.
 - **D1 — consumer defect, `action.yml`.** On a components report in drift (top-level `verdict: "drift"`, exit 1,
   no top-level `drift`), the Action fails the step and prints DRIFT but annotates no label, because it reads only
-  the top-level `drift`. The contract is clear; the consumer does not read `components`. A proven bug: may be fixed
-  under the freeze, separately.
+  the top-level `drift`. The contract is clear; the consumer does not read `components`. A proven bug, fixed under the freeze
+  (§38.1): the Action now annotates each component's labels in drift; proof ACT08, mutant M86.

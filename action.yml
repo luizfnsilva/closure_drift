@@ -160,9 +160,14 @@ runs:
                   "that declares %s. Bump the version, commit, and tag again with a new name."
                   % (clean(r.get("tag")), clean(r.get("label_at_tag"))))
         elif v == "drift":
-            for label, states in list(r.get("drift", {}).items())[:10]:
-                print("::error title=closure_drift: one label, more than one closure::The label %s names %d "
-                      "different closures: %s" % (clean(label), len(states), clean("; ".join(states.values()))))
+            # a components report keeps each component's drift inside it (docs/REPORT.md, Components)
+            found = [("", r.get("drift") or {})] + [("component %s: " % name, (c or {}).get("drift") or {})
+                                                     for name, c in sorted((r.get("components") or {}).items())]
+            for where, labels in found:
+                for label, states in list(labels.items())[:10]:
+                    print("::error title=closure_drift: one label, more than one closure::%sThe label %s names %d "
+                          "different closures: %s" % (clean(where), clean(label), len(states),
+                                                      clean("; ".join(states.values()))))
         elif v == "error":
             print("::error title=closure_drift: the detector did not finish::exit %d. This is not a result." % code)
         elif v not in ("clean", "would_be_clean", "tag_matches"):

@@ -2954,6 +2954,25 @@ def act06(root):
           "required 2 and error" % (rc, out.get("verdict")))
 
 
+@proof("ACT08")
+def act08(root):
+    r = Repo(root, "act08")
+    r.write(".closure-drift.json", '{"components": {"a": {"tags": ["v*"], "version_file": "a/VERSION", '
+            '"closure": ["a/**"]}}}\n')
+    r.write("a/VERSION", "1.0\n")
+    r.write("a/m.py", "1\n")
+    r.commit()
+    r.tag("vx")
+    r.write("a/m.py", "2\n")
+    r.commit()
+    r.tag("vy")
+    rc, log, out, _s = _act(root, r)
+    errors = [l for l in log.splitlines() if l.startswith("::error")]
+    check(rc == 1 and out.get("verdict") == "drift" and any("a" in l and "1.0" in l for l in errors),
+          "components report in drift through the Action: exit %d, verdict %r, annotations %r; required 1, drift "
+          "and an ::error naming component a and label 1.0" % (rc, out.get("verdict"), errors))
+
+
 @proof("ACT07")
 def act07(root):
     r = Repo(root, "act07")
