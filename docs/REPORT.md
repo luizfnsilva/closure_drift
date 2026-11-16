@@ -8,12 +8,13 @@ tables below; CM01–CM10 check the components report.
 
 | kind | exit | how to recognise it |
 |---|---|---|
-| **a determination** | `0` or `1` | a report whose `verdict` is `clean` / `would_be_clean` / `identical` / `differs_under_two_labels` (0) or `drift` / `would_drift` / `differs_under_one_label` (1) |
+| **a determination** | `0` or `1` | a report whose `verdict` is `clean` / `would_be_clean` / `tag_matches` / `identical` / `differs_under_two_labels` (0) or `drift` / `would_drift` / `tag_mismatch` / `differs_under_one_label` (1) |
 | **not enough to determine** | `2` | a report whose `verdict` is `inconclusive`, `incomplete`, `no_labels`, `empty_closure`, `no_publication_points`, `no_label_at_head`, `empty_closure_at_head` or `not_comparable` |
 | **an operational refusal** | `2` | **no JSON on standard output**; one or more lines on standard error naming the cause |
 
-So: exit `1` always comes with a report saying one label covers more than one closure; exit `0`
-always comes with a report saying none does; and with exit `2`, standard output either holds a
+So: exit `1` always comes with a report saying one label covers more than one closure (with `--tag`:
+that the tag names a version its commit does not declare); exit `0` always comes with a report saying
+none does (with `--tag`: that it does); and with exit `2`, standard output either holds a
 report with one of the eight undetermined verdicts or is empty. There is never a traceback. (One
 exception to "empty": with `--diagnose` and without `--json`, the diagnostics block is printed
 before a refusal — that is what it is for.)
@@ -36,7 +37,7 @@ before a refusal — that is what it is for.)
 | `labels` | integer | distinct labels compared |
 | `labels_covering_multiple_closures` | integer | labels in drift |
 | `max_closures_per_label` | integer | |
-| `drift` | object | label → { 16-hex closure → "tag (date)" where first seen } — only labels in drift |
+| `drift` | object | label → { 16-hex closure → "tag (date)" where first seen; with `--at commits` (`published_at` is `"commits"`) the first line of that commit's message instead of the tag, which can look like a tag name } — only labels in drift. A key is `short~n` when two closures share the 16 hex (`docs/VERDICTS.md`) |
 | `closure_ids` | object | 16-hex closure → 64-hex identifier, for every closure in `drift` |
 | `closure_commits` | object | only with `--evidence`: 16-hex closure → 40-hex commit where that closure was first seen, for every closure in `drift` (1.11) |
 | `closure_changes_between_points` | integer | development churn; not drift |
@@ -120,7 +121,7 @@ They are not measurements and carry no verdict.
 ## Components (1.0.0)
 
 With `components` in `.closure-drift.json` and no `--component`: `report_format`, `mode`
-(`"components"`), `repo`, `measured_at_head`, `verdict` (`drift` if any component is in drift,
+(`"components"`), `repo`, `stamp`, `measured_at_head`, `verdict` (`drift` if any component is in drift,
 `clean` if every one is clean, otherwise `incomplete`), and `components`: name → that component's
 report, with its own `exit`; a component that was refused is `{"verdict": "refused", "exit": 2,
 "note"}`. With `--component NAME`, the ordinary report of that component with `"component": NAME`;
