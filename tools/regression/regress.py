@@ -2,7 +2,7 @@
 """The regression corpus of tests/PREREGISTRATION.md §12.
 
     python3 tools/regression/regress.py snapshot WORKDIR [--shard K/N]
-    python3 tools/regression/regress.py check WORKDIR [--shard K/N] [--detector PATH] [--out FILE]
+    python3 tools/regression/regress.py check WORKDIR [--shard K/N] [--detector PATH] [--out FILE] [--reports DIR]
     python3 tools/regression/regress.py summary FILE...        # merge the outputs of check shards
 
 Snapshot writes tools/regression/corpus/<owner>__<repo>.json. Check compares, field by field, and
@@ -181,6 +181,12 @@ def check(work, shard, of, detector, out_file):
                 else:
                     measured = measure(detector, clone)
                     got = essence(*measured)
+                    # §38: the whole report kept for the JSON consumer study; never compared
+                    if option("--reports"):
+                        Path(option("--reports")).mkdir(parents=True, exist_ok=True)
+                        (Path(option("--reports")) / (repo.replace("/", "__") + ".json")).write_text(json.dumps(
+                            {"exit": measured[0], "stderr": measured[2], "report": measured[1]}, indent=1,
+                            sort_keys=True) + "\n", encoding="utf-8")
                     # how each label in drift came about (§28); recorded, not compared
                     mech = (measured[1] or {}).get("drift_mechanism")
                     if mech:

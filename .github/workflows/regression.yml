@@ -51,7 +51,7 @@ jobs:
         run: |
           set +e
           python3 tools/regression/regress.py check "$RUNNER_TEMP/work" --shard ${{ matrix.shard }}/10 \
-            --out "check-${{ matrix.shard }}.json" $([ -n "$OTHER" ] && echo --detector "$RUNNER_TEMP/other.py")
+            --out "check-${{ matrix.shard }}.json" --reports reports $([ -n "$OTHER" ] && echo --detector "$RUNNER_TEMP/other.py")
           echo "exit $?"
       - uses: actions/upload-artifact@v4
         with:
@@ -59,4 +59,5 @@ jobs:
           path: |
             tools/regression/corpus
             check-*.json
+            reports
           if-no-files-found: ignore
