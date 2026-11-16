@@ -56,6 +56,7 @@ before a refusal — that is what it is for.)
 | `published` | object | (1.1.0, with `--published`) `sha256` of the list file; `versions` on it; `tags_included`: tags on the list that point at a commit, before `--max-commits` cuts the range; `tags_left_out`: tags not on the list. A tag on the list that points at no commit is in `points_not_commits`. A tag left out is left out of this analysis, not shown unpublished; `stamp.published_sha256` repeats the hash |
 | `label_equality` | string | (1.1.0) `"version"` with `--label-equality version`; absent by default |
 | `closure_modes` | `true` | (1.1.0) with `--modes`; absent by default |
+| `history_shallow` | `true` | (1.11.1, `--at commits`) the repository is a shallow clone, so the commits it does not hold were not scanned; then `clean` is not given (`incomplete`, `reason_code` `shallow_history`, with a `note`); absent otherwise |
 | `tags_not_voting` | integer | (1.1.0, `--at commits`) tags whose tree could not be read and so did not vote on the version file; absent when 0 |
 
 Present only when relevant: `tag_families` (prefix → count, when the tags in drift carry two or

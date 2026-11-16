@@ -2830,6 +2830,66 @@ def mx01(root):
         check(got == want, "%s: %r, required %r" % (name, got, want))
 
 
+# ---------------------------------------------------------------- §38.2 — a shallow clone under --at commits
+
+def _shallow_history(root, name, early=True, tags=False):
+    """1.0 over two states then 2.0, 3.0 (early drift); or 1.0, 2.0, then 3.0 over two states (late drift)."""
+    r = Repo(root, name)
+    steps = [("1.0", "a"), ("1.0", "b"), ("2.0", "c"), ("3.0", "d")] if early else \
+            [("1.0", "a"), ("2.0", "b"), ("3.0", "c"), ("3.0", "d")]
+    for i, (version, body) in enumerate(steps):
+        r.write("VERSION", version + "\n")
+        r.write("src/a.py", body + "\n")
+        r.commit()
+        if tags:
+            r.tag("t%d" % i)
+    return r
+
+
+def _clone(root, r, name, depth):
+    dest = root / name
+    subprocess.run(["git", "clone", "-q", "--depth", str(depth), "--no-single-branch", "file://" + str(r.path),
+                    str(dest)], check=True, capture_output=True, env=ENV)
+    return dest
+
+
+@proof("SH01")
+def sh01(root):
+    r = _shallow_history(root, "sh01")
+    s = _clone(root, r, "sh01-shallow", 2)
+    rc, doc, _o, err = run(s, "--at", "commits")
+    check(doc is not None, "no report: %s" % err[:160])
+    check(rc == 2 and doc.get("verdict") == "incomplete" and doc.get("reason_code") == "shallow_history"
+          and doc.get("history_shallow") is True,
+          "--depth 2 clone, --at commits: exit %d, %r, reason %r, history_shallow %r; required 2, incomplete, "
+          "shallow_history, true" % (rc, doc.get("verdict"), doc.get("reason_code"), doc.get("history_shallow")))
+
+
+@proof("SH02")
+def sh02(root):
+    r = _shallow_history(root, "sh02", early=False)
+    s = _clone(root, r, "sh02-shallow", 2)
+    rc, doc, _o, err = run(s, "--at", "commits")
+    check(doc is not None and rc == 1 and doc.get("verdict") == "drift",
+          "late drift in a --depth 2 clone: exit %d, %r; required 1 and drift" % (rc, (doc or {}).get("verdict")))
+
+
+@proof("SH03")
+def sh03(root):
+    r = _shallow_history(root, "sh03", tags=True)
+    rc, doc, _o, _e = run(r, "--at", "commits")
+    check(rc == 1 and doc.get("verdict") == "drift" and "history_shallow" not in doc,
+          "full history, --at commits: exit %d, %r; required 1, drift, no history_shallow" % (rc, doc.get("verdict")))
+    full_rc, full, _o, _e = run(r)
+    s = _clone(root, r, "sh03-shallow", 1)
+    subprocess.run(["git", "-C", str(s), "fetch", "-q", "--depth", "1", "--tags"], check=True, capture_output=True,
+                   env=ENV)
+    rc, doc, _o, _e = run(s)
+    check(rc == full_rc and doc.get("verdict") == full.get("verdict") and "history_shallow" not in doc,
+          "--at tags in a shallow clone with every tag: exit %d, %r; required %d, %r as the full clone, no "
+          "history_shallow" % (rc, doc.get("verdict"), full_rc, full.get("verdict")))
+
+
 @proof("ACT01")
 def act01(root):
     action = Path(DETECTOR).parent / "action.yml"

@@ -29,6 +29,7 @@ stderr with `reason: CODE`. A decided verdict (exit 0 or 1) carries none.
 | `version_from_tag` | the version is derived from the tag at build time |
 | `source_contradicted`, `sources_conflict`, `source_too_large` | the source is contradicted by the tags, disagrees with another, or was too large to read |
 | `strict_uncovered`, `too_few_compared` | `--strict` and a point not compared; fewer points compared than not |
+| `shallow_history` | (1.11.1) `--at commits` in a shallow clone, no label in drift among the commits it holds |
 | `empty_closure`, `one_label`, `no_publication_points` | nothing in the closure; one label only; no tag to measure |
 | `tag_names_no_version`, `prefix_names_no_package`, `unknown_ref` | about the tag or reference named |
 | `bad_pattern`, `usage`, `broken_config`, `not_a_repository`, `git_unreadable` | about the input |

@@ -1591,6 +1591,9 @@ def decide(a, drifting, contradicted, labels, empty, pts, by_label, no_label, tr
     elif labels.conflicts or (a.strict and (no_label or empty or truncated)) or compared < no_label + empty:
         # `clean` rests on at least as many compared points as uncompared ones
         verdict = "incomplete"
+    elif getattr(a, "history_shallow", False):
+        # §38.2: no label in drift among the commits present; the commits not fetched are not measured
+        verdict = "incomplete"
     else:
         verdict = "clean"
     # 0 is `clean` and nothing else: an absence of measurement is not a pass
@@ -1598,7 +1601,8 @@ def decide(a, drifting, contradicted, labels, empty, pts, by_label, no_label, tr
     if verdict == "incomplete":
         REASON[0] = ("source_contradicted" if contradicted else "source_too_large" if labels.sources.too_large
                      else "sources_conflict" if labels.conflicts
-                     else "strict_uncovered" if a.strict and (no_label or empty or truncated) else "too_few_compared")
+                     else "strict_uncovered" if a.strict and (no_label or empty or truncated)
+                     else "too_few_compared" if compared < no_label + empty else "shallow_history")
     elif code == 2:
         REASON[0] = {"empty_closure": "empty_closure", "no_labels": "no_version_source"}.get(verdict, "one_label")
     return verdict, code
@@ -1703,6 +1707,10 @@ def report(*, a, at, by_label, churn, code, compared, contradicted, coverage, di
               + version_name_hint(a.repo, vfile, vregex))
     elif verdict == "inconclusive":
         print("INCONCLUSIVE: only one distinct label across the range scanned.")
+    elif verdict == "incomplete" and coverage.get("history_shallow") and not compared < no_label + empty:
+        print("INCOMPLETE: this is a shallow clone, and --at commits reads only the commits it holds.")
+        print(f"No label names more than one closure over the {compared} commits present; older ones were not")
+        print("fetched and are not measured. Run `git fetch --unshallow` (or check out with fetch-depth: 0).")
     elif verdict == "incomplete" and compared < no_label + empty:
         print(f"INCOMPLETE: no label names more than one closure over the {compared} points compared,")
         print(f"but {no_label + empty} could not be compared. `clean` needs at least as many compared as not.")
@@ -1734,6 +1742,9 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
     # --would-tag looks at every tag: a collision with an old tag is a collision
     limit = a.max_commits if not a.would_tag else 10 ** 9
     pts, total, not_commits, filtered, left_out = publication_points(a.repo, at, limit, tag_globs, published)
+    # §38.2: under --at commits a shallow clone holds only part of the history, and says nothing of the cut
+    a.history_shallow = at == "commits" and git(["rev-parse", "--is-shallow-repository"], a.repo,
+                                                may_fail=True).strip() == "true"
     if not pts and (not a.would_tag or (tag_globs and filtered) or (published is not None and left_out)):
         msg = ("no tags found — this repository publishes nothing addressable by tag. "
                "If it publishes continuously, rerun with --at commits.")
@@ -1794,12 +1805,17 @@ def measure(a, objects: Objects, head_sha: str, at: str, tag_globs, vfile, vrege
     dirty, dirty_note, stamp, coverage = assemble(
         a, head_sha, closure, pts, compared, no_label, empty, not_commits, truncated, labels, rejected,
         contradicted, not_voting, tag_globs, filtered, published, total, left_out)
+    if a.history_shallow:
+        coverage["history_shallow"] = True
 
     if a.would_tag:
         return would_tag(a, closure, head_entries, labels, vpath, by_label,
                          drifting, stamp, coverage, at, include, dirty, dirty_note, empty_by_label, contradicted)
 
     verdict, code = decide(a, drifting, contradicted, labels, empty, pts, by_label, no_label, truncated, compared)
+    if REASON[0] == "shallow_history":
+        coverage["note"] = ("shallow clone: --at commits read only the commits it holds; run git fetch --unshallow "
+                            "(or check out with fetch-depth: 0) to measure the whole history")
 
     explained = None
     if a.explain is not None:
