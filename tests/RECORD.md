@@ -1,3 +1,13 @@
+# Record of the battery runs — closure_drift 1.11.0
+
+Detector 1.11.0: `closure_drift.py`, sha256 `0626fe829ae75b38661f11e83c637feceaef79b90afbf109a521de61e9b9f2cf`. Adds `--evidence` (`closure_commits`) and the independent verifier `closure_verify.py` (§37); no verdict changed. CI run 43763191804 (branch `release-1.11.0`): all 28 battery, mutant, adversarial, oracle, property, verifier and Action jobs green on Ubuntu, macOS and Windows. The published-record job failed because this version is not yet deposited, as before.
+
+Verifier (§37): adversarial 8 of 8 cases end in their pre-registered code; mutants V01–V08 8 of 8 caught.
+
+Differential against 1.10.0 (`tools/structural/GATE-1.11.md`): 8,181 calls seen = 2,702 compared + 5,479 excluded + 0 not concluded; 2 differences, both in the usage text (am. 3); exit codes identical.
+
+Regression corpus (run 43763188295, `regression-check/v1.11.0`): 99 of 99 checkable match; mechanisms 79 / 7 / 1; 29 of 29 drift reports verified by `closure_verify.py` (225 closures); `apache/arrow` not checkable.
+
 # Record of the battery runs — closure_drift 1.10.0
 
 Detector 1.10.0: `closure_drift.py`, sha256 `9e317a1f442d801fb64b57e33f75952761aa01af19580a197e5fa114d27fb4c4`. Reason codes only (§36); no verdict changed. CI run 43714143837 (branch `release-1.10.0`): all 28 battery, mutant, adversarial, oracle, property and Action jobs green on Ubuntu, macOS and Windows; 280 proofs (RC01–RC05 added), 85 mutants. The deposit job failed, as before.
