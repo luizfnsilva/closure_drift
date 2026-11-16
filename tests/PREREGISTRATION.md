@@ -2164,3 +2164,29 @@ because it reads only the top-level `drift`. Fix in `action.yml` only; the detec
   and label `1.0`. Red on 1.11.0's `action.yml` (no annotation names `1.0`).
 - **M86.** In `action.yml`, the loop over `components` iterates nothing; ACT08 must turn red.
 Nothing else changes; the battery and the mutants must stay as they were otherwise.
+
+### 38.2 Added 2026-11-16, before any code — a shallow clone under `--at commits` (a proven bug, under the freeze)
+
+Found while reading an outside review (16/11). A repository whose `1.0` names two states in its first commits and
+whose later commits declare `2.0` and `3.0` is `drift` (exit 1) with `--at commits`; its `git clone --depth 2` is
+`clean` (exit 0) with `range_truncated: false`. The scan reads only the commits the clone holds and says nothing of
+the cut: a determination made on history that is not there. (`--at tags` is not affected: each closure is read
+from its tag's own tree, which a shallow fetch of the tag carries; a tag that was not fetched is not in the
+repository, the trusted-history limit of §37.) The Action already refuses a shallow checkout; the command line did
+not.
+
+**Fix.** With `--at commits` in a shallow repository (`git rev-parse --is-shallow-repository`), the report gains
+`history_shallow: true` and `clean` is not given: the verdict is `incomplete`, exit 2, `reason_code`
+`shallow_history`, with a note naming `git fetch --unshallow`. `drift` stays `drift`: two commits that are present
+and declare one label over two closures prove it whatever is missing. Every other verdict is unchanged. Additive:
+one field, one reason code, documented in `docs/REPORT.md` and `docs/VERDICTS.md`.
+
+- **SH01.** The repository above, cloned `--depth 2`, `--at commits --json`: `incomplete`, exit 2, `reason_code`
+  `shallow_history`, `history_shallow` true. Red on 1.11.0 (`clean`, exit 0).
+- **SH02.** The same history with the drift in the last two commits, cloned `--depth 2`: `drift`, exit 1.
+- **SH03.** A full clone of the SH01 repository: `drift`, exit 1, no `history_shallow`. The same clone cloned
+  `--depth 2` under `--at tags` with every tag fetched: the verdict of the full clone, no `history_shallow`.
+- **M87.** The shallow test always answers false; SH01 must turn red.
+
+Gate: battery, mutants and the differential against 1.11.0 (every call accounted; the only differences allowed
+are SH01–SH03's and the new usage text); the corpus is `--at tags` and must stay 99/99.
