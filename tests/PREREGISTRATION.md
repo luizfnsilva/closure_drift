@@ -2154,3 +2154,13 @@ Otherwise 1.11 stays the last functional release (§36) and the freeze starts; c
 documentation, class B items are recorded. An ambiguity argued without a printed report that triggers it does not
 count. Results go to `tools/consumers/RESULT.md`, with every consumer and every pair, including those that were
 unambiguous.
+
+### 38.1 Added 2026-11-16, before any code — D1, the Action on a components report (a proven bug, under the freeze)
+
+`tools/consumers/RESULT.md` D1: on a components report in drift the Action fails the step but annotates no label,
+because it reads only the top-level `drift`. Fix in `action.yml` only; the detector does not change.
+- **ACT08.** A repository with `.closure-drift.json` declaring one component `a` whose label `1.0` names two
+  closures. Through the Action: exit 1, output `verdict=drift`, and an `::error` annotation naming component `a`
+  and label `1.0`. Red on 1.11.0's `action.yml` (no annotation names `1.0`).
+- **M86.** In `action.yml`, the loop over `components` iterates nothing; ACT08 must turn red.
+Nothing else changes; the battery and the mutants must stay as they were otherwise.
