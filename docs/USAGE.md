@@ -61,7 +61,7 @@ git clone -q https://github.com/luizfnsilva/closure_drift && python3 closure_dri
 python3 closure_drift/closure_drift.py /path/to/your/repo
 ```
 
-Or without cloning: `curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.11.0/closure_drift.py`
+Or without cloning: `curl -sO https://raw.githubusercontent.com/luizfnsilva/closure_drift/v1.11.1/closure_drift.py`
 then `python3 closure_drift.py` inside any git repository. Needs Python 3.9+ and git. The last
 lines say what to do next. (`./reproduce.sh` is something else: it validates closure_drift itself,
 a long run, and does not look at your repository.)
@@ -86,7 +86,7 @@ drift came about. On a tag push the Action runs `--tag`; on any other push, `--w
 # GitHub Actions
 - uses: actions/checkout@v4
   with: { fetch-depth: 0 }
-- uses: luizfnsilva/closure_drift@v1.11.0
+- uses: luizfnsilva/closure_drift@v1.11.1
 ```
 
 Push the workflow before the first tag: a tag pushed together with the workflow that should run on
@@ -97,7 +97,7 @@ with the default mode from the first tag.
 ```yaml
 # pre-commit, on git push
 - repo: https://github.com/luizfnsilva/closure_drift
-  rev: v1.11.0
+  rev: v1.11.1
   hooks: [{ id: closure-drift-would-tag }]
 ```
 
@@ -292,6 +292,8 @@ both on private repositories. `closure-drift --json > result.json`, then
 or write to lfnsilva.invest@gmail.com. A result showing the tool is wrong is the most useful kind.
 
 ## Version
+
+**1.11.1** fixes two cases: drift inside a component is now annotated by the Action, and `--at commits` in a shallow clone gives `incomplete` (`shallow_history`) instead of `clean`.
 
 **1.11.0** gives every refusal and every undetermined verdict a stable reason code: `reason_code` in the JSON of an undetermined verdict, and a last stderr line `reason: CODE`. Decisions and exit codes are those of 1.9.0. The codes are listed in `docs/VERDICTS.md`.
 

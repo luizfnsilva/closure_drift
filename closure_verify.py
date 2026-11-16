@@ -21,7 +21,7 @@ import re
 import subprocess
 import sys
 
-__version__ = "1.11.0"
+__version__ = "1.11.1"
 
 NEVER = ["**/test/**", "**/tests/**", "**/*_test.*", "**/*.test.*", "**/spec/**", "**/docs/**", "**/*.md",
          "**/node_modules/**", "**/vendor/**", "**/.git/**"]

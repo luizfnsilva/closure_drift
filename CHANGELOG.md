@@ -3,6 +3,19 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 1.11.1 — 2026-11-16
+
+Two fixes (`tests/PREREGISTRATION.md` §38.1 and §38.2). Reports gain one optional field; no other verdict changed.
+
+### Fixed
+- The GitHub Action annotates drift found inside a component, not only at the top level (§38.1, proof ACT08).
+- `--at commits` in a shallow clone no longer reports `clean`: the verdict is `incomplete`, reason code
+  `shallow_history`, with `coverage.history_shallow` true and a hint to unshallow (§38.2, proofs SH01–SH03).
+  `--at tags` is unaffected.
+
+### Documentation
+- `docs/REPORT.md`: wording fixes A1–A3 from the consumer study (§38, `tools/consumers/RESULT.md`).
+
 ## 1.11.0 — 2026-11-15
 
 An independent verifier of the closure ids (`tests/PREREGISTRATION.md` §37 and amendments 1–3). Decisions, reports
