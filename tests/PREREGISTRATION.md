@@ -2117,3 +2117,40 @@ kept as the record of why.
 = 2,702 compared + 5,479 excluded + 0 not concluded; harness errors 0. Two differences, both the new flag in the
 usage text (`--help`; the usage line of a refusal, exit 2 in both); exit codes equal everywhere; no report,
 verdict or refusal differs. Am. 2 should have named the usage text; it is the only difference admitted.
+
+## 38. Added 2026-11-16, before any consumer is read — the JSON consumer study that decides 2.0
+
+**Question.** §36 makes 2.0 conditional: it happens only if real consumers of the `--json` report show an
+ambiguity that the `report_format: 2` contract cannot fix. This section fixes, before any consumer is opened, who
+counts as a consumer, what counts as an ambiguity, and the rule that decides.
+
+**Population, fixed now.**
+- *Internal* (written by this project, but each reads the report as an outsider would): `action.yml`,
+  `closure_drift_mcp.py` and `integrations/mcp/closure_drift_mcp.py`, `closure_verify.py`,
+  `tools/regression/regress.py`, every file under `integrations/`, `examples/`, `skills/` and `docs/` that reads a
+  report field, and the GitLab template `templates/closure-drift.yml`.
+- *External*: GitHub code search, run once, for `closure_drift` and for `closure-drift`, excluding repositories
+  owned by `luizfnsilva`; GitLab is covered by the same two strings. A hit is a consumer only if it reads the JSON
+  report (parses `--json` output, or reads a report field from the Action or MCP output). Hits that cannot be
+  decided are listed as *not concluded*, never dropped.
+- Zero external consumers is a possible result and is reported as such; it does not end the study, because the
+  internal ones are still read.
+
+**Unit.** A (consumer, field read) pair, plus one pass over the contract itself: for every top-level field that
+appears in `docs/report-examples/` or in the 100 corpus reports of `regression-check/v1.11.0`, `docs/REPORT.md`
+must state its type, when it is present, and what it means.
+
+**Ambiguity.** A read is ambiguous when two readings, both consistent with `docs/REPORT.md`, give different
+behaviour on some report the detector actually prints (an example in `docs/report-examples/` or a corpus report);
+the report is named. A field whose presence condition or meaning the contract does not state is ambiguous only
+when a consumer is shown that depends on the unstated part. Classes:
+- **A** — fixed by wording in `docs/REPORT.md` alone (1.x documentation patch).
+- **B** — fixed by adding a field (additive, allowed within format 2; after the freeze, only if it is a proven bug).
+- **C** — fixed only by removing a field, renaming it or changing what an existing value means: needs
+  `report_format: 3`, that is 2.0.
+
+**Decision.** 2.0 if and only if at least one class-C ambiguity is shown, with its consumer and its report.
+Otherwise 1.11 stays the last functional release (§36) and the freeze starts; class A items are fixed in the
+documentation, class B items are recorded. An ambiguity argued without a printed report that triggers it does not
+count. Results go to `tools/consumers/RESULT.md`, with every consumer and every pair, including those that were
+unambiguous.
