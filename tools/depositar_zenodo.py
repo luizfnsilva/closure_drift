@@ -13,6 +13,7 @@ manifesto antes de subir, e recusa se algum divergir. Só biblioteca padrão.
 """
 import argparse
 import re
+import time
 import textwrap, hashlib, json, os, sys, urllib.error, urllib.parse, urllib.request
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -247,8 +248,20 @@ def main():
     dep = pedir("GET", rascunho, token)
     dep_id = dep["id"]
 
-    for f in pedir("GET", "%s/deposit/depositions/%s/files" % (API, dep_id), token):
-        pedir("DELETE", "%s/deposit/depositions/%s/files/%s" % (API, dep_id, f["id"]), token)
+    # O Zenodo devolve 500 de vez em quando ao apagar um arquivo herdado (17/11/2026: tres vezes
+    # seguidas); apagar e idempotente, entao repete-se ate a lista ficar vazia.
+    for tentativa in range(8):
+        restam = pedir("GET", "%s/deposit/depositions/%s/files" % (API, dep_id), token)
+        if not restam:
+            break
+        for f in restam:
+            try:
+                pedir("DELETE", "%s/deposit/depositions/%s/files/%s" % (API, dep_id, f["id"]), token)
+            except SystemExit as e:
+                print("  apagar %s falhou (%s); de novo" % (f.get("filename"), str(e).split("\n")[0]))
+                time.sleep(15)
+    else:
+        raise SystemExit("rascunho %s ainda tem arquivos herdados; nada foi publicado." % dep_id)
     print("rascunho %s · arquivos herdados removidos" % dep_id)
 
     balde = dep["links"]["bucket"]
