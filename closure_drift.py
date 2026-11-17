@@ -111,8 +111,9 @@ REDIRECTING = ("GIT_DIR", "GIT_WORK_TREE", "GIT_OBJECT_DIRECTORY", "GIT_ALTERNAT
 
 def git_env() -> dict:
     env = {k: v for k, v in os.environ.items() if k not in REDIRECTING}
+    # §38.3: a graft file rewrites parents as replace refs do; both are set aside
     env.update(GIT_OPTIONAL_LOCKS="0", GIT_TERMINAL_PROMPT="0", GIT_NO_REPLACE_OBJECTS="1",
-               GIT_NO_LAZY_FETCH="1", LC_ALL="C")
+               GIT_GRAFT_FILE=os.devnull, GIT_NO_LAZY_FETCH="1", LC_ALL="C")
     return env
 
 

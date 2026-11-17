@@ -2890,6 +2890,38 @@ def sh03(root):
           "history_shallow" % (rc, doc.get("verdict"), full_rc, full.get("verdict")))
 
 
+def _rev(r, rev):
+    return subprocess.run(["git", "-C", str(r.path), "rev-parse", rev], check=True, capture_output=True,
+                          env=ENV).stdout.decode().strip()
+
+
+@proof("GF01")
+def gf01(root):
+    r = _shallow_history(root, "gf01")
+    full_rc, full, _o, _e = run(r, "--at", "commits")
+    (r.path / ".git" / "info").mkdir(exist_ok=True)
+    (r.path / ".git" / "info" / "grafts").write_text(_rev(r, "HEAD~1") + "\n", encoding="utf-8")
+    rc, doc, _o, err = run(r, "--at", "commits")
+    check(doc is not None, "no report: %s" % err[:160])
+    check(full_rc == 1 and rc == 1 and doc.get("verdict") == "drift"
+          and doc.get("closure_ids") == full.get("closure_ids"),
+          "a graft file cutting the history, --at commits: exit %d, %r; required 1 and drift with the closures of "
+          "the repository without it" % (rc, doc.get("verdict")))
+
+
+@proof("GF02")
+def gf02(root):
+    r = _shallow_history(root, "gf02")
+    full_rc, full, _o, _e = run(r, "--at", "commits")
+    (r.path / ".git" / "info").mkdir(exist_ok=True)
+    (r.path / ".git" / "info" / "grafts").write_text("1" * 40 + "\n", encoding="utf-8")
+    rc, doc, _o, _e = run(r, "--at", "commits")
+    check(rc == full_rc and doc is not None and doc.get("verdict") == full.get("verdict")
+          and doc.get("closure_ids") == full.get("closure_ids"),
+          "a graft file naming no commit of the history: exit %d, %r; required %d, %r" %
+          (rc, (doc or {}).get("verdict"), full_rc, full.get("verdict")))
+
+
 @proof("ACT01")
 def act01(root):
     action = Path(DETECTOR).parent / "action.yml"

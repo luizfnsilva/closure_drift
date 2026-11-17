@@ -135,6 +135,7 @@ MUTANTS = [
     ("M85", "EC03", [("action.yml", 'if r.get("points_with_empty_closure"):\n            print("points with', 'if False:\n            print("points with')]),
     ("M86", "ACT08", [("action.yml", 'for name, c in sorted((r.get("components") or {}).items())]', 'for name, c in []]')]),
     ("M87", "SH01", [("closure_drift.py", 'a.history_shallow = at == "commits" and git(', 'a.history_shallow = False and git(')]),
+    ("M88", "GF01", [("closure_drift.py", 'GIT_GRAFT_FILE=os.devnull, ', '')]),
     ("M86", "NX07", [("    if written:   # \u00a732: the version is written at publish time\n", "    if False:\n")]),
     ("M87", "D5A", [('r"|github\\.event\\.release\\.tag_name|git\\s+describe\\s+--tags")', 'r"|git\\s+describe\\s+--tags")')]),
     ("M60", "EN01", [('stream.reconfigure(encoding="utf-8", errors="backslashreplace")', 'stream.reconfigure(errors="backslashreplace")')]),
