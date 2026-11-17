@@ -114,6 +114,10 @@ def git_env() -> dict:
     # §38.3: a graft file rewrites parents as replace refs do; both are set aside
     env.update(GIT_OPTIONAL_LOCKS="0", GIT_TERMINAL_PROMPT="0", GIT_NO_REPLACE_OBJECTS="1",
                GIT_GRAFT_FILE=os.devnull, GIT_NO_LAZY_FETCH="1", LC_ALL="C")
+    # naming any graft file makes git print a deprecation hint on stderr; one more config entry, after the caller's
+    n = int(env["GIT_CONFIG_COUNT"]) if env.get("GIT_CONFIG_COUNT", "").isdigit() else 0
+    env.update({"GIT_CONFIG_COUNT": str(n + 1), "GIT_CONFIG_KEY_%d" % n: "advice.graftFileDeprecated",
+                "GIT_CONFIG_VALUE_%d" % n: "false"})
     return env
 
 

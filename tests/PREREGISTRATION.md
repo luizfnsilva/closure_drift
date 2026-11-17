@@ -2217,3 +2217,9 @@ already set aside: the history read is the one the commit objects record. No new
 
 Gate: battery, mutants and the differential against 1.11.1 (every call accounted; the only differences allowed are
 GF01's); the corpus is `--at tags` and must stay 99/99.
+
+**Amendment 1 (17/11, after the first differential, before any change to the gate).** The first differential
+against 1.11.1 showed a second difference besides GF01: adversarial SR03, same exit, but the refusal's stderr now
+began with git's hint that the graft file is deprecated — git prints it whenever a graft file is named, even the
+null device. The fix therefore also sets `advice.graftFileDeprecated=false`, appended to the caller's
+`GIT_CONFIG_COUNT` entries rather than replacing them. The gate is unchanged: GF01 is the only difference allowed.
