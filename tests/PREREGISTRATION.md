@@ -2190,3 +2190,30 @@ one field, one reason code, documented in `docs/REPORT.md` and `docs/VERDICTS.md
 
 Gate: battery, mutants and the differential against 1.11.0 (every call accounted; the only differences allowed
 are SH01–SH03's and the new usage text); the corpus is `--at tags` and must stay 99/99.
+
+### 38.3 Added 2026-11-17, before any code — a graft file under `--at commits` (a proven bug, under the freeze)
+
+Found by auditing the boundary of §38.2 (17/11): which other ways can a selection of the history produce a `clean`
+that reads as complete? Measured on 1.11.1 with a repository whose `1.0` names two states in its first commits and
+whose later commits declare `2.0` to `5.0` (`drift`, exit 1, with `--at commits`):
+
+- `--max-commits 3`: `clean`, with `range_truncated: true` and the text naming the points left out. A cut the user
+  asked for, and said; unchanged.
+- `git replace --graft` on a middle commit: `drift`. Replace refs are already ignored (`GIT_NO_REPLACE_OBJECTS`).
+- the same graft written to `.git/info/grafts`: `clean`, exit 0, "4 scanned", nothing said. Git still honours the
+  graft file (deprecated, not removed); `GIT_NO_REPLACE_OBJECTS` does not cover it, and `rev-list --count` is
+  grafted too, so `range_truncated` stays false.
+
+**Fix.** Every git call of the detector runs with `GIT_GRAFT_FILE` set to the null device, as replace refs are
+already set aside: the history read is the one the commit objects record. No new field, no new reason code; under
+`--at tags` nothing changes (each closure is read from its tag's tree). `closure_verify.py` already refuses grafts
+(§37) and is unchanged.
+
+- **GF01.** The repository above with that `.git/info/grafts`, `--at commits --json`: `drift`, exit 1, the verdict
+  and closures of the repository without the file. Red on 1.11.1 (`clean`, exit 0).
+- **GF02.** A graft file that names a commit not in the history (no effect on it): the verdict of the repository
+  without the file, as on 1.11.1.
+- **M88.** `GIT_GRAFT_FILE` is not set; GF01 must turn red.
+
+Gate: battery, mutants and the differential against 1.11.1 (every call accounted; the only differences allowed are
+GF01's); the corpus is `--at tags` and must stay 99/99.
