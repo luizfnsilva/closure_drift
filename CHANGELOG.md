@@ -3,7 +3,7 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
-## 1.11.1 — 2026-11-16
+## 1.11.1 — 2026-11-17
 
 Two fixes (`tests/PREREGISTRATION.md` §38.1 and §38.2). Reports gain one optional field; no other verdict changed.
 
