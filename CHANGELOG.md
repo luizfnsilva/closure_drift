@@ -3,6 +3,15 @@
 All notable changes to this deposit. Each deposited version has its own DOI under the concept
 DOI 10.5281/zenodo.21763931; cite the version DOI when reporting a measurement.
 
+## 1.11.2 — 2026-11-19
+
+One fix (`tests/PREREGISTRATION.md` §38.3). No other verdict changed.
+
+### Fixed
+- `--at commits` no longer reads `.git/info/grafts`: a graft file that cut the history could make early drift
+  vanish and give `clean`. Graft files are set aside under every git call, as replace refs already were
+  (proofs GF01, GF02; mutant M88).
+
 ## 1.11.1 — 2026-11-17
 
 Two fixes (`tests/PREREGISTRATION.md` §38.1 and §38.2). Reports gain one optional field; no other verdict changed.
