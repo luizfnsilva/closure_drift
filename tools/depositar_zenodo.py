@@ -19,7 +19,7 @@ import textwrap, hashlib, json, os, sys, urllib.error, urllib.parse, urllib.requ
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 API = "https://zenodo.org/api"
 CONCEITO = "21763931"          # concept DOI 10.5281/zenodo.21763931
-ULTIMO_REGISTRO = "24305611"   # a versão 1.11.1
+ULTIMO_REGISTRO = "24380488"   # a versão 1.11.2
 
 
 ARQUIVO_DO_TOKEN = os.path.expanduser("~/.config/zenodo.token")
