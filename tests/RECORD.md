@@ -1,3 +1,11 @@
+# Record of the battery runs — closure_drift 1.11.2
+
+Detector 1.11.2: `closure_drift.py`, sha256 `ecc0057c3b816a64b68c0da48e33271724d1550143e3894e3229ef561fbce991`. One fix (§38.3): under `--at commits` a `.git/info/grafts` file is set aside, as replace refs already were (GF01, GF02, mutant M88). CI run 44570222631 (branch `release-1.11.2`): all battery, mutant, adversarial, oracle, property, verifier and Action jobs green on Ubuntu, macOS and Windows. The two deposit jobs failed because this version is not yet deposited, as before.
+
+Differential against 1.11.1 (`tools/structural/GATE-1.11.2.md`): 8,208 calls seen, 2,711 compared, 0 harness errors; 1 difference, the one §38.3 allows (GF01).
+
+Regression corpus (run 44570220723, `regression-check/v1.11.2`): 99 of 99 checkable match; mechanisms 79 / 7 / 1; 29 of 29 drift reports verified by `closure_verify.py` (225 closures); `apache/arrow` not checkable.
+
 # Record of the battery runs — closure_drift 1.11.1
 
 Detector 1.11.1: `closure_drift.py`, sha256 `2b212770b566a9c246c232e8e2eeee39645915f79de0b36eaf12ac5a3f447ba1`. Two fixes (§38.1, §38.2): the Action annotates drift inside a component (ACT08, mutant M86); `--at commits` in a shallow clone gives `incomplete`, reason `shallow_history` (SH01–SH03, mutant M87). CI run 43922588878 (branch `release-1.11.1`): all 26 battery, mutant, adversarial, oracle, property, verifier and Action jobs green on Ubuntu, macOS and Windows. The two deposit jobs failed because this version is not yet deposited, as before.
